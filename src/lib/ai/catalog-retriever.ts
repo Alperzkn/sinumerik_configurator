@@ -1,0 +1,91 @@
+/**
+ * Compact catalog reference tables for AI prompt context.
+ * Instead of loading and chunking massive catalog markdown files,
+ * we embed pre-extracted selection tables that the AI needs for
+ * motor-to-converter matching.
+ *
+ * This keeps the prompt small (~3000 tokens) and fast.
+ */
+
+export function retrieveCatalogContext(
+  _machineDescription: string,
+  _template: string | null
+): string {
+  return `
+
+## CATALOG REFERENCE — Motor and Drive Selection Tables
+
+### SIMOTICS S-1FT7 Compact Servo Motors (natural cooling, for S120 booksize)
+| SH | M0(Nm) | nN(rpm) | PN(kW) | Article No. | Motor Module |
+|---|---|---|---|---|---|
+| 36 | 2 | 6000 | 1.1 | 1FT7034-5AK71-1DA1 | 3A 6SL3120-1TE13-0AD0 |
+| 36 | 3 | 6000 | 1.1 | 1FT7036-5AK71-1DA1 | 5A 6SL3120-1TE15-0AD0 |
+| 48 | 3 | 3000 | 0.9 | 1FT7042-5AF71-1DA1 | 3A 6SL3120-1TE13-0AD0 |
+| 48 | 5 | 3000 | 1.4 | 1FT7044-5AF71-1DA1 | 3A 6SL3120-1TE13-0AD0 |
+| 48 | 7 | 3000 | 1.8 | 1FT7046-5AF71-1DA1 | 5A 6SL3120-1TE15-0AD0 |
+| 63 | 6 | 3000 | 1.7 | 1FT7062-5AF71-1DA1 | 5A 6SL3120-1TE15-0AD0 |
+| 63 | 9 | 3000 | 2.4 | 1FT7064-5AF71-1DA1 | 9A 6SL3120-1TE21-0AD0 |
+| 63 | 12 | 3000 | 2.9 | 1FT7066-5AF71-1DA1 | 9A 6SL3120-1TE21-0AD0 |
+| 63 | 15 | 3000 | 3.4 | 1FT7068-5AF71-1DA1 | 9A 6SL3120-1TE21-0AD0 |
+| 80 | 13 | 3000 | 3.2 | 1FT7082-5AF71-1DA1 | 9A 6SL3120-1TE21-0AD0 |
+| 80 | 20 | 3000 | 4.6 | 1FT7084-5AF71-1DA1 | 18A 6SL3120-1TE21-8AD0 |
+| 80 | 28 | 3000 | 5.7 | 1FT7086-5AF71-1DA1 | 18A 6SL3120-1TE21-8AD0 |
+| 100 | 30 | 2000 | 5.0 | 1FT7102-5AC71-1DA1 | 18A 6SL3120-1TE21-8AD0 |
+| 100 | 50 | 2000 | 8.0 | 1FT7105-5AC71-1DA1 | 24A 6SL3120-1TE22-4AD0 |
+| 100 | 70 | 2000 | 10.5 | 1FT7108-5AC71-1DA1 | 30A 6SL3120-1TE23-0AD0 |
+| 132 | 90 | 1500 | 10.5 | 1FT7132-5AB71-1DA1 | 30A 6SL3120-1TE23-0AD0 |
+| 132 | 118 | 1500 | 12.9 | 1FT7134-5AB71-1DA1 | 45A 6SL3120-1TE24-5AC0 |
+| 132 | 140 | 1500 | 14.5 | 1FT7136-5AB71-1DA1 | 45A 6SL3120-1TE24-5AC0 |
+| 132 | 170 | 1500 | 17.0 | 1FT7138-5AB71-1DA1 | 45A 6SL3120-1TE24-5AC0 |
+
+### SIMOTICS S-1FT7 Compact — Forced Ventilation (for heavy-duty / large machines)
+| SH | M0(Nm) | nN(rpm) | PN(kW) | Article No. | Motor Module |
+|---|---|---|---|---|---|
+| 80 | 27 | 3000 | 7.2 | 1FT7084-5SF71-1DA1 | 24A 6SL3120-1TE22-4AD0 |
+| 80 | 36 | 3000 | 9.1 | 1FT7086-5SF71-1DA1 | 30A 6SL3120-1TE23-0AD0 |
+| 100 | 65 | 2000 | 11.7 | 1FT7105-5SC71-1DA1 | 45A 6SL3120-1TE24-5AC0 |
+| 100 | 91 | 2000 | 15.3 | 1FT7108-5SC71-1DA1 | 45A 6SL3120-1TE24-5AC0 |
+| 132 | 140 | 2000 | 26.5 | 1FT7132-5SC71-1DA1 | 60A 6SL3120-1TE26-0AC0 |
+| 132 | 190 | 2000 | 33.5 | 1FT7134-5SC71-1DA1 | 85A 6SL3120-1TE28-5AA3 |
+| 132 | 235 | 2000 | 39.8 | 1FT7136-5SC71-1DA1 | 132A 6SL3120-1TE31-3AA3 |
+| 132 | 280 | 1500 | 39.0 | 1FT7138-5SB71-1DA1 | 85A 6SL3120-1TE28-5AA3 |
+
+### SIMOTICS M-1PH8 Spindle Motors — Asynchronous (forced ventilation, 400V)
+| SH | PN(kW) | nN(rpm) | MN(Nm) | IN(A) | Article No. | Motor Module |
+|---|---|---|---|---|---|---|
+| 100 | 3.7 | 1000 | 35 | 10 | 1PH8103-1DF10-0LA1 | 18A 6SL3120-1TE21-8AD0 |
+| 100 | 6.3 | 1000 | 60 | 18 | 1PH8107-1DF10-0LA1 | 18A 6SL3120-1TE21-8AD0 |
+| 132 | 7.9 | 1000 | 75 | 20 | 1PH8131-1DF10-0LA1 | 30A 6SL3120-1TE23-0AD0 |
+| 132 | 12 | 1000 | 115 | 30 | 1PH8133-1DF10-0LA1 | 30A 6SL3120-1TE23-0AD0 |
+| 132 | 17 | 1000 | 162 | 43 | 1PH8137-1DF10-0LA1 | 45A 6SL3120-1TE24-5AC0 |
+| 160 | 22 | 1000 | 210 | 55 | 1PH8163-1DF10-0LA1 | 60A 6SL3120-1TE26-0AC0 |
+| 160 | 28 | 1000 | 267 | 71 | 1PH8165-1DF10-0LA1 | 85A 6SL3120-1TE28-5AA3 |
+| 180 | 39 | 1000 | 372 | 87 | 1PH8184-1DF10-0LA1 | 85A 6SL3120-1TE28-5AA3 |
+| 180 | 51 | 1000 | 487 | 112 | 1PH8186-1DF10-0LA1 | 132A 6SL3120-1TE31-3AA3 |
+| 100 | 5.5 | 1500 | 35 | 14 | 1PH8103-1FF10-0LA1 | 18A 6SL3120-1TE21-8AD0 |
+| 100 | 7.5 | 1500 | 48 | 19 | 1PH8107-1FF10-0LA1 | 30A 6SL3120-1TE23-0AD0 |
+| 132 | 11 | 1500 | 70 | 28 | 1PH8133-1FF10-0LA1 | 45A 6SL3120-1TE24-5AC0 |
+| 132 | 15 | 1500 | 96 | 38 | 1PH8135-1FF10-0LA1 | 45A 6SL3120-1TE24-5AC0 |
+| 132 | 18.5 | 1500 | 118 | 46 | 1PH8137-1FF10-0LA1 | 60A 6SL3120-1TE26-0AC0 |
+| 160 | 30 | 1500 | 191 | 70 | 1PH8163-1FF10-0LA1 | 85A 6SL3120-1TE28-5AA3 |
+| 160 | 37 | 1500 | 236 | 82 | 1PH8165-1FF10-0LA1 | 85A 6SL3120-1TE28-5AA3 |
+| 180 | 45 | 1500 | 287 | 105 | 1PH8184-1FF10-0LA1 | 132A 6SL3120-1TE31-3AA3 |
+| 180 | 55 | 1500 | 350 | 130 | 1PH8186-1FF10-0LA1 | 200A 6SL3120-1TE32-0AA4 |
+| 225 | 75 | 1500 | 478 | 158 | 1PH8224-1FF10-0LA1 | 200A 6SL3120-1TE32-0AA4 |
+
+### S120 Line Modules (select by total motor power × 0.7 simultaneity)
+| Type | Power | Article No. | Interface Module (Active only) |
+|---|---|---|---|
+| Smart 5kW | 5kW | 6SL3130-6AE15-0AB1 | — |
+| Smart 10kW | 10kW | 6SL3130-6AE21-0AB1 | — |
+| Smart 36kW | 36kW | 6SL3130-6TE23-6AA3 | — |
+| Smart 55kW | 55kW | 6SL3130-6TE25-5AA3 | — |
+| Active 16kW | 16kW | 6SL3130-7TE21-6AA4 | 6SL3100-0BE21-6AB0 |
+| Active 36kW | 36kW | 6SL3130-7TE23-6AA3 | 6SL3100-0BE23-6AB0 |
+| Active 55kW | 55kW | 6SL3130-7TE25-5AA3 | 6SL3100-0BE25-5AB0 |
+| Active 80kW | 80kW | 6SL3130-7TE28-0AA3 | 6SL3100-0BE28-0AB0 |
+| Active 120kW | 120kW | 6SL3130-7TE31-2AA3 | 6SL3100-0BE31-2AB0 |
+
+Select motor from tables above based on required torque. Then pick matching Motor Module and Line Module.
+`;
+}
