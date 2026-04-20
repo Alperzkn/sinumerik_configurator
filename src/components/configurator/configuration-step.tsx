@@ -1,16 +1,35 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion } from "@/components/ui/accordion";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { SectionPanel } from "./section-panel";
-import { ComponentCard } from "./component-card";
+import { ComponentCard, type ComponentSpec } from "./component-card";
 import { CompatibilityWarnings } from "./compatibility-warning";
+import { ComponentSwapDialog, type SwapCategory } from "./component-swap-dialog";
+import { AiModifyPane } from "./ai-modify-pane";
+import { applySwap } from "@/lib/ai/config-mutations";
 
 export function ConfigurationStep() {
-  const { configuration, setStep, completeStep } = useConfiguratorStore();
+  const { configuration, setStep, completeStep, setConfiguration } = useConfiguratorStore();
+  const [swapState, setSwapState] = useState<{
+    category: SwapCategory;
+    currentArticle?: string;
+  } | null>(null);
+
+  const openSwap = (category: SwapCategory, currentArticle?: string) => {
+    setSwapState({ category, currentArticle });
+  };
+
+  const handleSwapSelect = (articleNumber: string) => {
+    if (!configuration || !swapState) return;
+    const updated = applySwap(configuration, swapState.category, articleNumber);
+    setConfiguration(updated);
+    setSwapState(null);
+  };
 
   if (!configuration) {
     return (
@@ -69,7 +88,7 @@ export function ConfigurationStep() {
       )}
 
       {/* Configuration sections */}
-      <Accordion defaultValue={["control-unit", "tech-packages", "software-options", "safety"]}>
+      <Accordion defaultValue={["control-unit", "cnc-software", "tech-packages", "software-options", "drives", "motors", "hmi", "safety", "cables"]}>
         {/* Control Unit */}
         <SectionPanel
           value="control-unit"
@@ -84,7 +103,14 @@ export function ConfigurationStep() {
           <ComponentCard
             name={configuration.controlUnit.name}
             articleNumber={configuration.controlUnit.articleNumber}
-            description={`${configuration.controlUnit.formFactor === "panel_based" ? "Panel-based" : "Cabinet-based"} | Max ${configuration.controlUnit.maxAxesSpindles} axes | ${configuration.controlUnit.maxChannels} channels | ${configuration.controlUnit.driveCliqPorts} DRIVE-CLiQ ports`}
+            description={configuration.controlUnit.formFactor === "panel_based" ? "Panel-based unit with built-in HMI" : "Cabinet-based unit, requires separate HMI panel"}
+            specs={[
+              { label: "Max axes", value: String(configuration.controlUnit.maxAxesSpindles) },
+              { label: "Channels", value: String(configuration.controlUnit.maxChannels) },
+              { label: "DRIVE-CLiQ", value: `${configuration.controlUnit.driveCliqPorts} ports` },
+              { label: "Form factor", value: configuration.controlUnit.formFactor === "panel_based" ? "Panel" : "Cabinet" },
+            ]}
+            onSwap={() => openSwap("control_unit", configuration.controlUnit.articleNumber)}
           />
         </SectionPanel>
 
@@ -168,15 +194,36 @@ export function ConfigurationStep() {
             }
             itemCount={configuration.drives.length}
           >
-            {configuration.drives.map((drive) => (
-              <ComponentCard
-                key={drive.id}
-                name={drive.name}
-                articleNumber={drive.articleNumber}
-                description={drive.description}
-                quantity={configuration.driveQuantities[drive.id]}
-              />
-            ))}
+            {configuration.drives.map((drive) => {
+              const specs: ComponentSpec[] = [];
+              if (drive.ratedCurrent) specs.push({ label: "Rated I", value: drive.ratedCurrent });
+              if (drive.ratedPower) specs.push({ label: "Power", value: drive.ratedPower });
+              if (drive.frameType) specs.push({ label: "Frame", value: drive.frameType });
+              if (drive.coolingType) specs.push({ label: "Cooling", value: drive.coolingType });
+
+              const isLineModule =
+                drive.componentType === "line_module_active" ||
+                drive.componentType === "line_module_smart" ||
+                drive.componentType === "line_module_basic";
+              const isFeedMm = drive.id.startsWith("feed-mm-");
+              const isSpindleMm = drive.id.startsWith("spindle-mm-");
+              let onSwap: (() => void) | undefined;
+              if (isLineModule) onSwap = () => openSwap("line_module", drive.articleNumber);
+              else if (isFeedMm) onSwap = () => openSwap("motor_module_feed", drive.articleNumber);
+              else if (isSpindleMm) onSwap = () => openSwap("motor_module_spindle", drive.articleNumber);
+
+              return (
+                <ComponentCard
+                  key={drive.id}
+                  name={drive.name}
+                  articleNumber={drive.articleNumber}
+                  description={drive.description}
+                  quantity={configuration.driveQuantities[drive.id]}
+                  specs={specs.length > 0 ? specs : undefined}
+                  onSwap={onSwap}
+                />
+              );
+            })}
           </SectionPanel>
         )}
 
@@ -193,15 +240,36 @@ export function ConfigurationStep() {
             }
             itemCount={configuration.motors.length}
           >
-            {configuration.motors.map((motor) => (
-              <ComponentCard
-                key={motor.id}
-                name={motor.name}
-                articleNumber={motor.articleNumber}
-                description={motor.description}
-                quantity={configuration.motorQuantities[motor.id]}
-              />
-            ))}
+            {configuration.motors.map((motor) => {
+              const specs: ComponentSpec[] = [];
+              if (motor.shaftHeight) specs.push({ label: "Shaft height", value: `SH${motor.shaftHeight}` });
+              if (motor.ratedPower) specs.push({ label: "Power", value: motor.ratedPower });
+              if (motor.ratedTorque) specs.push({ label: "Torque", value: motor.ratedTorque });
+              if (motor.maxTorque) specs.push({ label: "Max torque", value: motor.maxTorque });
+              if (motor.ratedSpeed) specs.push({ label: "Speed", value: motor.ratedSpeed });
+              if (motor.maxSpeed) specs.push({ label: "Max speed", value: motor.maxSpeed });
+              if (motor.ratedCurrent) specs.push({ label: "Current", value: motor.ratedCurrent });
+
+              const isFeed = motor.motorType === "feed_servo_sync";
+              const isSpindle = motor.motorType === "main_spindle_async" || motor.motorType === "main_spindle_sync";
+              const onSwap = isFeed
+                ? () => openSwap("motor_feed", motor.articleNumber)
+                : isSpindle
+                ? () => openSwap("motor_spindle", motor.articleNumber)
+                : undefined;
+
+              return (
+                <ComponentCard
+                  key={motor.id}
+                  name={motor.name}
+                  articleNumber={motor.articleNumber}
+                  description={motor.description}
+                  quantity={configuration.motorQuantities[motor.id]}
+                  specs={specs.length > 0 ? specs : undefined}
+                  onSwap={onSwap}
+                />
+              );
+            })}
           </SectionPanel>
         )}
 
@@ -278,6 +346,9 @@ export function ConfigurationStep() {
         )}
       </Accordion>
 
+      {/* AI modification pane */}
+      <AiModifyPane />
+
       {/* Notes */}
       {configuration.notes.length > 0 && (
         <div className="rounded-lg border bg-muted/50 p-4">
@@ -307,6 +378,17 @@ export function ConfigurationStep() {
           </svg>
         </Button>
       </div>
+
+      {/* Swap dialog */}
+      {swapState && (
+        <ComponentSwapDialog
+          open={!!swapState}
+          onClose={() => setSwapState(null)}
+          category={swapState.category}
+          currentArticle={swapState.currentArticle}
+          onSelect={handleSwapSelect}
+        />
+      )}
     </motion.div>
   );
 }

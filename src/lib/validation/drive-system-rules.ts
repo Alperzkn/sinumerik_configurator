@@ -60,6 +60,88 @@ const MOTOR_MODULE_POWER: Record<string, number> = Object.fromEntries(
   Object.entries(MOTOR_MODULE_SPECS).map(([k, v]) => [k, v.power])
 );
 
+// Motor specs lookup (feed + spindle) — keyed by article number prefix.
+// Source: Siemens D21.4 catalog selection tables.
+export interface MotorSpecs {
+  shaftHeight: number;
+  ratedPower: string;
+  ratedTorque: string;
+  ratedSpeed: string;
+  maxSpeed?: string;
+  maxTorque?: string;
+  ratedCurrent: string;
+  family: string;
+  variant: string;
+}
+
+export const MOTOR_SPECS: Record<string, MotorSpecs> = {
+  // SIMOTICS S-1FT7 Compact servo motors (natural cooling)
+  "1FT7034-5AK71-1DA1": { shaftHeight: 36, ratedPower: "1.1 kW", ratedTorque: "2 Nm", ratedSpeed: "6000 rpm", maxTorque: "5 Nm", ratedCurrent: "2.6 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7036-5AK71-1DA1": { shaftHeight: 36, ratedPower: "1.1 kW", ratedTorque: "3 Nm", ratedSpeed: "6000 rpm", maxTorque: "8 Nm", ratedCurrent: "3.5 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7042-5AF71-1DA1": { shaftHeight: 48, ratedPower: "0.9 kW", ratedTorque: "3 Nm", ratedSpeed: "3000 rpm", maxTorque: "8 Nm", ratedCurrent: "2.6 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7044-5AF71-1DA1": { shaftHeight: 48, ratedPower: "1.4 kW", ratedTorque: "5 Nm", ratedSpeed: "3000 rpm", maxTorque: "13 Nm", ratedCurrent: "2.8 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7046-5AF71-1DA1": { shaftHeight: 48, ratedPower: "1.8 kW", ratedTorque: "7 Nm", ratedSpeed: "3000 rpm", maxTorque: "18 Nm", ratedCurrent: "4.0 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7062-5AF71-1DA1": { shaftHeight: 63, ratedPower: "1.7 kW", ratedTorque: "6 Nm", ratedSpeed: "3000 rpm", maxTorque: "16 Nm", ratedCurrent: "3.9 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7064-5AF71-1DA1": { shaftHeight: 63, ratedPower: "2.4 kW", ratedTorque: "9 Nm", ratedSpeed: "3000 rpm", maxTorque: "25 Nm", ratedCurrent: "5.7 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7066-5AF71-1DA1": { shaftHeight: 63, ratedPower: "2.9 kW", ratedTorque: "12 Nm", ratedSpeed: "3000 rpm", maxTorque: "35 Nm", ratedCurrent: "8.4 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7068-5AF71-1DA1": { shaftHeight: 63, ratedPower: "3.4 kW", ratedTorque: "15 Nm", ratedSpeed: "3000 rpm", maxTorque: "45 Nm", ratedCurrent: "8.3 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7082-5AF71-1DA1": { shaftHeight: 80, ratedPower: "3.2 kW", ratedTorque: "13 Nm", ratedSpeed: "3000 rpm", maxTorque: "38 Nm", ratedCurrent: "7.6 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7084-5AF71-1DA1": { shaftHeight: 80, ratedPower: "4.6 kW", ratedTorque: "20 Nm", ratedSpeed: "3000 rpm", maxTorque: "60 Nm", ratedCurrent: "11 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7086-5AF71-1DA1": { shaftHeight: 80, ratedPower: "5.7 kW", ratedTorque: "28 Nm", ratedSpeed: "3000 rpm", maxTorque: "80 Nm", ratedCurrent: "15.5 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7102-5AC71-1DA1": { shaftHeight: 100, ratedPower: "5.0 kW", ratedTorque: "30 Nm", ratedSpeed: "2000 rpm", maxTorque: "90 Nm", ratedCurrent: "12.5 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7105-5AC71-1DA1": { shaftHeight: 100, ratedPower: "8.0 kW", ratedTorque: "50 Nm", ratedSpeed: "2000 rpm", maxTorque: "140 Nm", ratedCurrent: "18 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7108-5AC71-1DA1": { shaftHeight: 100, ratedPower: "10.5 kW", ratedTorque: "70 Nm", ratedSpeed: "2000 rpm", maxTorque: "190 Nm", ratedCurrent: "25 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7132-5AB71-1DA1": { shaftHeight: 132, ratedPower: "10.5 kW", ratedTorque: "90 Nm", ratedSpeed: "1500 rpm", maxTorque: "240 Nm", ratedCurrent: "22.5 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7134-5AB71-1DA1": { shaftHeight: 132, ratedPower: "12.9 kW", ratedTorque: "118 Nm", ratedSpeed: "1500 rpm", maxTorque: "310 Nm", ratedCurrent: "30 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7136-5AB71-1DA1": { shaftHeight: 132, ratedPower: "14.5 kW", ratedTorque: "140 Nm", ratedSpeed: "1500 rpm", maxTorque: "370 Nm", ratedCurrent: "36 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+  "1FT7138-5AB71-1DA1": { shaftHeight: 132, ratedPower: "17.0 kW", ratedTorque: "170 Nm", ratedSpeed: "1500 rpm", maxTorque: "450 Nm", ratedCurrent: "43 A", family: "SIMOTICS S-1FT7", variant: "Compact" },
+
+  // 1FT7 Forced Ventilation (heavy-duty)
+  "1FT7084-5SF71-1DA1": { shaftHeight: 80, ratedPower: "7.2 kW", ratedTorque: "27 Nm", ratedSpeed: "3000 rpm", maxTorque: "70 Nm", ratedCurrent: "21 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+  "1FT7086-5SF71-1DA1": { shaftHeight: 80, ratedPower: "9.1 kW", ratedTorque: "36 Nm", ratedSpeed: "3000 rpm", maxTorque: "95 Nm", ratedCurrent: "29 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+  "1FT7105-5SC71-1DA1": { shaftHeight: 100, ratedPower: "11.7 kW", ratedTorque: "65 Nm", ratedSpeed: "2000 rpm", maxTorque: "170 Nm", ratedCurrent: "31 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+  "1FT7108-5SC71-1DA1": { shaftHeight: 100, ratedPower: "15.3 kW", ratedTorque: "91 Nm", ratedSpeed: "2000 rpm", maxTorque: "240 Nm", ratedCurrent: "39 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+  "1FT7132-5SC71-1DA1": { shaftHeight: 132, ratedPower: "26.5 kW", ratedTorque: "140 Nm", ratedSpeed: "2000 rpm", maxTorque: "360 Nm", ratedCurrent: "60 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+  "1FT7134-5SC71-1DA1": { shaftHeight: 132, ratedPower: "33.5 kW", ratedTorque: "190 Nm", ratedSpeed: "2000 rpm", maxTorque: "490 Nm", ratedCurrent: "85 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+  "1FT7136-5SC71-1DA1": { shaftHeight: 132, ratedPower: "39.8 kW", ratedTorque: "235 Nm", ratedSpeed: "2000 rpm", maxTorque: "610 Nm", ratedCurrent: "98 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+  "1FT7138-5SB71-1DA1": { shaftHeight: 132, ratedPower: "39.0 kW", ratedTorque: "280 Nm", ratedSpeed: "1500 rpm", maxTorque: "730 Nm", ratedCurrent: "85 A", family: "SIMOTICS S-1FT7", variant: "Forced Ventilation" },
+
+  // SIMOTICS M-1PH8 Asynchronous spindle motors (1000 rpm)
+  "1PH8103-1DF10-0LA1": { shaftHeight: 100, ratedPower: "3.7 kW", ratedTorque: "35 Nm", ratedSpeed: "1000 rpm", maxSpeed: "9000 rpm", ratedCurrent: "10 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8107-1DF10-0LA1": { shaftHeight: 100, ratedPower: "6.3 kW", ratedTorque: "60 Nm", ratedSpeed: "1000 rpm", maxSpeed: "9000 rpm", ratedCurrent: "18 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8131-1DF10-0LA1": { shaftHeight: 132, ratedPower: "7.9 kW", ratedTorque: "75 Nm", ratedSpeed: "1000 rpm", maxSpeed: "8000 rpm", ratedCurrent: "20 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8133-1DF10-0LA1": { shaftHeight: 132, ratedPower: "12 kW", ratedTorque: "115 Nm", ratedSpeed: "1000 rpm", maxSpeed: "8000 rpm", ratedCurrent: "30 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8137-1DF10-0LA1": { shaftHeight: 132, ratedPower: "17 kW", ratedTorque: "162 Nm", ratedSpeed: "1000 rpm", maxSpeed: "8000 rpm", ratedCurrent: "43 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8163-1DF10-0LA1": { shaftHeight: 160, ratedPower: "22 kW", ratedTorque: "210 Nm", ratedSpeed: "1000 rpm", maxSpeed: "6500 rpm", ratedCurrent: "55 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8165-1DF10-0LA1": { shaftHeight: 160, ratedPower: "28 kW", ratedTorque: "267 Nm", ratedSpeed: "1000 rpm", maxSpeed: "6500 rpm", ratedCurrent: "71 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8184-1DF10-0LA1": { shaftHeight: 180, ratedPower: "39 kW", ratedTorque: "372 Nm", ratedSpeed: "1000 rpm", maxSpeed: "5000 rpm", ratedCurrent: "87 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8186-1DF10-0LA1": { shaftHeight: 180, ratedPower: "51 kW", ratedTorque: "487 Nm", ratedSpeed: "1000 rpm", maxSpeed: "5000 rpm", ratedCurrent: "112 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+
+  // 1PH8 1500 rpm variants
+  "1PH8103-1FF10-0LA1": { shaftHeight: 100, ratedPower: "5.5 kW", ratedTorque: "35 Nm", ratedSpeed: "1500 rpm", maxSpeed: "9000 rpm", ratedCurrent: "14 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8107-1FF10-0LA1": { shaftHeight: 100, ratedPower: "7.5 kW", ratedTorque: "48 Nm", ratedSpeed: "1500 rpm", maxSpeed: "9000 rpm", ratedCurrent: "19 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8133-1FF10-0LA1": { shaftHeight: 132, ratedPower: "11 kW", ratedTorque: "70 Nm", ratedSpeed: "1500 rpm", maxSpeed: "8000 rpm", ratedCurrent: "28 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8135-1FF10-0LA1": { shaftHeight: 132, ratedPower: "15 kW", ratedTorque: "96 Nm", ratedSpeed: "1500 rpm", maxSpeed: "8000 rpm", ratedCurrent: "38 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8137-1FF10-0LA1": { shaftHeight: 132, ratedPower: "18.5 kW", ratedTorque: "118 Nm", ratedSpeed: "1500 rpm", maxSpeed: "8000 rpm", ratedCurrent: "46 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8163-1FF10-0LA1": { shaftHeight: 160, ratedPower: "30 kW", ratedTorque: "191 Nm", ratedSpeed: "1500 rpm", maxSpeed: "6500 rpm", ratedCurrent: "70 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8165-1FF10-0LA1": { shaftHeight: 160, ratedPower: "37 kW", ratedTorque: "236 Nm", ratedSpeed: "1500 rpm", maxSpeed: "6500 rpm", ratedCurrent: "82 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8167-1FF10-0LA1": { shaftHeight: 160, ratedPower: "42 kW", ratedTorque: "267 Nm", ratedSpeed: "1500 rpm", maxSpeed: "6500 rpm", ratedCurrent: "95 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8184-1FF10-0LA1": { shaftHeight: 180, ratedPower: "45 kW", ratedTorque: "287 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5000 rpm", ratedCurrent: "105 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8186-1FF10-0LA1": { shaftHeight: 180, ratedPower: "55 kW", ratedTorque: "350 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5000 rpm", ratedCurrent: "130 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+  "1PH8224-1FF10-0LA1": { shaftHeight: 225, ratedPower: "75 kW", ratedTorque: "478 Nm", ratedSpeed: "1500 rpm", maxSpeed: "4500 rpm", ratedCurrent: "158 A", family: "SIMOTICS M-1PH8", variant: "Asynchronous" },
+};
+
+export function getMotorSpecs(articleNumber: string): MotorSpecs | undefined {
+  // Try exact match first
+  if (MOTOR_SPECS[articleNumber]) return MOTOR_SPECS[articleNumber];
+  // Try prefix match (first 7 chars like "1FT7062")
+  const prefix = articleNumber.substring(0, 7);
+  for (const key of Object.keys(MOTOR_SPECS)) {
+    if (key.startsWith(prefix)) return MOTOR_SPECS[key];
+  }
+  return undefined;
+}
+
 /**
  * Select the correct Line Module based on total motor power.
  * Applies 70% simultaneity factor for machine tools.

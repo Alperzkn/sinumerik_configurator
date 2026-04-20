@@ -1,0 +1,234 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { MOTOR_SPECS, MOTOR_MODULE_SPECS } from "@/lib/validation/drive-system-rules";
+
+export type SwapCategory = "motor_feed" | "motor_spindle" | "motor_module_feed" | "motor_module_spindle" | "line_module" | "control_unit";
+
+interface SwapOption {
+  articleNumber: string;
+  name: string;
+  specs: { label: string; value: string }[];
+  current?: boolean;
+}
+
+interface ComponentSwapDialogProps {
+  open: boolean;
+  onClose: () => void;
+  category: SwapCategory;
+  currentArticle?: string;
+  onSelect: (articleNumber: string) => void;
+}
+
+const LINE_MODULES: { article: string; name: string; power: number; type: string }[] = [
+  { article: "6SL3130-6AE15-0AB1", name: "Smart Line Module 5kW", power: 5, type: "Smart" },
+  { article: "6SL3130-6AE21-0AB1", name: "Smart Line Module 10kW", power: 10, type: "Smart" },
+  { article: "6SL3130-6TE23-6AA3", name: "Smart Line Module 36kW", power: 36, type: "Smart" },
+  { article: "6SL3130-6TE25-5AA3", name: "Smart Line Module 55kW", power: 55, type: "Smart" },
+  { article: "6SL3130-7TE21-6AA4", name: "Active Line Module 16kW", power: 16, type: "Active" },
+  { article: "6SL3130-7TE23-6AA3", name: "Active Line Module 36kW", power: 36, type: "Active" },
+  { article: "6SL3130-7TE25-5AA3", name: "Active Line Module 55kW", power: 55, type: "Active" },
+  { article: "6SL3130-7TE28-0AA3", name: "Active Line Module 80kW", power: 80, type: "Active" },
+  { article: "6SL3130-7TE31-2AA3", name: "Active Line Module 120kW", power: 120, type: "Active" },
+];
+
+const CONTROL_UNITS = [
+  { article: "6FC5317-4AA00-1CA0", name: "PPU 1740 (panel-based 15\")", maxAxes: 20, maxChannels: 4, ports: 4 },
+  { article: "6FC5317-4AA00-1DA0", name: "PPU 1740 (panel-based 19\")", maxAxes: 20, maxChannels: 4, ports: 4 },
+  { article: "6FC5317-4AA00-0AA0", name: "NCU 1740 (cabinet)", maxAxes: 20, maxChannels: 4, ports: 4 },
+  { article: "6FC5317-5AA00-0AA1", name: "NCU 1750 (cabinet)", maxAxes: 40, maxChannels: 10, ports: 6 },
+  { article: "6FC5317-6AA00-0AA0", name: "NCU 1760 (cabinet, HSC)", maxAxes: 50, maxChannels: 10, ports: 6 },
+];
+
+function getOptions(category: SwapCategory): SwapOption[] {
+  switch (category) {
+    case "motor_feed":
+      return Object.entries(MOTOR_SPECS)
+        .filter(([_, s]) => s.family.includes("1FT7") || s.family.includes("1FK"))
+        .map(([article, s]) => ({
+          articleNumber: article,
+          name: `${s.family} SH${s.shaftHeight} ${s.variant}`,
+          specs: [
+            { label: "Torque", value: s.ratedTorque },
+            { label: "Speed", value: s.ratedSpeed },
+            { label: "Power", value: s.ratedPower },
+            { label: "Current", value: s.ratedCurrent },
+          ],
+        }));
+
+    case "motor_spindle":
+      return Object.entries(MOTOR_SPECS)
+        .filter(([_, s]) => s.family.includes("1PH8"))
+        .map(([article, s]) => ({
+          articleNumber: article,
+          name: `${s.family} SH${s.shaftHeight}`,
+          specs: [
+            { label: "Power", value: s.ratedPower },
+            { label: "Torque", value: s.ratedTorque },
+            { label: "Speed", value: s.ratedSpeed },
+            { label: "Max rpm", value: s.maxSpeed || "-" },
+            { label: "Current", value: s.ratedCurrent },
+          ],
+        }));
+
+    case "motor_module_feed":
+    case "motor_module_spindle":
+      return Object.entries(MOTOR_MODULE_SPECS).map(([article, s]) => ({
+        articleNumber: article,
+        name: `Motor Module ${s.current}A / ${s.power}kW`,
+        specs: [
+          { label: "Rated I", value: `${s.current} A` },
+          { label: "Power", value: `${s.power} kW` },
+          { label: "Voltage", value: s.voltage },
+        ],
+      }));
+
+    case "line_module":
+      return LINE_MODULES.map((lm) => ({
+        articleNumber: lm.article,
+        name: lm.name,
+        specs: [
+          { label: "Power", value: `${lm.power} kW` },
+          { label: "Type", value: lm.type },
+        ],
+      }));
+
+    case "control_unit":
+      return CONTROL_UNITS.map((cu) => ({
+        articleNumber: cu.article,
+        name: cu.name,
+        specs: [
+          { label: "Max axes", value: String(cu.maxAxes) },
+          { label: "Channels", value: String(cu.maxChannels) },
+          { label: "DRIVE-CLiQ", value: `${cu.ports} ports` },
+        ],
+      }));
+
+    default:
+      return [];
+  }
+}
+
+const CATEGORY_LABELS: Record<SwapCategory, string> = {
+  motor_feed: "Feed Motor",
+  motor_spindle: "Spindle Motor",
+  motor_module_feed: "Feed Motor Module",
+  motor_module_spindle: "Spindle Motor Module",
+  line_module: "Line Module",
+  control_unit: "Control Unit",
+};
+
+export function ComponentSwapDialog({
+  open,
+  onClose,
+  category,
+  currentArticle,
+  onSelect,
+}: ComponentSwapDialogProps) {
+  const [search, setSearch] = useState("");
+  const [options, setOptions] = useState<SwapOption[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setOptions(getOptions(category));
+      setSearch("");
+    }
+  }, [open, category]);
+
+  const filtered = options.filter(
+    (o) =>
+      !search ||
+      o.name.toLowerCase().includes(search.toLowerCase()) ||
+      o.articleNumber.toLowerCase().includes(search.toLowerCase()) ||
+      o.specs.some((s) => s.value.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Swap {CATEGORY_LABELS[category]}</DialogTitle>
+          <DialogDescription>
+            Select an alternative component. Changes may require other components to be resized.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Input
+          placeholder="Search by name, article number, or specs..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="text-sm"
+        />
+
+        <ScrollArea className="max-h-96">
+          <div className="space-y-2 pr-3">
+            {filtered.map((opt) => {
+              const isCurrent = opt.articleNumber === currentArticle;
+              return (
+                <button
+                  key={opt.articleNumber}
+                  type="button"
+                  onClick={() => {
+                    onSelect(opt.articleNumber);
+                    onClose();
+                  }}
+                  disabled={isCurrent}
+                  className={cn(
+                    "w-full text-left rounded-lg border p-3 transition-all",
+                    "hover:border-primary/40 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    isCurrent
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/30 cursor-default"
+                      : "bg-card"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-medium text-sm">{opt.name}</div>
+                    <div className="flex items-center gap-1.5">
+                      {isCurrent && (
+                        <Badge className="text-[9px] px-1.5 py-0 h-4">CURRENT</Badge>
+                      )}
+                      <code className="text-[10px] font-mono text-muted-foreground">
+                        {opt.articleNumber}
+                      </code>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+                    {opt.specs.map((s, i) => (
+                      <div key={i} className="text-[11px]">
+                        <span className="text-muted-foreground">{s.label}:</span>{" "}
+                        <span className="font-medium tabular-nums">{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+            {filtered.length === 0 && (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                No matches found.
+              </p>
+            )}
+          </div>
+        </ScrollArea>
+
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

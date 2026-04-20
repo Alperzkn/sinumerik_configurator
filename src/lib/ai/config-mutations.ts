@@ -1,0 +1,295 @@
+import type { GeneratedConfiguration, DriveComponent, Motor, ControlUnit, HmiComponent } from "@/types/catalog";
+import type { SwapCategory } from "@/components/configurator/component-swap-dialog";
+import {
+  MOTOR_MODULE_SPECS,
+  getMotorSpecs,
+  selectLineModule,
+  getMatchingMcp,
+} from "@/lib/validation/drive-system-rules";
+
+interface SwapOpts {
+  shaftHeight?: number;
+}
+
+/**
+ * Apply a component swap. Automatically re-sizes dependent components
+ * (e.g., swapping to a bigger motor → bigger Motor Module → bigger Line Module).
+ */
+export function applySwap(
+  config: GeneratedConfiguration,
+  category: SwapCategory,
+  articleNumber: string,
+  opts?: SwapOpts
+): GeneratedConfiguration {
+  const updated: GeneratedConfiguration = {
+    ...config,
+    drives: [...config.drives],
+    motors: [...config.motors],
+    hmiComponents: [...config.hmiComponents],
+    driveQuantities: { ...config.driveQuantities },
+    motorQuantities: { ...config.motorQuantities },
+    warnings: [...config.warnings],
+  };
+
+  switch (category) {
+    case "motor_feed":
+      swapFeedMotor(updated, articleNumber, opts?.shaftHeight);
+      autoSizeDrivesForMotors(updated);
+      break;
+
+    case "motor_spindle":
+      swapSpindleMotor(updated, articleNumber, opts?.shaftHeight);
+      autoSizeDrivesForMotors(updated);
+      break;
+
+    case "motor_module_feed":
+      swapMotorModule(updated, "feed", articleNumber);
+      autoSizeLineModule(updated);
+      break;
+
+    case "motor_module_spindle":
+      swapMotorModule(updated, "spindle", articleNumber);
+      autoSizeLineModule(updated);
+      break;
+
+    case "line_module":
+      swapLineModule(updated, articleNumber);
+      break;
+
+    case "control_unit":
+      swapControlUnit(updated, articleNumber);
+      break;
+  }
+
+  return updated;
+}
+
+function swapFeedMotor(config: GeneratedConfiguration, article: string, shaftHeight?: number) {
+  const specs = getMotorSpecs(article);
+  const existing = config.motors.findIndex((m) => m.motorType === "feed_servo_sync");
+
+  const updated: Motor = {
+    id: "feed-motor",
+    family: article.includes("1PH") ? "SIMOTICS_M" : "SIMOTICS_S",
+    series: article.substring(0, 5),
+    name: `${specs?.family || "Servo motor"} SH${specs?.shaftHeight || shaftHeight || "?"}`,
+    articleNumber: article,
+    motorType: "feed_servo_sync",
+    connectionType: "standard",
+    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+    description: `${specs?.family || "Feed servo motor"} ${specs?.variant || ""}`.trim(),
+    shaftHeight: specs?.shaftHeight || shaftHeight,
+    ratedPower: specs?.ratedPower,
+    ratedTorque: specs?.ratedTorque,
+    ratedSpeed: specs?.ratedSpeed,
+    maxTorque: specs?.maxTorque,
+    maxSpeed: specs?.maxSpeed,
+    ratedCurrent: specs?.ratedCurrent,
+  };
+
+  if (existing >= 0) {
+    const oldQty = config.motorQuantities[config.motors[existing].id] || 1;
+    delete config.motorQuantities[config.motors[existing].id];
+    config.motors[existing] = updated;
+    config.motorQuantities[updated.id] = oldQty;
+  } else {
+    config.motors.unshift(updated);
+    config.motorQuantities[updated.id] = 1;
+  }
+}
+
+function swapSpindleMotor(config: GeneratedConfiguration, article: string, shaftHeight?: number) {
+  const specs = getMotorSpecs(article);
+  const existing = config.motors.findIndex(
+    (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
+  );
+
+  const updated: Motor = {
+    id: "spindle-motor",
+    family: "SIMOTICS_M",
+    series: article.substring(0, 5),
+    name: `${specs?.family || "Spindle motor"} SH${specs?.shaftHeight || shaftHeight || "?"}`,
+    articleNumber: article,
+    motorType: "main_spindle_async",
+    connectionType: "standard",
+    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+    description: `${specs?.family || "Main spindle motor"} ${specs?.variant || ""}`.trim(),
+    shaftHeight: specs?.shaftHeight || shaftHeight,
+    ratedPower: specs?.ratedPower,
+    ratedTorque: specs?.ratedTorque,
+    ratedSpeed: specs?.ratedSpeed,
+    maxTorque: specs?.maxTorque,
+    maxSpeed: specs?.maxSpeed,
+    ratedCurrent: specs?.ratedCurrent,
+  };
+
+  if (existing >= 0) {
+    const oldQty = config.motorQuantities[config.motors[existing].id] || 1;
+    delete config.motorQuantities[config.motors[existing].id];
+    config.motors[existing] = updated;
+    config.motorQuantities[updated.id] = oldQty;
+  } else {
+    config.motors.push(updated);
+    config.motorQuantities[updated.id] = 1;
+  }
+}
+
+function swapMotorModule(config: GeneratedConfiguration, kind: "feed" | "spindle", article: string) {
+  const specs = MOTOR_MODULE_SPECS[article];
+  const idPrefix = `${kind}-mm-`;
+  const existing = config.drives.findIndex((d) => d.id.startsWith(idPrefix));
+
+  const updated: DriveComponent = {
+    id: `${kind}-mm-${article}`,
+    articleNumber: article,
+    name: `Motor Module ${article}`,
+    driveFamily: "S120_booksize",
+    componentType: "motor_module_single",
+    ratedCurrent: specs ? `${specs.current}A` : undefined,
+    ratedPower: specs ? `${specs.power}kW` : undefined,
+    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+    description: specs
+      ? `Single Motor Module booksize | ${specs.current}A rated | ${specs.power}kW | ${specs.voltage}`
+      : `${kind} Motor Module`,
+  };
+
+  if (existing >= 0) {
+    const oldQty = config.driveQuantities[config.drives[existing].id] || 1;
+    delete config.driveQuantities[config.drives[existing].id];
+    config.drives[existing] = updated;
+    config.driveQuantities[updated.id] = oldQty;
+  } else {
+    config.drives.unshift(updated);
+    config.driveQuantities[updated.id] = 1;
+  }
+}
+
+function swapLineModule(config: GeneratedConfiguration, article: string) {
+  const existing = config.drives.findIndex(
+    (d) =>
+      d.componentType === "line_module_active" ||
+      d.componentType === "line_module_smart" ||
+      d.componentType === "line_module_basic"
+  );
+
+  const isActive = article.includes("7TE");
+  const updated: DriveComponent = {
+    id: `line-module-${article}`,
+    articleNumber: article,
+    name: `Line Module ${article}`,
+    driveFamily: "S120_booksize",
+    componentType: isActive ? "line_module_active" : article.includes("1TE") ? "line_module_basic" : "line_module_smart",
+    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+    description: "Shared DC bus power supply",
+  };
+
+  if (existing >= 0) {
+    delete config.driveQuantities[config.drives[existing].id];
+    config.drives[existing] = updated;
+  } else {
+    config.drives.push(updated);
+  }
+  config.driveQuantities[updated.id] = 1;
+}
+
+function swapControlUnit(config: GeneratedConfiguration, article: string) {
+  const cuMap: Record<string, Partial<ControlUnit>> = {
+    "6FC5317-4AA00-1CA0": { id: "PPU_1740", name: "PPU 1740 (15\" panel)", maxAxesSpindles: 20, maxChannels: 4, driveCliqPorts: 4 },
+    "6FC5317-4AA00-1DA0": { id: "PPU_1740", name: "PPU 1740 (19\" panel)", maxAxesSpindles: 20, maxChannels: 4, driveCliqPorts: 4 },
+    "6FC5317-4AA00-0AA0": { id: "NCU_1740", name: "NCU 1740", maxAxesSpindles: 20, maxChannels: 4, driveCliqPorts: 4 },
+    "6FC5317-5AA00-0AA1": { id: "NCU_1750", name: "NCU 1750", maxAxesSpindles: 40, maxChannels: 10, driveCliqPorts: 6 },
+    "6FC5317-6AA00-0AA0": { id: "NCU_1760", name: "NCU 1760 (HSC)", maxAxesSpindles: 50, maxChannels: 10, driveCliqPorts: 6 },
+  };
+
+  const partial = cuMap[article];
+  if (partial) {
+    config.controlUnit = { ...config.controlUnit, ...partial, articleNumber: article } as ControlUnit;
+  }
+}
+
+function autoSizeDrivesForMotors(config: GeneratedConfiguration) {
+  // If motor changed, update Motor Module to match current draw
+  const feedMotor = config.motors.find((m) => m.motorType === "feed_servo_sync");
+  const spindleMotor = config.motors.find(
+    (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
+  );
+
+  if (feedMotor?.ratedCurrent) {
+    const amps = parseFloat(feedMotor.ratedCurrent);
+    const targetModule = findMotorModuleForCurrent(amps);
+    if (targetModule) {
+      swapMotorModule(config, "feed", targetModule);
+    }
+  }
+
+  if (spindleMotor?.ratedCurrent) {
+    const amps = parseFloat(spindleMotor.ratedCurrent);
+    const targetModule = findMotorModuleForCurrent(amps);
+    if (targetModule) {
+      swapMotorModule(config, "spindle", targetModule);
+    }
+  }
+
+  autoSizeLineModule(config);
+
+  // Re-select MCP if control unit is NCU
+  if (config.controlUnit.id.startsWith("NCU")) {
+    const hmiPanel = config.hmiComponents.find(
+      (h) => h.category === "thin_client" || h.category === "flat_panel" || h.category === "panel_pc"
+    );
+    const panelSize = hmiPanel?.screenSize || 15;
+    const mcp = getMatchingMcp(panelSize);
+    const existingMcpIdx = config.hmiComponents.findIndex((h) => h.category === "mcp");
+    const mcpComponent: HmiComponent = {
+      id: mcp.mcpId,
+      articleNumber: mcp.mcpArticle,
+      name: mcp.mcpName,
+      category: "mcp",
+      compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+      description: `Machine Control Panel matching ${panelSize}" display`,
+    };
+    if (existingMcpIdx >= 0) {
+      config.hmiComponents[existingMcpIdx] = mcpComponent;
+    } else {
+      config.hmiComponents.push(mcpComponent);
+    }
+  }
+}
+
+function findMotorModuleForCurrent(amps: number): string | undefined {
+  // Find smallest Motor Module whose rated current >= required
+  const sorted = Object.entries(MOTOR_MODULE_SPECS).sort(
+    ([, a], [, b]) => a.current - b.current
+  );
+  for (const [article, specs] of sorted) {
+    if (specs.current >= amps) return article;
+  }
+  return sorted[sorted.length - 1]?.[0];
+}
+
+function autoSizeLineModule(config: GeneratedConfiguration) {
+  const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
+  const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));
+  const feedQty = feedMm ? config.driveQuantities[feedMm.id] || 1 : 0;
+  const spindleQty = spindleMm ? config.driveQuantities[spindleMm.id] || 1 : 0;
+
+  const lineModule = config.drives.find(
+    (d) =>
+      d.componentType === "line_module_active" ||
+      d.componentType === "line_module_smart" ||
+      d.componentType === "line_module_basic"
+  );
+  const preferActive = lineModule?.componentType === "line_module_active";
+
+  const correctLm = selectLineModule(
+    feedMm?.articleNumber || "",
+    feedQty,
+    spindleMm?.articleNumber,
+    spindleQty,
+    preferActive
+  );
+
+  if (correctLm && (!lineModule || lineModule.articleNumber !== correctLm.articleNumber)) {
+    swapLineModule(config, correctLm.articleNumber);
+  }
+}

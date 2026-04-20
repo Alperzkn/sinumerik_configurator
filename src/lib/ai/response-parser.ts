@@ -15,7 +15,7 @@ import type {
   CompatibilityWarning,
 } from "@/types/catalog";
 import type { AiRawResponse } from "./recommendation-engine";
-import { selectLineModule, validateDriveSystem, getMatchingMcp, MOTOR_MODULE_SPECS } from "@/lib/validation/drive-system-rules";
+import { selectLineModule, validateDriveSystem, getMatchingMcp, MOTOR_MODULE_SPECS, getMotorSpecs } from "@/lib/validation/drive-system-rules";
 
 let catalogData: {
   controlUnits: ControlUnit[];
@@ -277,16 +277,21 @@ export function parseAiResponse(
         raw.motors!.feedMotors.includes(m.series)
     );
     if (feedMotorMatch) {
-      const sh = raw.motors.feedMotorShaftHeight;
+      const article = raw.motors.feedMotorArticle || feedMotorMatch.articleNumber;
+      const specs = article ? getMotorSpecs(article) : undefined;
+      const sh = raw.motors.feedMotorShaftHeight || specs?.shaftHeight;
       const feedMotor = {
         ...feedMotorMatch,
-        articleNumber: raw.motors.feedMotorArticle || feedMotorMatch.articleNumber,
-        name: raw.motors.feedMotorArticle
-          ? `${feedMotorMatch.name} (${raw.motors.feedMotorArticle})`
-          : feedMotorMatch.name,
-        description: sh
-          ? `${feedMotorMatch.description} | SH${sh} | ${raw.motors.reason}`
-          : feedMotorMatch.description,
+        articleNumber: article,
+        name: article ? `${feedMotorMatch.name} (${article})` : feedMotorMatch.name,
+        description: raw.motors.reason || feedMotorMatch.description,
+        shaftHeight: sh,
+        ratedPower: specs?.ratedPower,
+        ratedTorque: specs?.ratedTorque,
+        ratedSpeed: specs?.ratedSpeed,
+        maxTorque: specs?.maxTorque,
+        maxSpeed: specs?.maxSpeed,
+        ratedCurrent: specs?.ratedCurrent,
       };
       motors.push(feedMotor);
       motorQuantities[feedMotor.id] = feedModules;
@@ -301,16 +306,21 @@ export function parseAiResponse(
           raw.motors!.spindleMotors.includes(m.series)
       );
       if (spindleMatch) {
-        const sh = raw.motors.spindleMotorShaftHeight;
+        const article = raw.motors.spindleMotorArticle || spindleMatch.articleNumber;
+        const specs = article ? getMotorSpecs(article) : undefined;
+        const sh = raw.motors.spindleMotorShaftHeight || specs?.shaftHeight;
         const spindleMotor = {
           ...spindleMatch,
-          articleNumber: raw.motors.spindleMotorArticle || spindleMatch.articleNumber,
-          name: raw.motors.spindleMotorArticle
-            ? `${spindleMatch.name} (${raw.motors.spindleMotorArticle})`
-            : spindleMatch.name,
-          description: sh
-            ? `${spindleMatch.description} | SH${sh} | ${raw.motors.reason}`
-            : spindleMatch.description,
+          articleNumber: article,
+          name: article ? `${spindleMatch.name} (${article})` : spindleMatch.name,
+          description: raw.motors.reason || spindleMatch.description,
+          shaftHeight: sh,
+          ratedPower: specs?.ratedPower,
+          ratedTorque: specs?.ratedTorque,
+          ratedSpeed: specs?.ratedSpeed,
+          maxTorque: specs?.maxTorque,
+          maxSpeed: specs?.maxSpeed,
+          ratedCurrent: specs?.ratedCurrent,
         };
         motors.push(spindleMotor);
         motorQuantities[spindleMotor.id] = spindleModules;
@@ -419,4 +429,73 @@ export function parseAiResponse(
   };
 
   return config;
+}
+
+/**
+ * Validate that the generated configuration meets user-specified requirements.
+ * Pushes warnings if the AI selected under-sized components.
+ */
+export function validateAgainstUserSpecs(
+  config: GeneratedConfiguration,
+  userSpecs: {
+    spindlePower?: string;
+    spindleSpeed?: string;
+    movingMass?: string;
+  }
+): CompatibilityWarning[] {
+  const warnings: CompatibilityWarning[] = [];
+
+  const parseNumber = (s?: string): number | null => {
+    if (!s) return null;
+    const match = s.match(/(\d+(?:\.\d+)?)/);
+    return match ? parseFloat(match[1]) : null;
+  };
+
+  const requiredSpindleKw = parseNumber(userSpecs.spindlePower);
+  const requiredSpindleRpm = parseNumber(userSpecs.spindleSpeed);
+
+  const spindleMotor = config.motors.find(
+    (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
+  );
+
+  if (requiredSpindleKw && spindleMotor) {
+    const actualKw = parseNumber(spindleMotor.ratedPower);
+    if (actualKw !== null && actualKw < requiredSpindleKw) {
+      warnings.push({
+        severity: "warning",
+        message: `Spindle motor is UNDERSIZED: you specified ${requiredSpindleKw}kW but AI selected ${spindleMotor.articleNumber} (${actualKw}kW). Use the "Swap" button on the spindle motor to pick a larger one, or ask AI to "upgrade spindle motor to ${requiredSpindleKw}kW".`,
+        affectedComponents: [spindleMotor.articleNumber || "spindle"],
+      });
+    }
+  }
+
+  if (requiredSpindleRpm && spindleMotor) {
+    const maxRpm = parseNumber(spindleMotor.maxSpeed);
+    const ratedRpm = parseNumber(spindleMotor.ratedSpeed);
+    const actualMaxRpm = maxRpm ?? ratedRpm;
+    if (actualMaxRpm !== null && actualMaxRpm < requiredSpindleRpm) {
+      warnings.push({
+        severity: "warning",
+        message: `Spindle max speed is TOO LOW: you specified ${requiredSpindleRpm} rpm but ${spindleMotor.articleNumber} reaches only ${actualMaxRpm} rpm. Select a higher-speed variant.`,
+        affectedComponents: [spindleMotor.articleNumber || "spindle"],
+      });
+    }
+  }
+
+  const requiredMass = parseNumber(userSpecs.movingMass);
+  if (requiredMass && requiredMass > 500) {
+    const feedMotor = config.motors.find((m) => m.motorType === "feed_servo_sync");
+    const feedTorque = parseNumber(feedMotor?.ratedTorque);
+    // Rule of thumb: ~1 Nm per 30-50 kg of moving mass for decent acceleration
+    const minTorque = requiredMass / 40;
+    if (feedTorque !== null && feedTorque < minTorque) {
+      warnings.push({
+        severity: "info",
+        message: `Feed motor torque (${feedTorque}Nm) may be low for ${requiredMass}kg moving mass. Consider motors with ≥${Math.round(minTorque)}Nm for adequate acceleration.`,
+        affectedComponents: [feedMotor?.articleNumber || "feed"],
+      });
+    }
+  }
+
+  return warnings;
 }

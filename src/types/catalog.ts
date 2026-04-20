@@ -180,6 +180,14 @@ export interface Motor {
   compatibility: Record<ControlUnitVariant, Availability>;
   notes?: string;
   description: string;
+  // Runtime specs from AI response (optional — not all catalog entries have these)
+  shaftHeight?: number;
+  ratedPower?: string;
+  ratedTorque?: string;
+  ratedSpeed?: string;
+  ratedCurrent?: string;
+  maxSpeed?: string;
+  maxTorque?: string;
 }
 
 // --- Measuring Systems ---

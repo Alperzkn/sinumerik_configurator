@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { ProcessingSteps, LoadingSpinner } from "@/components/shared/loading-spinner";
 import { getAiRecommendation } from "@/lib/ai/recommendation-engine";
-import { parseAiResponse, setCatalogData } from "@/lib/ai/response-parser";
+import { parseAiResponse, setCatalogData, validateAgainstUserSpecs } from "@/lib/ai/response-parser";
 import type { AiMessage } from "@/types/catalog";
 
 export function AiAnalysisStep() {
   const {
     machineDescription,
     selectedTemplate,
+    machineSpecs,
     aiMessages,
     isAiProcessing,
     isConfigurationReady,
@@ -46,13 +47,39 @@ export function AiAnalysisStep() {
     setStatusText("Sending to AI...");
 
     try {
-      // Build the user message that includes original description + all context
-      const originalDesc = selectedTemplate
-        ? `Machine Type: ${selectedTemplate.replace(/_/g, " ")}${machineDescription ? `\nAdditional: ${machineDescription}` : ""}`
-        : machineDescription;
+      // Build the user message with HARD CONSTRAINTS from the specs form.
+      // The AI must respect these values exactly — they are user-provided requirements.
+      const specsLines: string[] = [];
+      if (machineSpecs.machineSize) {
+        const sizeLabels: Record<string, string> = {
+          small: "Small machine (table ≤500mm, moving mass <200kg/axis)",
+          medium: "Medium machine (500-1500mm table, 200-500kg/axis)",
+          large: "Large machine (>1500mm table, 500-2000kg/axis)",
+          very_large: "Very large / gantry machine (>2000mm, >2000kg/axis)",
+        };
+        specsLines.push(`- Machine size class: ${sizeLabels[machineSpecs.machineSize] || machineSpecs.machineSize}`);
+      }
+      if (machineSpecs.axisTravel) specsLines.push(`- Axis travel: ${machineSpecs.axisTravel} mm`);
+      if (machineSpecs.movingMass) specsLines.push(`- Moving mass per axis: ${machineSpecs.movingMass} kg`);
+      if (machineSpecs.rapidTraverse) specsLines.push(`- Required rapid traverse: ${machineSpecs.rapidTraverse} m/min`);
+      if (machineSpecs.spindlePower) specsLines.push(`- Required spindle power: ${machineSpecs.spindlePower} kW (MINIMUM — do not select smaller)`);
+      if (machineSpecs.spindleSpeed) specsLines.push(`- Required spindle max speed: ${machineSpecs.spindleSpeed} rpm (MINIMUM — do not select slower)`);
+      if (machineSpecs.material) specsLines.push(`- Primary workpiece material: ${machineSpecs.material}`);
+
+      let userMessage = "";
+      if (selectedTemplate) {
+        userMessage += `Machine Type: ${selectedTemplate.replace(/_/g, " ")}\n\n`;
+      }
+      if (machineDescription) {
+        userMessage += `User Description: ${machineDescription}\n\n`;
+      }
+      if (specsLines.length > 0) {
+        userMessage += `MECHANICAL REQUIREMENTS (HARD CONSTRAINTS — you MUST select components that match or exceed these):\n${specsLines.join("\n")}\n\n`;
+        userMessage += `IMPORTANT: The spindle power and speed above are MINIMUMS. If user specified 50kW spindle, you MUST select a motor with rated power ≥ 50kW (1PH8186 or larger). If user specified 24000 rpm, select a motor with max speed ≥ 24000 rpm. Never select under-sized motors.`;
+      }
 
       const response = await getAiRecommendation({
-        description: originalDesc,
+        description: userMessage || machineDescription,
         template: selectedTemplate,
         conversationHistory: conversationHistory.map(m => ({
           id: "",
@@ -62,12 +89,20 @@ export function AiAnalysisStep() {
         })),
       });
 
-      if (response.needsClarification && response.questions) {
+      if (response.needsClarification) {
         setStatusText("");
+        const questions = response.questions && response.questions.length > 0
+          ? response.questions
+          : [
+              "What are the X, Y, Z axis travel lengths in mm?",
+              "What is the moving mass per axis in kg?",
+              "What is the required spindle power (kW) and max speed (rpm)?",
+              "What is the required rapid traverse speed (m/min)?",
+            ];
         const assistantMsg: AiMessage = {
           id: `ai-${Date.now()}`,
           role: "assistant",
-          content: `To properly size the motors and drives for your machine, I need some additional details:\n\n${response.questions.map((q, i) => `**${i + 1}.** ${q}`).join("\n\n")}\n\nPlease provide the information below.`,
+          content: `To properly size the motors and drives for your machine, I need some additional details:\n\n${questions.map((q, i) => `**${i + 1}.** ${q}`).join("\n\n")}\n\nPlease provide the information below.`,
           timestamp: Date.now(),
         };
         addAiMessage(assistantMsg);
@@ -81,6 +116,17 @@ export function AiAnalysisStep() {
           if (response.notes && response.notes.length > 0) {
             config.notes = response.notes;
           }
+
+          // Validate against user-provided specs — add warnings for undersized components
+          const specWarnings = validateAgainstUserSpecs(config, {
+            spindlePower: machineSpecs.spindlePower,
+            spindleSpeed: machineSpecs.spindleSpeed,
+            movingMass: machineSpecs.movingMass,
+          });
+          if (specWarnings.length > 0) {
+            config.warnings = [...config.warnings, ...specWarnings];
+          }
+
           setConfiguration(config);
 
           const assistantMsg: AiMessage = {
@@ -91,17 +137,13 @@ export function AiAnalysisStep() {
           };
           addAiMessage(assistantMsg);
         } else {
-          const fallback = parseAiResponse(response);
-          if (fallback) {
-            if (response.notes) fallback.notes = response.notes;
-            setConfiguration(fallback);
-          }
           addAiMessage({
             id: `ai-${Date.now()}`,
             role: "assistant",
-            content: "Configuration ready. Click 'View Configuration' to see the BOM.",
+            content: "I couldn't build a configuration from that response. Please provide more specific details (axis travels, moving mass, spindle power/speed) and try again.",
             timestamp: Date.now(),
           });
+          setWaitingForAnswer(true);
         }
       }
     } catch (error) {
@@ -119,7 +161,7 @@ export function AiAnalysisStep() {
     setStatusText("");
     setAiProcessing(false);
     setIsFirstCall(false);
-  }, [selectedTemplate, machineDescription, addAiMessage, setAiProcessing, setConfiguration]);
+  }, [selectedTemplate, machineDescription, machineSpecs, addAiMessage, setAiProcessing, setConfiguration]);
 
   // Initial analysis
   const initiateAnalysis = useCallback(async () => {

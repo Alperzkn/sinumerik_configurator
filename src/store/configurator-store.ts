@@ -7,6 +7,16 @@ import type {
   WizardStep,
 } from "@/types/catalog";
 
+export interface MachineSpecsState {
+  axisTravel: string;
+  movingMass: string;
+  rapidTraverse: string;
+  spindlePower: string;
+  spindleSpeed: string;
+  material: string;
+  machineSize: string;
+}
+
 interface ConfiguratorState {
   // Wizard navigation
   currentStep: WizardStep;
@@ -15,6 +25,7 @@ interface ConfiguratorState {
   // Step 1: Machine description
   machineDescription: string;
   selectedTemplate: MachineType | null;
+  machineSpecs: MachineSpecsState;
 
   // Step 2: AI analysis
   aiMessages: AiMessage[];
@@ -29,6 +40,7 @@ interface ConfiguratorState {
   completeStep: (step: WizardStep) => void;
   setMachineDescription: (desc: string) => void;
   selectTemplate: (type: MachineType | null) => void;
+  setMachineSpecs: (specs: MachineSpecsState) => void;
   addAiMessage: (msg: AiMessage) => void;
   setAiProcessing: (processing: boolean) => void;
   setConfigurationReady: (ready: boolean) => void;
@@ -46,6 +58,15 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
   completedSteps: new Set(),
   machineDescription: "",
   selectedTemplate: null,
+  machineSpecs: {
+    axisTravel: "",
+    movingMass: "",
+    rapidTraverse: "",
+    spindlePower: "",
+    spindleSpeed: "",
+    material: "",
+    machineSize: "",
+  },
   aiMessages: [],
   isAiProcessing: false,
   isConfigurationReady: false,
@@ -62,6 +83,8 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
   setMachineDescription: (desc) => set({ machineDescription: desc }),
 
   selectTemplate: (type) => set({ selectedTemplate: type }),
+
+  setMachineSpecs: (specs) => set({ machineSpecs: specs }),
 
   addAiMessage: (msg) =>
     set((state) => ({
@@ -116,6 +139,15 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
       completedSteps: new Set(),
       machineDescription: "",
       selectedTemplate: null,
+      machineSpecs: {
+        axisTravel: "",
+        movingMass: "",
+        rapidTraverse: "",
+        spindlePower: "",
+        spindleSpeed: "",
+        material: "",
+        machineSize: "",
+      },
       aiMessages: [],
       isAiProcessing: false,
       isConfigurationReady: false,

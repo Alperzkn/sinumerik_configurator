@@ -9,8 +9,6 @@ import type { MachineType } from "@/types/catalog";
 import { cn } from "@/lib/utils";
 import {
   MachineSpecsForm,
-  formatSpecsForAi,
-  EMPTY_SPECS,
   type MachineSpecs,
 } from "./machine-specs-form";
 
@@ -87,14 +85,15 @@ export function MachineDescriptionStep() {
   const {
     machineDescription,
     selectedTemplate,
+    machineSpecs,
     setMachineDescription,
     selectTemplate,
+    setMachineSpecs,
     setStep,
     completeStep,
   } = useConfiguratorStore();
 
   const [mode, setMode] = useState<"template" | "custom">("template");
-  const [specs, setSpecs] = useState<MachineSpecs>(EMPTY_SPECS);
   const [showSpecs, setShowSpecs] = useState(false);
 
   const hasTemplate = mode === "template" && selectedTemplate;
@@ -102,14 +101,15 @@ export function MachineDescriptionStep() {
   const canProceed = hasTemplate || hasCustom;
 
   const handleProceed = () => {
-    // Append mechanical specs to the description
-    const specsText = formatSpecsForAi(specs);
-    if (specsText) {
-      setMachineDescription((machineDescription || "") + specsText);
-    }
+    // Specs are stored separately and read by the AI analysis step.
+    // Do NOT mutate machineDescription here (was causing double-appending bug).
     completeStep("description");
     setStep("analysis");
   };
+
+  // Local state is synced to store — avoids re-render noise
+  const specs = machineSpecs as MachineSpecs;
+  const handleSpecsChange = (s: MachineSpecs) => setMachineSpecs(s);
 
   return (
     <motion.div
@@ -245,7 +245,7 @@ export function MachineDescriptionStep() {
       {/* Machine specs form — always shown after template/description */}
       {(showSpecs || selectedTemplate) && canProceed && (
         <div className="max-w-3xl">
-          <MachineSpecsForm specs={specs} onChange={setSpecs} />
+          <MachineSpecsForm specs={specs} onChange={handleSpecsChange} />
         </div>
       )}
 
