@@ -427,7 +427,7 @@ export function ConfigurationStep() {
         configuration={configuration}
         catalogOptions={catalogSoftwareOptions}
         catalogPackages={catalogTechPackages}
-        onAddOption={(opt) => setConfiguration(addSoftwareOption(configuration, opt))}
+        onAddOption={(opt, qty) => setConfiguration(addSoftwareOption(configuration, opt, qty))}
         onAddPackage={(pkg) => setConfiguration(addTechnologyPackage(configuration, pkg))}
       />
     </motion.div>
