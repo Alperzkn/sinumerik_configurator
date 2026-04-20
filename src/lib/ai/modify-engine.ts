@@ -1,5 +1,14 @@
-import type { GeneratedConfiguration } from "@/types/catalog";
-import { applySwap } from "./config-mutations";
+import type { GeneratedConfiguration, DriveComponent, Motor } from "@/types/catalog";
+import {
+  applySwap,
+  addSoftwareOption,
+  removeSoftwareOption,
+  addTechnologyPackage,
+} from "./config-mutations";
+import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
+import { MOTOR_MODULE_SPECS, selectLineModule } from "@/lib/validation/drive-system-rules";
+import { softwareOptions as catalogOptions } from "@/data/software-options";
+import { technologyPackages as catalogPackages } from "@/data/technology-packages";
 
 export interface ModifyResult {
   updatedConfiguration?: GeneratedConfiguration;
@@ -7,85 +16,106 @@ export interface ModifyResult {
   warnings?: string[];
 }
 
+interface ModifyInstruction {
+  /** "swap" | "add" | "remove" | "resize" | "no_change" */
+  action?: string;
+  changes?: {
+    /** Override user mechanical specs and re-run sizing engine */
+    userSpecsOverride?: Partial<UserSpecsInput>;
+    /** Direct article-number swaps */
+    controlUnitId?: string;
+    controlUnitArticle?: string;
+    lineModuleArticle?: string;
+    feedMotorArticle?: string;
+    spindleMotorArticle?: string;
+    /** Architecture preference flips */
+    preferActiveLineModule?: boolean;
+    /** Software changes */
+    addOptions?: { orderCode: string; quantity?: number; reason?: string }[];
+    removeOptions?: string[];
+    addPackages?: { id: string; reason?: string }[];
+  };
+  summary?: string;
+  warnings?: string[];
+}
+
 /**
- * Sends a modification request to the AI along with the current configuration.
- * The AI returns a partial config update which is merged into the existing config.
+ * Send a modification request to the AI along with the current configuration
+ * and the user's current mechanical specs, then apply the returned change set.
  */
 export async function modifyConfiguration(
   current: GeneratedConfiguration,
-  userRequest: string
+  userRequest: string,
+  /** Current user-provided mechanical specs — used as baseline for re-sizing */
+  baselineSpecs?: UserSpecsInput
 ): Promise<ModifyResult> {
-  const currentSummary = buildCurrentConfigSummary(current);
+  const summary = buildCurrentConfigSummary(current);
+  const systemPrompt = buildModifyPrompt(summary);
 
-  const systemPrompt = `You are a SINUMERIK ONE CNC configuration expert helping modify an existing configuration.
-
-The user has an existing SINUMERIK ONE configuration and wants to make a specific change. Analyze their request and respond with JSON describing what to change.
-
-Current configuration:
-${currentSummary}
-
-Respond with JSON ONLY (no markdown). Schema:
-{
-  "action": "swap" | "add" | "remove" | "no_change",
-  "changes": {
-    "controlUnit": { "articleNumber": "...", "reason": "..." },
-    "lineModule": { "articleNumber": "...", "reason": "..." },
-    "feedMotor": { "articleNumber": "...", "shaftHeight": 63, "reason": "..." },
-    "spindleMotor": { "articleNumber": "...", "shaftHeight": 132, "reason": "..." },
-    "feedMotorModule": { "articleNumber": "...", "reason": "..." },
-    "spindleMotorModule": { "articleNumber": "...", "reason": "..." },
-    "addOptions": [{ "orderCode": "A03", "name": "...", "quantity": 3, "reason": "..." }],
-    "addPackages": [{ "id": "S43", "reason": "..." }]
-  },
-  "summary": "Plain-language explanation of what changed (1-3 sentences)",
-  "warnings": ["Optional list of side effects or things the user should verify"]
-}
-
-Available motor article numbers (examples):
-- Feed motors: 1FT7064-5AF71-1DA1 (SH63, 9Nm, 3000rpm), 1FT7086-5AF71-1DA1 (SH80, 28Nm), 1FT7108-5AC71-1DA1 (SH100, 70Nm), 1FT7138-5AB71-1DA1 (SH132, 170Nm)
-- Heavy-duty forced ventilation: 1FT7086-5SF71-1DA1 (SH80, 36Nm), 1FT7132-5SC71-1DA1 (SH132, 140Nm), 1FT7138-5SB71-1DA1 (SH132, 280Nm)
-- Spindle motors: 1PH8107-1FF10-0LA1 (7.5kW@1500rpm), 1PH8133-1FF10-0LA1 (11kW), 1PH8137-1FF10-0LA1 (18.5kW), 1PH8163-1FF10-0LA1 (30kW), 1PH8186-1FF10-0LA1 (55kW)
-
-Motor Module article numbers: 6SL3120-1TE13-0AD0 (3A), -0AD0 (5A), 6SL3120-1TE21-0AD0 (9A), -8AD0 (18A), 6SL3120-1TE22-4AD0 (24A), 6SL3120-1TE23-0AD0 (30A), 6SL3120-1TE24-5AC0 (45A), 6SL3120-1TE26-0AC0 (60A), 6SL3120-1TE28-5AA3 (85A), 6SL3120-1TE31-3AA3 (132A)
-
-Line Modules: Smart: 6SL3130-6AE21-0AB1 (10kW), 6SL3130-6TE23-6AA3 (36kW), 6SL3130-6TE25-5AA3 (55kW). Active: 6SL3130-7TE21-6AA4 (16kW), 6SL3130-7TE23-6AA3 (36kW), 6SL3130-7TE25-5AA3 (55kW), 6SL3130-7TE28-0AA3 (80kW)
-
-Control Units: PPU_1740, NCU_1740, NCU_1750, NCU_1760
-
-IMPORTANT: When swapping a motor to a larger size, also update the Motor Module AND Line Module to handle the increased current/power. Only return fields that need to change. Include only real, complete article numbers.`;
-
-  const response = await fetch("/api/recommend", {
+  const response = await fetch("/api/modify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemPrompt,
-      userMessage: userRequest,
-      conversationHistory: [],
-    }),
+    body: JSON.stringify({ systemPrompt, userMessage: userRequest }),
   });
 
   if (!response.ok) {
     throw new Error(`Modification failed: ${response.statusText}`);
   }
 
-  const data = await response.json();
+  const instruction = (await response.json()) as ModifyInstruction;
+  return applyModifications(current, instruction, baselineSpecs);
+}
 
-  // Apply changes to the configuration
-  return applyModifications(current, data);
+function buildModifyPrompt(currentSummary: string): string {
+  return `You are a SINUMERIK ONE configuration modifier.
+
+The user has an existing configuration. Translate their request into a structured modification instruction.
+
+CURRENT CONFIGURATION:
+${currentSummary}
+
+Respond with JSON ONLY (no markdown, no prose). Schema:
+{
+  "action": "swap" | "add" | "remove" | "resize" | "no_change",
+  "changes": {
+    "userSpecsOverride": { "spindlePowerKw": 30, "spindleMaxRpm": 12000, "movingMassKg": 500, "rapidTraverseMpm": 40 },
+    "controlUnitId": "NCU_1750",
+    "preferActiveLineModule": true,
+    "lineModuleArticle": "6SL3130-7TE25-5AA3",
+    "feedMotorArticle": "1FT7086-5AF71-1DA1",
+    "spindleMotorArticle": "1PH8163-1FF10-0LA1",
+    "addOptions": [{ "orderCode": "M72", "quantity": 1, "reason": "TRAORI requested" }],
+    "removeOptions": ["opt-A05"],
+    "addPackages": [{ "id": "S43", "reason": "5-axis upgrade" }]
+  },
+  "summary": "1-3 sentences explaining what changed",
+  "warnings": ["Optional: things the user should verify"]
+}
+
+RULES
+- For motor sizing changes (e.g. "make spindle 30 kW"), use userSpecsOverride. Do NOT pick a specific motor article — the deterministic sizing engine will pick the right motor from the catalog when userSpecsOverride is provided.
+- For specific component swaps (e.g. "use Active Line Module 55 kW"), use the article-number fields directly.
+- For preference flips (e.g. "switch to active line module"), use preferActiveLineModule: true.
+- For software options, use addOptions / removeOptions / addPackages.
+- Include only fields that change. Omit everything else.
+- Article numbers must be COMPLETE (no wildcards). Order codes are 2-3 chars (A01, M72, S43, K06, P17, etc.)
+- If the request is ambiguous or impossible, return action: "no_change" with a helpful summary explaining why.
+
+VALID CONTROL UNITS: PPU_1740, NCU_1740, NCU_1750, NCU_1760
+VALID LINE MODULES: 6SL3130-6AE15-0AB1 (Smart 5kW), 6SL3130-6AE21-0AB1 (Smart 10kW), 6SL3130-6TE23-6AA3 (Smart 36kW), 6SL3130-6TE25-5AA3 (Smart 55kW), 6SL3130-7TE21-6AA4 (Active 16kW), 6SL3130-7TE23-6AA3 (Active 36kW), 6SL3130-7TE25-5AA3 (Active 55kW), 6SL3130-7TE28-0AA3 (Active 80kW), 6SL3130-7TE31-2AA3 (Active 120kW)`;
 }
 
 function buildCurrentConfigSummary(config: GeneratedConfiguration): string {
   const feedMotor = config.motors.find((m) => m.motorType === "feed_servo_sync");
-  const spindleMotor = config.motors.find((m) =>
-    m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
+  const spindleMotor = config.motors.find(
+    (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
   );
-  const lineModule = config.drives.find((d) =>
-    d.componentType === "line_module_active" ||
-    d.componentType === "line_module_smart" ||
-    d.componentType === "line_module_basic"
+  const lineModule = config.drives.find(
+    (d) =>
+      d.componentType === "line_module_active" ||
+      d.componentType === "line_module_smart" ||
+      d.componentType === "line_module_basic"
   );
-  const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
-  const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));
 
   return `
 - Control Unit: ${config.controlUnit.id} (${config.controlUnit.articleNumber})
@@ -93,73 +123,166 @@ function buildCurrentConfigSummary(config: GeneratedConfiguration): string {
 - Technology Packages: ${config.technologyPackages.map((p) => p.orderCode).join(", ") || "None"}
 - Software Options: ${config.softwareOptions.map((o) => o.orderCode).join(", ") || "None"}
 - Feed Motor: ${feedMotor?.articleNumber || "?"} (${feedMotor?.ratedTorque || "?"} @ ${feedMotor?.ratedSpeed || "?"})
-- Feed Motor Module: ${feedMm?.articleNumber || "?"} (${feedMm?.ratedCurrent || "?"}) x${config.driveQuantities[feedMm?.id || ""] || 0}
-- Spindle Motor: ${spindleMotor?.articleNumber || "none"} (${spindleMotor?.ratedPower || "?"})
-- Spindle Motor Module: ${spindleMm?.articleNumber || "?"}
-- Line Module: ${lineModule?.articleNumber || "?"} (${lineModule?.name || "?"})
+- Spindle Motor: ${spindleMotor?.articleNumber || "none"} (${spindleMotor?.ratedPower || "?"}, max ${spindleMotor?.maxSpeed || "?"})
+- Line Module: ${lineModule?.articleNumber || "?"} (${lineModule?.componentType || "?"})
 - HMI: ${config.hmiComponents.find((h) => h.category === "thin_client" || h.category === "ppu_panel" || h.category === "panel_pc")?.name || "?"}
 - Safety: ${config.safetyFunctions.filter((s) => !s.isBasicScope).map((s) => s.orderCode).join(", ") || "Basic only"}
 - Total axes: ${config.totalAxes}, Channels: ${config.totalChannels}
 `.trim();
 }
 
-interface ModifyChanges {
-  action?: string;
-  changes?: {
-    controlUnit?: { articleNumber: string; reason: string };
-    lineModule?: { articleNumber: string; reason: string };
-    feedMotor?: { articleNumber: string; shaftHeight?: number; reason: string };
-    spindleMotor?: { articleNumber: string; shaftHeight?: number; reason: string };
-    feedMotorModule?: { articleNumber: string; reason: string };
-    spindleMotorModule?: { articleNumber: string; reason: string };
-    addOptions?: { orderCode: string; name: string; quantity: number; reason: string }[];
-    addPackages?: { id: string; reason: string }[];
-  };
-  summary?: string;
-  warnings?: string[];
-}
-
+/**
+ * Apply a modify instruction. Order matters:
+ *   1. userSpecsOverride → re-run sizing engine to pick new motor + drives
+ *   2. preferActiveLineModule → re-select line module
+ *   3. Direct article swaps (motor / line module / control unit)
+ *   4. Software adds/removes
+ */
 function applyModifications(
   current: GeneratedConfiguration,
-  response: ModifyChanges
+  instruction: ModifyInstruction,
+  baselineSpecs?: UserSpecsInput
 ): ModifyResult {
-  if (!response.changes || response.action === "no_change") {
+  const changes = instruction.changes;
+  if (!changes || instruction.action === "no_change" || Object.keys(changes).length === 0) {
     return {
-      summary: response.summary || "No changes made.",
-      warnings: response.warnings,
+      summary: instruction.summary || "No changes made.",
+      warnings: instruction.warnings,
     };
   }
 
-  let updated = { ...current };
-  const { changes } = response;
+  let updated: GeneratedConfiguration = current;
+  const appliedSummary: string[] = [];
 
-  // Apply swaps
-  if (changes.lineModule) {
-    updated = applySwap(updated, "line_module", changes.lineModule.articleNumber);
+  // 1. Re-run sizing engine if user wants to change spec-driven sizing
+  if (changes.userSpecsOverride) {
+    const merged: UserSpecsInput = { ...(baselineSpecs || {}), ...changes.userSpecsOverride };
+    // Derive baseline from current motors if no baseline provided
+    if (!baselineSpecs) {
+      const spindle = current.motors.find(
+        (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
+      );
+      const feed = current.motors.find((m) => m.motorType === "feed_servo_sync");
+      if (spindle?.ratedPower && merged.spindlePowerKw === undefined) {
+        merged.spindlePowerKw = parseNumeric(spindle.ratedPower);
+      }
+      if (spindle?.maxSpeed && merged.spindleMaxRpm === undefined) {
+        merged.spindleMaxRpm = parseNumeric(spindle.maxSpeed);
+      }
+      if (feed?.ratedTorque && merged.movingMassKg === undefined) {
+        // Approximate inverse — torque was sized at mass/40, so mass ≈ torque*40
+        merged.movingMassKg = (parseNumeric(feed.ratedTorque) || 5) * 40;
+      }
+    }
+
+    const sized = sizeConfiguration({ userSpecs: merged, template: null });
+    if (sized.spindle) {
+      updated = applySwap(updated, "motor_spindle", sized.spindle.article, {
+        shaftHeight: sized.spindle.specs.shaftHeight,
+      });
+      // Sync the spindle motor module to the freshly-sized spindle's MM
+      updated = applySwap(updated, "motor_module_spindle", sized.spindle.specs.motorModule);
+      appliedSummary.push(`Re-sized spindle to ${sized.spindle.article} (${sized.spindle.specs.ratedPower}, max ${sized.spindle.specs.maxSpeed})`);
+    }
+    if (sized.feed) {
+      updated = applySwap(updated, "motor_feed", sized.feed.article, {
+        shaftHeight: sized.feed.specs.shaftHeight,
+      });
+      updated = applySwap(updated, "motor_module_feed", sized.feed.specs.motorModule);
+      appliedSummary.push(`Re-sized feed motor to ${sized.feed.article} (${sized.feed.specs.ratedTorque})`);
+    }
   }
-  if (changes.feedMotor) {
-    updated = applySwap(updated, "motor_feed", changes.feedMotor.articleNumber, {
-      shaftHeight: changes.feedMotor.shaftHeight,
-    });
+
+  // 2. Active line module preference flip
+  if (changes.preferActiveLineModule) {
+    const feedMm = updated.drives.find((d) => d.id.startsWith("feed-mm-"));
+    const spindleMm = updated.drives.find((d) => d.id.startsWith("spindle-mm-"));
+    const feedQty = feedMm ? updated.driveQuantities[feedMm.id] || 1 : 0;
+    const spindleQty = spindleMm ? updated.driveQuantities[spindleMm.id] || 1 : 0;
+    const lm = selectLineModule(
+      feedMm?.articleNumber || "",
+      feedQty,
+      spindleMm?.articleNumber,
+      spindleQty,
+      true
+    );
+    updated = applySwap(updated, "line_module", lm.articleNumber);
+    appliedSummary.push(`Switched to Active Line Module: ${lm.name}`);
   }
-  if (changes.spindleMotor) {
-    updated = applySwap(updated, "motor_spindle", changes.spindleMotor.articleNumber, {
-      shaftHeight: changes.spindleMotor.shaftHeight,
-    });
+
+  // 3. Direct article swaps
+  if (changes.lineModuleArticle) {
+    updated = applySwap(updated, "line_module", changes.lineModuleArticle);
+    appliedSummary.push(`Line Module → ${changes.lineModuleArticle}`);
   }
-  if (changes.feedMotorModule) {
-    updated = applySwap(updated, "motor_module_feed", changes.feedMotorModule.articleNumber);
+  if (changes.feedMotorArticle) {
+    updated = applySwap(updated, "motor_feed", changes.feedMotorArticle);
+    appliedSummary.push(`Feed motor → ${changes.feedMotorArticle}`);
   }
-  if (changes.spindleMotorModule) {
-    updated = applySwap(updated, "motor_module_spindle", changes.spindleMotorModule.articleNumber);
+  if (changes.spindleMotorArticle) {
+    updated = applySwap(updated, "motor_spindle", changes.spindleMotorArticle);
+    appliedSummary.push(`Spindle motor → ${changes.spindleMotorArticle}`);
   }
-  if (changes.controlUnit) {
-    updated = applySwap(updated, "control_unit", changes.controlUnit.articleNumber);
+  if (changes.controlUnitArticle) {
+    updated = applySwap(updated, "control_unit", changes.controlUnitArticle);
+    appliedSummary.push(`Control unit → ${changes.controlUnitArticle}`);
+  } else if (changes.controlUnitId) {
+    const articleMap: Record<string, string> = {
+      PPU_1740: "6FC5317-4AA00-1CA0",
+      NCU_1740: "6FC5317-4AA00-0AA0",
+      NCU_1750: "6FC5317-5AA00-0AA1",
+      NCU_1760: "6FC5317-6AA00-0AA0",
+    };
+    const article = articleMap[changes.controlUnitId];
+    if (article) {
+      updated = applySwap(updated, "control_unit", article);
+      appliedSummary.push(`Control unit → ${changes.controlUnitId}`);
+    }
+  }
+
+  // 4. Software options
+  if (changes.addOptions) {
+    for (const a of changes.addOptions) {
+      const opt = catalogOptions.find((o) => o.orderCode === a.orderCode);
+      if (opt) {
+        updated = addSoftwareOption(updated, opt, a.quantity || 1);
+        appliedSummary.push(`Added option ${opt.orderCode} (${opt.name})`);
+      } else {
+        appliedSummary.push(`⚠ Option ${a.orderCode} not found in catalog`);
+      }
+    }
+  }
+  if (changes.removeOptions) {
+    for (const id of changes.removeOptions) {
+      const before = updated.softwareOptions.length;
+      updated = removeSoftwareOption(updated, id);
+      if (updated.softwareOptions.length < before) appliedSummary.push(`Removed option ${id}`);
+    }
+  }
+  if (changes.addPackages) {
+    for (const p of changes.addPackages) {
+      const pkg = catalogPackages.find((tp) => tp.id === p.id || tp.orderCode === p.id);
+      if (pkg) {
+        updated = addTechnologyPackage(updated, pkg);
+        appliedSummary.push(`Added package ${pkg.orderCode} (${pkg.name})`);
+      } else {
+        appliedSummary.push(`⚠ Package ${p.id} not found in catalog`);
+      }
+    }
   }
 
   return {
     updatedConfiguration: updated,
-    summary: response.summary || "Configuration updated.",
-    warnings: response.warnings,
+    summary: instruction.summary || appliedSummary.join("; ") || "Configuration updated.",
+    warnings: instruction.warnings,
   };
 }
+
+function parseNumeric(s?: string): number | undefined {
+  if (!s) return undefined;
+  const m = s.match(/([\d.]+)/);
+  return m ? parseFloat(m[1]) : undefined;
+}
+
+// Hint to find drives by ID prefix — utility kept for clarity in callers
+export type _UnusedDriveTypes = DriveComponent | Motor;

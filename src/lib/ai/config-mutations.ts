@@ -1,4 +1,4 @@
-import type { GeneratedConfiguration, DriveComponent, Motor, ControlUnit, HmiComponent } from "@/types/catalog";
+import type { GeneratedConfiguration, DriveComponent, Motor, ControlUnit, HmiComponent, SoftwareOption, TechnologyPackage } from "@/types/catalog";
 import type { SwapCategory } from "@/components/configurator/component-swap-dialog";
 import {
   MOTOR_MODULE_SPECS,
@@ -265,6 +265,59 @@ function findMotorModuleForCurrent(amps: number): string | undefined {
     if (specs.current >= amps) return article;
   }
   return sorted[sorted.length - 1]?.[0];
+}
+
+/** Add a software option (A01-A28, M-, P-, S-codes) if not already present. */
+export function addSoftwareOption(
+  config: GeneratedConfiguration,
+  option: SoftwareOption,
+  quantity: number = 1
+): GeneratedConfiguration {
+  // If already present, bump quantity
+  const existing = config.softwareOptions.find((o) => o.id === option.id);
+  if (existing) {
+    return {
+      ...config,
+      optionQuantities: {
+        ...config.optionQuantities,
+        [existing.id]: (config.optionQuantities[existing.id] || 1) + quantity,
+      },
+    };
+  }
+  return {
+    ...config,
+    softwareOptions: [...config.softwareOptions, option],
+    optionQuantities: { ...config.optionQuantities, [option.id]: quantity },
+  };
+}
+
+/** Remove a software option (by id). */
+export function removeSoftwareOption(
+  config: GeneratedConfiguration,
+  optionId: string
+): GeneratedConfiguration {
+  const { [optionId]: _dropped, ...rest } = config.optionQuantities;
+  void _dropped;
+  return {
+    ...config,
+    softwareOptions: config.softwareOptions.filter((o) => o.id !== optionId),
+    optionQuantities: rest,
+  };
+}
+
+/** Add a technology package (bundles options). */
+export function addTechnologyPackage(
+  config: GeneratedConfiguration,
+  pkg: TechnologyPackage
+): GeneratedConfiguration {
+  if (config.technologyPackages.some((p) => p.id === pkg.id)) return config;
+  // Remove any individual options that are now bundled in the package
+  const bundled = new Set(pkg.includedOptions);
+  return {
+    ...config,
+    technologyPackages: [...config.technologyPackages, pkg],
+    softwareOptions: config.softwareOptions.filter((o) => !bundled.has(o.orderCode)),
+  };
 }
 
 function autoSizeLineModule(config: GeneratedConfiguration) {

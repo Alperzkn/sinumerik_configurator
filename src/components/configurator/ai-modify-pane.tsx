@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { modifyConfiguration } from "@/lib/ai/modify-engine";
+import type { UserSpecsInput } from "@/lib/sizing";
 
 interface AiModifyPaneProps {
   onApplied?: () => void;
@@ -21,7 +22,7 @@ const QUICK_ACTIONS = [
 ];
 
 export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
-  const { configuration, setConfiguration } = useConfiguratorStore();
+  const { configuration, machineSpecs, setConfiguration } = useConfiguratorStore();
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastMessage, setLastMessage] = useState<{ role: "user" | "assistant"; content: string } | null>(null);
@@ -34,8 +35,21 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
     setLastMessage({ role: "user", content: requestText });
     setInput("");
 
+    const parseNum = (s: string) => {
+      const m = s.match(/([\d.]+)/);
+      return m ? parseFloat(m[1]) : undefined;
+    };
+    const baselineSpecs: UserSpecsInput = {
+      spindlePowerKw: parseNum(machineSpecs.spindlePower),
+      spindleMaxRpm: parseNum(machineSpecs.spindleSpeed),
+      movingMassKg: parseNum(machineSpecs.movingMass),
+      rapidTraverseMpm: parseNum(machineSpecs.rapidTraverse),
+      machineSize: machineSpecs.machineSize as UserSpecsInput["machineSize"],
+      material: machineSpecs.material,
+    };
+
     try {
-      const result = await modifyConfiguration(configuration, requestText);
+      const result = await modifyConfiguration(configuration, requestText, baselineSpecs);
       if (result.updatedConfiguration) {
         setConfiguration(result.updatedConfiguration);
         setLastMessage({

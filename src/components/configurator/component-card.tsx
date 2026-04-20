@@ -18,6 +18,7 @@ interface ComponentCardProps {
   isNew?: boolean;
   specs?: ComponentSpec[];
   onSwap?: () => void;
+  onRemove?: () => void;
 }
 
 export function ComponentCard({
@@ -30,6 +31,7 @@ export function ComponentCard({
   isNew,
   specs,
   onSwap,
+  onRemove,
 }: ComponentCardProps) {
   return (
     <div
@@ -87,6 +89,19 @@ export function ComponentCard({
               title="Swap component"
             >
               Swap
+            </button>
+          )}
+          {onRemove && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity rounded-md border border-destructive/30 bg-background hover:bg-destructive/10 text-destructive px-2 py-1 text-[10px] font-medium"
+              title="Remove"
+            >
+              Remove
             </button>
           )}
         </div>

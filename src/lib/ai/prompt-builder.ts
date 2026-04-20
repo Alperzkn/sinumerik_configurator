@@ -73,11 +73,30 @@ ONLY NCU 1750/1760. NOT available in export version.
 ## Key Options
 - A01-A28: Additional axis/spindle (per axis beyond base 3) [6FC5800-0BA00-0YB0]
 - C11-C19: Additional machining channel [6FC5800-0BC10-0YB0]
-- M30: Machining package 5 axes [6FC5800-0BM30-0YB0] (not export)
+- M30: Machining package 5 axes [6FC5800-0BM30-0YB0] (not export) — INCLUDED IN S43
+- M48: Generic 5-axis transformation — INCLUDED IN S43
+- M70: TRANSMIT polar axis transformation — typical for mill-turn B-axis milling
+- M72: TRAORI dynamic orientation transformation — typical for 5-axis HSC
+- M15: Multi-axis interpolation >4 axes — required for robots and some 5-axis setups
+- M27: Handling transformation
+- M28: TRAANG inclined axis
 - M34: Grinding oscillation [6FC5800-0BM34-0YB0]
 - S35: Grinding Advanced [6FC5800-0BS35-0YB0]
+- S07: Advanced Surface — INCLUDED IN S42/S43
+- S17: Top Surface — INCLUDED IN S42/S43
 - M37: Laser power control [6FC5800-0BM37-0YB0]
+- M38: Laser switching high-speed
 - M33: Punching/nibbling [6FC5800-0BM33-0YB0]
+- M43: Cross-mode actions ASUB — required for multi-channel and robot
+- R05: Run MyRobot /Direct Control — for robot cells
+
+### Option guidance by machine type
+- **5-axis milling center** (S43 selected): consider adding M72 (TRAORI) if the customer does dynamic 5-axis orientation; add M70 (TRANSMIT) if there's a C-axis milling head
+- **Mill-turn center**: add C11 (2nd channel), M43 (ASUB cross-mode), M30 (if 5-axis B-head)
+- **HSC / mold making**: NCU 1760 + S43 + M72; optionally S07/S17 (already in S43)
+- **Robot cell**: M15 (>4-axis interp), R05 (Run MyRobot), M43 (ASUB), S00
+
+Do NOT list options already bundled in a selected tech package. S43 bundles M30, M48, P18, S07, S17, S62, P28; S42 bundles S07, S17, S62, P28 (plus all of S41); S41 bundles P17, P56, P13, P25, P22, M27, P75.
 
 ## Drive Family (architectural choice)
 - "S120_booksize": standard for machine tools (shared DC bus, scales well)

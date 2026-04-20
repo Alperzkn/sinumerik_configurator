@@ -15,6 +15,7 @@ export interface MachineSpecsState {
   spindleSpeed: string;
   material: string;
   machineSize: string;
+  safetyLevel: string;
 }
 
 interface ConfiguratorState {
@@ -66,6 +67,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
     spindleSpeed: "",
     material: "",
     machineSize: "",
+    safetyLevel: "",
   },
   aiMessages: [],
   isAiProcessing: false,
@@ -147,6 +149,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
         spindleSpeed: "",
         material: "",
         machineSize: "",
+        safetyLevel: "",
       },
       aiMessages: [],
       isAiProcessing: false,

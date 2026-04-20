@@ -13,6 +13,7 @@ export interface MachineSpecs {
   spindleSpeed: string;
   material: string;
   machineSize: string;
+  safetyLevel: string;
 }
 
 const SIZE_OPTIONS = [
@@ -20,6 +21,12 @@ const SIZE_OPTIONS = [
   { value: "medium", label: "Medium", hint: "Table 500-1500mm, 200-500kg/axis" },
   { value: "large", label: "Large", hint: "Table >1500mm, 500-2000kg/axis" },
   { value: "very_large", label: "Very Large / Gantry", hint: ">2000mm, >2000kg/axis" },
+];
+
+const SAFETY_OPTIONS = [
+  { value: "basic", label: "Basic", hint: "STO/SS1/SBC only — simple e-stop" },
+  { value: "extended", label: "Extended", hint: "S60+S61 — safe axis monitoring (SLS/SOS)" },
+  { value: "full", label: "Full / Kinematics", hint: "S60+S61+K — per-axis + safe kinematics" },
 ];
 
 interface MachineSpecsFormProps {
@@ -146,6 +153,31 @@ export function MachineSpecsForm({ specs, onChange }: MachineSpecsFormProps) {
           />
         </div>
       </div>
+
+      {/* Safety level */}
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+          Safety Level
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {SAFETY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => update("safetyLevel", opt.value)}
+              className={cn(
+                "rounded-lg border p-2 text-left transition-all text-xs",
+                specs.safetyLevel === opt.value
+                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                  : "hover:border-primary/30"
+              )}
+            >
+              <div className="font-medium">{opt.label}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">{opt.hint}</div>
+            </button>
+          ))}
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -168,6 +200,14 @@ export function formatSpecsForAi(specs: MachineSpecs): string {
   if (specs.spindlePower) parts.push(`Spindle power: ${specs.spindlePower} kW`);
   if (specs.spindleSpeed) parts.push(`Spindle max speed: ${specs.spindleSpeed} rpm`);
   if (specs.material) parts.push(`Primary material: ${specs.material}`);
+  if (specs.safetyLevel) {
+    const safetyLabels: Record<string, string> = {
+      basic: "Basic safety (STO/SS1/SBC only)",
+      extended: "Extended safety (S60 + S61 multi-axis monitoring)",
+      full: "Full safety with per-axis + kinematics (S60 + S61 + K options)",
+    };
+    parts.push(`Safety level: ${safetyLabels[specs.safetyLevel] || specs.safetyLevel}`);
+  }
 
   return parts.length > 0 ? "\n\nMechanical Specifications:\n" + parts.join("\n") : "";
 }
@@ -180,4 +220,5 @@ export const EMPTY_SPECS: MachineSpecs = {
   spindleSpeed: "",
   material: "",
   machineSize: "",
+  safetyLevel: "",
 };

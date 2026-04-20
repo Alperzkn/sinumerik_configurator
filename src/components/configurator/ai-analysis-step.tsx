@@ -50,6 +50,14 @@ function buildInitialUserMessage(
   if (specs.spindlePower) specsLines.push(`- Required spindle power: ${specs.spindlePower} kW (MINIMUM — do not select smaller)`);
   if (specs.spindleSpeed) specsLines.push(`- Required spindle max speed: ${specs.spindleSpeed} rpm (MINIMUM — do not select slower)`);
   if (specs.material) specsLines.push(`- Primary workpiece material: ${specs.material}`);
+  if (specs.safetyLevel) {
+    const safetyLabels: Record<string, string> = {
+      basic: "Basic safety only (STO, SS1, SBC — no S60, no K options)",
+      extended: "Extended safety (add S60 + S61 for multi-axis monitoring)",
+      full: "Full safety with per-axis and kinematics (S60 + S61 + K options)",
+    };
+    specsLines.push(`- Required safety level: ${safetyLabels[specs.safetyLevel] || specs.safetyLevel}`);
+  }
 
   let msg = "";
   if (template) msg += `Machine Type: ${template.replace(/_/g, " ")}\n\n`;
