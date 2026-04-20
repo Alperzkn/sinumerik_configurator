@@ -8,7 +8,40 @@ import { useConfiguratorStore } from "@/store/configurator-store";
 import { ProcessingSteps, LoadingSpinner } from "@/components/shared/loading-spinner";
 import { getAiRecommendation } from "@/lib/ai/recommendation-engine";
 import { parseAiResponse, setCatalogData, validateAgainstUserSpecs } from "@/lib/ai/response-parser";
-import type { AiMessage } from "@/types/catalog";
+import type { AiMessage, MachineType } from "@/types/catalog";
+import type { MachineSpecsState } from "@/store/configurator-store";
+
+function buildInitialUserMessage(
+  description: string,
+  template: MachineType | null,
+  specs: MachineSpecsState
+): string {
+  const specsLines: string[] = [];
+  if (specs.machineSize) {
+    const sizeLabels: Record<string, string> = {
+      small: "Small machine (table ≤500mm, moving mass <200kg/axis)",
+      medium: "Medium machine (500-1500mm table, 200-500kg/axis)",
+      large: "Large machine (>1500mm table, 500-2000kg/axis)",
+      very_large: "Very large / gantry machine (>2000mm, >2000kg/axis)",
+    };
+    specsLines.push(`- Machine size class: ${sizeLabels[specs.machineSize] || specs.machineSize}`);
+  }
+  if (specs.axisTravel) specsLines.push(`- Axis travel: ${specs.axisTravel} mm`);
+  if (specs.movingMass) specsLines.push(`- Moving mass per axis: ${specs.movingMass} kg`);
+  if (specs.rapidTraverse) specsLines.push(`- Required rapid traverse: ${specs.rapidTraverse} m/min`);
+  if (specs.spindlePower) specsLines.push(`- Required spindle power: ${specs.spindlePower} kW (MINIMUM — do not select smaller)`);
+  if (specs.spindleSpeed) specsLines.push(`- Required spindle max speed: ${specs.spindleSpeed} rpm (MINIMUM — do not select slower)`);
+  if (specs.material) specsLines.push(`- Primary workpiece material: ${specs.material}`);
+
+  let msg = "";
+  if (template) msg += `Machine Type: ${template.replace(/_/g, " ")}\n\n`;
+  if (description) msg += `User Description: ${description}\n\n`;
+  if (specsLines.length > 0) {
+    msg += `MECHANICAL REQUIREMENTS (HARD CONSTRAINTS — you MUST select components that match or exceed these):\n${specsLines.join("\n")}\n\n`;
+    msg += `IMPORTANT: The spindle power and speed above are MINIMUMS. If user specified 50kW spindle, you MUST select a motor with rated power ≥ 50kW (1PH8186 or larger). If user specified 24000 rpm, select a motor with max speed ≥ 24000 rpm. Never select under-sized motors.`;
+  }
+  return msg.trim() || description || (template ? template.replace(/_/g, " ") : "");
+}
 
 export function AiAnalysisStep() {
   const {
@@ -47,39 +80,10 @@ export function AiAnalysisStep() {
     setStatusText("Sending to AI...");
 
     try {
-      // Build the user message with HARD CONSTRAINTS from the specs form.
-      // The AI must respect these values exactly — they are user-provided requirements.
-      const specsLines: string[] = [];
-      if (machineSpecs.machineSize) {
-        const sizeLabels: Record<string, string> = {
-          small: "Small machine (table ≤500mm, moving mass <200kg/axis)",
-          medium: "Medium machine (500-1500mm table, 200-500kg/axis)",
-          large: "Large machine (>1500mm table, 500-2000kg/axis)",
-          very_large: "Very large / gantry machine (>2000mm, >2000kg/axis)",
-        };
-        specsLines.push(`- Machine size class: ${sizeLabels[machineSpecs.machineSize] || machineSpecs.machineSize}`);
-      }
-      if (machineSpecs.axisTravel) specsLines.push(`- Axis travel: ${machineSpecs.axisTravel} mm`);
-      if (machineSpecs.movingMass) specsLines.push(`- Moving mass per axis: ${machineSpecs.movingMass} kg`);
-      if (machineSpecs.rapidTraverse) specsLines.push(`- Required rapid traverse: ${machineSpecs.rapidTraverse} m/min`);
-      if (machineSpecs.spindlePower) specsLines.push(`- Required spindle power: ${machineSpecs.spindlePower} kW (MINIMUM — do not select smaller)`);
-      if (machineSpecs.spindleSpeed) specsLines.push(`- Required spindle max speed: ${machineSpecs.spindleSpeed} rpm (MINIMUM — do not select slower)`);
-      if (machineSpecs.material) specsLines.push(`- Primary workpiece material: ${machineSpecs.material}`);
-
-      let userMessage = "";
-      if (selectedTemplate) {
-        userMessage += `Machine Type: ${selectedTemplate.replace(/_/g, " ")}\n\n`;
-      }
-      if (machineDescription) {
-        userMessage += `User Description: ${machineDescription}\n\n`;
-      }
-      if (specsLines.length > 0) {
-        userMessage += `MECHANICAL REQUIREMENTS (HARD CONSTRAINTS — you MUST select components that match or exceed these):\n${specsLines.join("\n")}\n\n`;
-        userMessage += `IMPORTANT: The spindle power and speed above are MINIMUMS. If user specified 50kW spindle, you MUST select a motor with rated power ≥ 50kW (1PH8186 or larger). If user specified 24000 rpm, select a motor with max speed ≥ 24000 rpm. Never select under-sized motors.`;
-      }
-
+      // History already contains the full message (incl. specs) because
+      // initiateAnalysis built it via buildInitialUserMessage. Just forward it.
       const response = await getAiRecommendation({
-        description: userMessage || machineDescription,
+        description: machineDescription,
         template: selectedTemplate,
         conversationHistory: conversationHistory.map(m => ({
           id: "",
@@ -184,9 +188,11 @@ export function AiAnalysisStep() {
       });
     } catch { /* continue */ }
 
-    const userContent = selectedTemplate
-      ? `Machine Type: ${selectedTemplate.replace(/_/g, " ")}${machineDescription ? `\n\nAdditional Details: ${machineDescription}` : ""}`
-      : machineDescription;
+    const userContent = buildInitialUserMessage(
+      machineDescription,
+      selectedTemplate,
+      machineSpecs
+    );
 
     const userMsg: AiMessage = {
       id: `user-${Date.now()}`,
@@ -197,7 +203,7 @@ export function AiAnalysisStep() {
     addAiMessage(userMsg);
 
     await callAi([{ role: "user", content: userContent }]);
-  }, [machineDescription, selectedTemplate, addAiMessage, callAi]);
+  }, [machineDescription, selectedTemplate, machineSpecs, addAiMessage, callAi]);
 
   useEffect(() => {
     if (aiMessages.length === 0) {
