@@ -305,6 +305,61 @@ export function removeSoftwareOption(
   };
 }
 
+/**
+ * Add a non-basic safety function. Basic safety (STO/SS1/SBC) is always
+ * present and not addable separately.
+ */
+export function addSafetyFunction(
+  config: GeneratedConfiguration,
+  safetyFn: import("@/types/catalog").SafetyFunction
+): GeneratedConfiguration {
+  if (safetyFn.isBasicScope) return config;
+  if (config.safetyFunctions.some((s) => s.id === safetyFn.id)) return config;
+  return {
+    ...config,
+    safetyFunctions: [...config.safetyFunctions, safetyFn],
+  };
+}
+
+/**
+ * Remove a non-basic safety function (e.g. S60, S61, K-axis). Basic safety
+ * (STO/SS1/SBC, marked isBasicScope) cannot be removed because it is part of
+ * the integrated control unit hardware.
+ *
+ * Accepts the safety function's id, orderCode, or a substring of either.
+ * Removing S60 (F-PLC) also drops every option that depends on it (S61, K*).
+ */
+export function removeSafetyFunctions(
+  config: GeneratedConfiguration,
+  identifiers: string[]
+): GeneratedConfiguration {
+  const wanted = identifiers.map((s) => s.toLowerCase());
+  const keptInitial = config.safetyFunctions.filter((sf) => {
+    if (sf.isBasicScope) return true; // never remove basic scope
+    const code = (sf.orderCode || "").toLowerCase();
+    const id = sf.id.toLowerCase();
+    return !wanted.some((w) => code === w || id === w || id.includes(w) || code.includes(w));
+  });
+
+  // If S60 was removed, cascade-remove anything that requires it
+  const removingS60 = config.safetyFunctions.some(
+    (sf) => !sf.isBasicScope && (sf.orderCode === "S60" || sf.id.toLowerCase().includes("s60"))
+  ) && !keptInitial.some(
+    (sf) => sf.orderCode === "S60" || sf.id.toLowerCase().includes("s60")
+  );
+
+  const kept = removingS60
+    ? keptInitial.filter((sf) => {
+        if (sf.isBasicScope) return true;
+        const code = (sf.orderCode || "").toUpperCase();
+        // S61 (multi-axis) and K* (per-axis) all require S60
+        return code !== "S61" && !/^K\d/.test(code);
+      })
+    : keptInitial;
+
+  return { ...config, safetyFunctions: kept };
+}
+
 /** Add a technology package (bundles options). */
 export function addTechnologyPackage(
   config: GeneratedConfiguration,

@@ -4,11 +4,14 @@ import {
   addSoftwareOption,
   removeSoftwareOption,
   addTechnologyPackage,
+  addSafetyFunction,
+  removeSafetyFunctions,
 } from "./config-mutations";
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
 import { MOTOR_MODULE_SPECS, selectLineModule } from "@/lib/validation/drive-system-rules";
 import { softwareOptions as catalogOptions } from "@/data/software-options";
 import { technologyPackages as catalogPackages } from "@/data/technology-packages";
+import { safetyFunctions as catalogSafetyFunctions } from "@/data/safety";
 
 export interface ModifyResult {
   updatedConfiguration?: GeneratedConfiguration;
@@ -34,6 +37,9 @@ interface ModifyInstruction {
     addOptions?: { orderCode: string; quantity?: number; reason?: string }[];
     removeOptions?: string[];
     addPackages?: { id: string; reason?: string }[];
+    /** Safety changes — strings can be order codes (S60, S61, K06) or ids */
+    addSafety?: string[];
+    removeSafety?: string[];
   };
   summary?: string;
   warnings?: string[];
@@ -86,7 +92,9 @@ Respond with JSON ONLY (no markdown, no prose). Schema:
     "spindleMotorArticle": "1PH8163-1FF10-0LA1",
     "addOptions": [{ "orderCode": "M72", "quantity": 1, "reason": "TRAORI requested" }],
     "removeOptions": ["opt-A05"],
-    "addPackages": [{ "id": "S43", "reason": "5-axis upgrade" }]
+    "addPackages": [{ "id": "S43", "reason": "5-axis upgrade" }],
+    "addSafety": ["S60", "S61"],
+    "removeSafety": ["S60", "S61", "K06"]
   },
   "summary": "1-3 sentences explaining what changed",
   "warnings": ["Optional: things the user should verify"]
@@ -97,6 +105,11 @@ RULES
 - For specific component swaps (e.g. "use Active Line Module 55 kW"), use the article-number fields directly.
 - For preference flips (e.g. "switch to active line module"), use preferActiveLineModule: true.
 - For software options, use addOptions / removeOptions / addPackages.
+- For safety changes:
+  * "remove safety" / "drop S60" / "no safety options" → removeSafety: ["S60", "S61", ...all extended safety codes currently in the config]
+  * "add safe axis monitoring" / "add S61" → addSafety: ["S60", "S61"] (S61 requires S60)
+  * "add per-axis safety" → addSafety: ["S60", "K06"] (or appropriate K0N for axis count)
+  * Basic safety (STO/SS1/SBC) is HARDWARE — it can never be removed and never needs to be added; do NOT include it in either array.
 - Include only fields that change. Omit everything else.
 - Article numbers must be COMPLETE (no wildcards). Order codes are 2-3 chars (A01, M72, S43, K06, P17, etc.)
 - If the request is ambiguous or impossible, return action: "no_change" with a helpful summary explaining why.
@@ -267,6 +280,27 @@ function applyModifications(
         appliedSummary.push(`Added package ${pkg.orderCode} (${pkg.name})`);
       } else {
         appliedSummary.push(`⚠ Package ${p.id} not found in catalog`);
+      }
+    }
+  }
+
+  // 5. Safety functions
+  if (changes.removeSafety && changes.removeSafety.length > 0) {
+    const before = updated.safetyFunctions.filter((s) => !s.isBasicScope).length;
+    updated = removeSafetyFunctions(updated, changes.removeSafety);
+    const after = updated.safetyFunctions.filter((s) => !s.isBasicScope).length;
+    appliedSummary.push(`Removed ${before - after} safety option(s) (${changes.removeSafety.join(", ")})`);
+  }
+  if (changes.addSafety && changes.addSafety.length > 0) {
+    for (const code of changes.addSafety) {
+      const sf = catalogSafetyFunctions.find(
+        (s) => s.orderCode === code || s.id === code
+      );
+      if (sf) {
+        updated = addSafetyFunction(updated, sf);
+        appliedSummary.push(`Added safety ${sf.orderCode || sf.id} (${sf.name})`);
+      } else {
+        appliedSummary.push(`⚠ Safety ${code} not found in catalog`);
       }
     }
   }

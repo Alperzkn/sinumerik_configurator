@@ -81,6 +81,40 @@ export async function POST(request: Request) {
 function getHeuristicMockResponse(req: string) {
   const r = req.toLowerCase();
 
+  // Safety removal — common phrasings
+  if (
+    (r.includes("remove") || r.includes("drop") || r.includes("delete") || r.includes("no")) &&
+    (r.includes("safety") || r.includes("s60") || r.includes("s61") || r.includes("f-plc") || r.includes("failsafe"))
+  ) {
+    // Pull explicit codes if mentioned, otherwise sweep all known extended codes.
+    const explicit: string[] = [];
+    const codeRegex = /\b(S60|S61|K0?\d{1,2})\b/gi;
+    let m: RegExpExecArray | null;
+    while ((m = codeRegex.exec(req)) !== null) explicit.push(m[1].toUpperCase());
+    const list = explicit.length > 0
+      ? Array.from(new Set(explicit))
+      : ["S60", "S61", "K01", "K02", "K03", "K04", "K05", "K06", "K07", "K08", "K09"];
+    return {
+      action: "remove",
+      changes: { removeSafety: list },
+      summary: explicit.length > 0
+        ? `Removed safety option(s): ${explicit.join(", ")}.`
+        : "Removed all extended safety options. Basic safety (STO/SS1/SBC) remains because it is part of the integrated PLC hardware and cannot be removed.",
+    };
+  }
+
+  // Add safety
+  if ((r.includes("add") || r.includes("enable") || r.includes("include")) &&
+      (r.includes("safety") || r.includes("s60") || r.includes("s61") || r.includes("safe axis"))) {
+    const list: string[] = ["S60"];
+    if (r.includes("s61") || r.includes("multi-axis") || r.includes("multi axis") || r.includes("safe axis")) list.push("S61");
+    return {
+      action: "add",
+      changes: { addSafety: list },
+      summary: `Added safety options: ${list.join(", ")}.`,
+    };
+  }
+
   // Active line module request
   if (r.includes("active line module") || r.includes("active line") || r.includes("regenerative")) {
     return {
