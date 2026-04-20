@@ -7,9 +7,27 @@ import { Input } from "@/components/ui/input";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { ProcessingSteps, LoadingSpinner } from "@/components/shared/loading-spinner";
 import { getAiRecommendation } from "@/lib/ai/recommendation-engine";
-import { parseAiResponse, setCatalogData, validateAgainstUserSpecs } from "@/lib/ai/response-parser";
+import { parseAiResponse, setCatalogData } from "@/lib/ai/response-parser";
+import type { UserSpecsInput } from "@/lib/sizing";
 import type { AiMessage, MachineType } from "@/types/catalog";
 import type { MachineSpecsState } from "@/store/configurator-store";
+
+function parseNumeric(s: string | undefined): number | undefined {
+  if (!s) return undefined;
+  const m = s.match(/([\d.]+)/);
+  return m ? parseFloat(m[1]) : undefined;
+}
+
+function specsToSizingInput(specs: MachineSpecsState): UserSpecsInput {
+  return {
+    spindlePowerKw: parseNumeric(specs.spindlePower),
+    spindleMaxRpm: parseNumeric(specs.spindleSpeed),
+    movingMassKg: parseNumeric(specs.movingMass),
+    rapidTraverseMpm: parseNumeric(specs.rapidTraverse),
+    machineSize: (specs.machineSize || "") as UserSpecsInput["machineSize"],
+    material: specs.material,
+  };
+}
 
 function buildInitialUserMessage(
   description: string,
@@ -113,24 +131,13 @@ export function AiAnalysisStep() {
         setWaitingForAnswer(true);
       } else {
         setStatusText("Building configuration...");
-        const config = parseAiResponse(response);
+        const config = parseAiResponse(
+          response,
+          specsToSizingInput(machineSpecs),
+          selectedTemplate
+        );
 
         if (config) {
-          // Add AI's notes to the configuration
-          if (response.notes && response.notes.length > 0) {
-            config.notes = response.notes;
-          }
-
-          // Validate against user-provided specs — add warnings for undersized components
-          const specWarnings = validateAgainstUserSpecs(config, {
-            spindlePower: machineSpecs.spindlePower,
-            spindleSpeed: machineSpecs.spindleSpeed,
-            movingMass: machineSpecs.movingMass,
-          });
-          if (specWarnings.length > 0) {
-            config.warnings = [...config.warnings, ...specWarnings];
-          }
-
           setConfiguration(config);
 
           const assistantMsg: AiMessage = {

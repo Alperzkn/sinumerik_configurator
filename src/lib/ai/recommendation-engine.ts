@@ -8,6 +8,14 @@ export interface AiRecommendationRequest {
   clarifications?: Record<string, string>;
 }
 
+/**
+ * AI response — ARCHITECTURE ONLY.
+ *
+ * Motor/drive/line-module/cable article numbers are NOT the AI's concern;
+ * they are picked deterministically by the sizing engine (src/lib/sizing)
+ * from the user's mechanical specs. The AI decides control unit, technology
+ * packages, axis/channel count, safety level, HMI type, and drive family.
+ */
 export interface AiRawResponse {
   needsClarification?: boolean;
   questions?: string[];
@@ -29,33 +37,18 @@ export interface AiRawResponse {
     quantity: number;
     reason: string;
   }>;
-  drives?: {
-    mainFamily: string;
-    feedMotorModules: number;
-    spindleMotorModules: number;
-    lineModule: string;
-    lineModuleArticle?: string;
-    feedMotorModuleArticle?: string;
-    spindleMotorModuleArticle?: string;
-    reason: string;
-  };
-  motors?: {
-    feedMotors: string;
-    feedMotorArticle?: string;
-    spindleMotors: string;
-    spindleMotorArticle?: string;
-    feedMotorShaftHeight?: number;
-    spindleMotorShaftHeight?: number;
+  /** New architectural drive description — no article numbers. */
+  driveArchitecture?: {
+    family: "S120_booksize" | "S210" | string;
+    feedAxisCount: number;
+    spindleCount: number;
+    preferActiveLineModule?: boolean;
+    highSpeedSpindle?: boolean;
     reason: string;
   };
   hmi?: {
     type: string;
-    model: string;
-    reason: string;
-  };
-  mcp?: {
-    model: string;
-    articleNumber: string;
+    panelSizeInch?: number;
     reason: string;
   };
   safety?: {
