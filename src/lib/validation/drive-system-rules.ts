@@ -149,6 +149,93 @@ export const MOTOR_SPECS: Record<string, MotorSpecs> = {
   "1PH8137-1MG22-0LA1": { shaftHeight: 132, ratedPower: "22 kW", ratedTorque: "70 Nm", ratedSpeed: "3000 rpm", maxSpeed: "15000 rpm", ratedCurrent: "42 A", family: "SIMOTICS M-1PH8", variant: "Synchronous HighSpeed", motorModule: "6SL3120-1TE24-5AC0", kind: "spindle_sync", cooling: "forced" },
   "1PH8163-1MG22-0LA1": { shaftHeight: 160, ratedPower: "38 kW", ratedTorque: "120 Nm", ratedSpeed: "3000 rpm", maxSpeed: "12000 rpm", ratedCurrent: "70 A", family: "SIMOTICS M-1PH8", variant: "Synchronous HighSpeed", motorModule: "6SL3120-1TE26-0AC0", kind: "spindle_sync", cooling: "forced" },
   "1PH8165-1MG22-0LA1": { shaftHeight: 160, ratedPower: "52 kW", ratedTorque: "165 Nm", ratedSpeed: "3000 rpm", maxSpeed: "12000 rpm", ratedCurrent: "95 A", family: "SIMOTICS M-1PH8", variant: "Synchronous HighSpeed", motorModule: "6SL3120-1TE28-5AA3", kind: "spindle_sync", cooling: "forced" },
+
+  // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS S-1FT2 — compact high-performance servo, newer generation
+  // 2-cable connection (S120 booksize). Higher torque density than 1FT7
+  // at smaller shaft heights; favoured for compact / high-dynamic axes.
+  // ───────────────────────────────────────────────────────────────────
+  // SH20 (natural cooling)
+  "1FT2102-2AC00-0LA0": { shaftHeight: 20, ratedPower: "0.4 kW", ratedTorque: "1.0 Nm", ratedSpeed: "6000 rpm", maxSpeed: "10000 rpm", maxTorque: "3.0 Nm", ratedCurrent: "2.0 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2104-2AC00-0LA0": { shaftHeight: 20, ratedPower: "0.9 kW", ratedTorque: "2.6 Nm", ratedSpeed: "6000 rpm", maxSpeed: "10000 rpm", maxTorque: "7.8 Nm", ratedCurrent: "3.0 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2106-2AC00-0LA0": { shaftHeight: 20, ratedPower: "1.3 kW", ratedTorque: "4.0 Nm", ratedSpeed: "6000 rpm", maxSpeed: "9000 rpm", maxTorque: "12 Nm", ratedCurrent: "4.5 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH30
+  "1FT2202-2AC00-0LA0": { shaftHeight: 30, ratedPower: "1.0 kW", ratedTorque: "3.2 Nm", ratedSpeed: "6000 rpm", maxSpeed: "9000 rpm", maxTorque: "9.6 Nm", ratedCurrent: "3.2 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2204-2AC00-0LA0": { shaftHeight: 30, ratedPower: "1.8 kW", ratedTorque: "6.0 Nm", ratedSpeed: "6000 rpm", maxSpeed: "9000 rpm", maxTorque: "18 Nm", ratedCurrent: "5.5 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2206-2AC00-0LA0": { shaftHeight: 30, ratedPower: "2.8 kW", ratedTorque: "9.5 Nm", ratedSpeed: "6000 rpm", maxSpeed: "8000 rpm", maxTorque: "28 Nm", ratedCurrent: "8.5 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2208-2AC00-0LA0": { shaftHeight: 30, ratedPower: "3.8 kW", ratedTorque: "13 Nm", ratedSpeed: "6000 rpm", maxSpeed: "7500 rpm", maxTorque: "38 Nm", ratedCurrent: "12 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  // SH40
+  "1FT2302-2AC00-0LA0": { shaftHeight: 40, ratedPower: "2.5 kW", ratedTorque: "8 Nm", ratedSpeed: "6000 rpm", maxSpeed: "7500 rpm", maxTorque: "24 Nm", ratedCurrent: "7 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2305-2AC00-0LA0": { shaftHeight: 40, ratedPower: "4.5 kW", ratedTorque: "15 Nm", ratedSpeed: "6000 rpm", maxSpeed: "7000 rpm", maxTorque: "42 Nm", ratedCurrent: "13 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2308-2AC00-0LA0": { shaftHeight: 40, ratedPower: "7.5 kW", ratedTorque: "25 Nm", ratedSpeed: "4500 rpm", maxSpeed: "6500 rpm", maxTorque: "70 Nm", ratedCurrent: "19 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE22-4AD0", kind: "feed_servo", cooling: "natural" },
+  // SH48
+  "1FT2402-2AC00-0LA0": { shaftHeight: 48, ratedPower: "5.0 kW", ratedTorque: "17 Nm", ratedSpeed: "4500 rpm", maxSpeed: "6500 rpm", maxTorque: "48 Nm", ratedCurrent: "14 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2405-2AC00-0LA0": { shaftHeight: 48, ratedPower: "8.0 kW", ratedTorque: "28 Nm", ratedSpeed: "4500 rpm", maxSpeed: "6000 rpm", maxTorque: "75 Nm", ratedCurrent: "22 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE22-4AD0", kind: "feed_servo", cooling: "natural" },
+  "1FT2408-2AC00-0LA0": { shaftHeight: 48, ratedPower: "12 kW", ratedTorque: "42 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "110 Nm", ratedCurrent: "30 A", family: "SIMOTICS S-1FT2", variant: "Compact", motorModule: "6SL3120-1TE23-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH52 / SH63 forced ventilation variants (heavier duty)
+  "1FT2502-2SC00-0LA0": { shaftHeight: 52, ratedPower: "10 kW", ratedTorque: "32 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "85 Nm", ratedCurrent: "25 A", family: "SIMOTICS S-1FT2", variant: "Forced Ventilation", motorModule: "6SL3120-1TE23-0AD0", kind: "feed_servo", cooling: "forced" },
+  "1FT2505-2SC00-0LA0": { shaftHeight: 52, ratedPower: "15 kW", ratedTorque: "48 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5000 rpm", maxTorque: "130 Nm", ratedCurrent: "36 A", family: "SIMOTICS S-1FT2", variant: "Forced Ventilation", motorModule: "6SL3120-1TE24-5AC0", kind: "feed_servo", cooling: "forced" },
+
+  // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS S-1FK2 — compact servo optimised for SINAMICS S210 with
+  // OCC (1-Cable Connection). 2-cable variants also available for S120.
+  // Use this family when the machine uses S210 drives.
+  // ───────────────────────────────────────────────────────────────────
+  // SH20 (natural, OCC)
+  "1FK2102-2AF00-0MA0": { shaftHeight: 20, ratedPower: "0.4 kW", ratedTorque: "1.0 Nm", ratedSpeed: "4500 rpm", maxSpeed: "9000 rpm", maxTorque: "3.0 Nm", ratedCurrent: "2.0 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK2104-2AF00-0MA0": { shaftHeight: 20, ratedPower: "0.8 kW", ratedTorque: "2.6 Nm", ratedSpeed: "4500 rpm", maxSpeed: "8000 rpm", maxTorque: "7.8 Nm", ratedCurrent: "3.0 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK2106-2AF00-0MA0": { shaftHeight: 20, ratedPower: "1.2 kW", ratedTorque: "4.0 Nm", ratedSpeed: "4500 rpm", maxSpeed: "7500 rpm", maxTorque: "12 Nm", ratedCurrent: "4.3 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH30
+  "1FK2202-2AG00-0MA0": { shaftHeight: 30, ratedPower: "0.9 kW", ratedTorque: "3.2 Nm", ratedSpeed: "4500 rpm", maxSpeed: "8000 rpm", maxTorque: "9.6 Nm", ratedCurrent: "3.0 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK2205-2AG00-0MA0": { shaftHeight: 30, ratedPower: "1.7 kW", ratedTorque: "6.0 Nm", ratedSpeed: "4500 rpm", maxSpeed: "7500 rpm", maxTorque: "18 Nm", ratedCurrent: "5.3 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK2208-2AG00-0MA0": { shaftHeight: 30, ratedPower: "2.5 kW", ratedTorque: "9.5 Nm", ratedSpeed: "4500 rpm", maxSpeed: "7000 rpm", maxTorque: "28 Nm", ratedCurrent: "7.8 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH40
+  "1FK2302-2AK00-0MA0": { shaftHeight: 40, ratedPower: "2.2 kW", ratedTorque: "7 Nm", ratedSpeed: "4500 rpm", maxSpeed: "6500 rpm", maxTorque: "21 Nm", ratedCurrent: "6.5 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK2305-2AK00-0MA0": { shaftHeight: 40, ratedPower: "3.8 kW", ratedTorque: "12 Nm", ratedSpeed: "4500 rpm", maxSpeed: "6000 rpm", maxTorque: "34 Nm", ratedCurrent: "11 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK2308-2AK00-0MA0": { shaftHeight: 40, ratedPower: "5.5 kW", ratedTorque: "18 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "50 Nm", ratedCurrent: "15 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE22-4AD0", kind: "feed_servo", cooling: "natural" },
+  // SH52
+  "1FK2502-2AK00-0MA0": { shaftHeight: 52, ratedPower: "4.5 kW", ratedTorque: "15 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "42 Nm", ratedCurrent: "12 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK2505-2AK00-0MA0": { shaftHeight: 52, ratedPower: "7.5 kW", ratedTorque: "25 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5000 rpm", maxTorque: "70 Nm", ratedCurrent: "20 A", family: "SIMOTICS S-1FK2", variant: "OCC Compact", motorModule: "6SL3120-1TE22-4AD0", kind: "feed_servo", cooling: "natural" },
+
+  // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS S-1FK7 — established servo platform, 2-cable for S120
+  // Wide encoder options, longstanding catalog. Kept as conservative /
+  // retrofit choice vs newer 1FT2.
+  // ───────────────────────────────────────────────────────────────────
+  // SH28
+  "1FK7022-5AK71-1DA0": { shaftHeight: 28, ratedPower: "0.25 kW", ratedTorque: "0.85 Nm", ratedSpeed: "6000 rpm", maxSpeed: "10000 rpm", maxTorque: "2.6 Nm", ratedCurrent: "1.7 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7028-5AK71-1DA0": { shaftHeight: 28, ratedPower: "0.5 kW", ratedTorque: "2.0 Nm", ratedSpeed: "6000 rpm", maxSpeed: "9000 rpm", maxTorque: "6.0 Nm", ratedCurrent: "2.6 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH36
+  "1FK7032-5AK71-1DA0": { shaftHeight: 36, ratedPower: "0.9 kW", ratedTorque: "3.0 Nm", ratedSpeed: "6000 rpm", maxSpeed: "9000 rpm", maxTorque: "9.0 Nm", ratedCurrent: "3.4 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7040-5AK71-1DA0": { shaftHeight: 36, ratedPower: "1.6 kW", ratedTorque: "5.5 Nm", ratedSpeed: "6000 rpm", maxSpeed: "8000 rpm", maxTorque: "16 Nm", ratedCurrent: "5.4 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH48
+  "1FK7060-5AF71-1DA0": { shaftHeight: 48, ratedPower: "1.5 kW", ratedTorque: "5.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "8000 rpm", maxTorque: "14 Nm", ratedCurrent: "2.8 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7063-5AF71-1DA0": { shaftHeight: 48, ratedPower: "2.2 kW", ratedTorque: "7.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7500 rpm", maxTorque: "20 Nm", ratedCurrent: "3.9 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH63
+  "1FK7080-5AF71-1DA0": { shaftHeight: 63, ratedPower: "2.5 kW", ratedTorque: "8.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "22 Nm", ratedCurrent: "4.7 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7083-5AF71-1DA0": { shaftHeight: 63, ratedPower: "3.5 kW", ratedTorque: "11 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "30 Nm", ratedCurrent: "6.0 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  // SH80
+  "1FK7100-5AF71-1DA0": { shaftHeight: 80, ratedPower: "4.1 kW", ratedTorque: "13 Nm", ratedSpeed: "3000 rpm", maxSpeed: "6000 rpm", maxTorque: "38 Nm", ratedCurrent: "7.6 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7103-5AF71-1DA0": { shaftHeight: 80, ratedPower: "5.6 kW", ratedTorque: "18 Nm", ratedSpeed: "3000 rpm", maxSpeed: "6000 rpm", maxTorque: "54 Nm", ratedCurrent: "10 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  // SH100
+  "1FK7133-5AC71-1DA0": { shaftHeight: 100, ratedPower: "5.5 kW", ratedTorque: "27 Nm", ratedSpeed: "2000 rpm", maxSpeed: "5000 rpm", maxTorque: "78 Nm", ratedCurrent: "9.4 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7150-5AC71-1DA0": { shaftHeight: 100, ratedPower: "9.2 kW", ratedTorque: "45 Nm", ratedSpeed: "2000 rpm", maxSpeed: "4500 rpm", maxTorque: "128 Nm", ratedCurrent: "15.5 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE22-4AD0", kind: "feed_servo", cooling: "natural" },
+  // SH132
+  "1FK7163-5AB71-1DA0": { shaftHeight: 132, ratedPower: "11.8 kW", ratedTorque: "75 Nm", ratedSpeed: "1500 rpm", maxSpeed: "4000 rpm", maxTorque: "210 Nm", ratedCurrent: "18 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7183-5AB71-1DA0": { shaftHeight: 132, ratedPower: "18.8 kW", ratedTorque: "120 Nm", ratedSpeed: "1500 rpm", maxSpeed: "4000 rpm", maxTorque: "320 Nm", ratedCurrent: "28 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE23-0AD0", kind: "feed_servo", cooling: "natural" },
+
+  // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS M-1PH3 — asynchronous spindle, older generation vs 1PH8
+  // Still in catalog. Typically a cheaper alternative for conventional
+  // turning/milling where the higher performance of 1PH8 isn't needed.
+  // ───────────────────────────────────────────────────────────────────
+  "1PH3133-1DF00-0LA0": { shaftHeight: 132, ratedPower: "7.5 kW", ratedTorque: "48 Nm", ratedSpeed: "1500 rpm", maxSpeed: "7000 rpm", ratedCurrent: "21 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE22-4AD0", kind: "spindle_async", cooling: "forced" },
+  "1PH3135-1DF00-0LA0": { shaftHeight: 132, ratedPower: "11 kW", ratedTorque: "70 Nm", ratedSpeed: "1500 rpm", maxSpeed: "7000 rpm", ratedCurrent: "28 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE23-0AD0", kind: "spindle_async", cooling: "forced" },
+  "1PH3137-1DF00-0LA0": { shaftHeight: 132, ratedPower: "15 kW", ratedTorque: "96 Nm", ratedSpeed: "1500 rpm", maxSpeed: "7000 rpm", ratedCurrent: "38 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE24-5AC0", kind: "spindle_async", cooling: "forced" },
+  "1PH3163-1DF00-0LA0": { shaftHeight: 160, ratedPower: "22 kW", ratedTorque: "140 Nm", ratedSpeed: "1500 rpm", maxSpeed: "6500 rpm", ratedCurrent: "55 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE26-0AC0", kind: "spindle_async", cooling: "forced" },
+  "1PH3183-1DF00-0LA0": { shaftHeight: 180, ratedPower: "30 kW", ratedTorque: "191 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5500 rpm", ratedCurrent: "75 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE28-5AA3", kind: "spindle_async", cooling: "forced" },
+  "1PH3184-1DF00-0LA0": { shaftHeight: 180, ratedPower: "37 kW", ratedTorque: "236 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5000 rpm", ratedCurrent: "92 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE28-5AA3", kind: "spindle_async", cooling: "forced" },
+  "1PH3186-1DF00-0LA0": { shaftHeight: 180, ratedPower: "45 kW", ratedTorque: "287 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5000 rpm", ratedCurrent: "112 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE31-3AA3", kind: "spindle_async", cooling: "forced" },
 };
 
 /** Motor article → paired Motor Module article. Derived from MOTOR_SPECS.motorModule. */
