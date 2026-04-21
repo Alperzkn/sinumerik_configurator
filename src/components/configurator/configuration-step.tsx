@@ -17,6 +17,8 @@ import {
   addSoftwareOption,
   removeSoftwareOption,
   addTechnologyPackage,
+  removeTechnologyPackage,
+  removeSafetyFunctions,
 } from "@/lib/ai/config-mutations";
 import { softwareOptions as catalogSoftwareOptions } from "@/data/software-options";
 import { technologyPackages as catalogTechPackages } from "@/data/technology-packages";
@@ -160,6 +162,7 @@ export function ConfigurationStep() {
                 articleNumber={pkg.articleNumber}
                 orderCode={pkg.orderCode}
                 description={pkg.description}
+                onRemove={() => setConfiguration(removeTechnologyPackage(configuration, pkg.id))}
               />
             ))}
           </SectionPanel>
@@ -346,6 +349,11 @@ export function ConfigurationStep() {
                 articleNumber={sf.articleNumber}
                 orderCode={sf.orderCode}
                 description={sf.description}
+                onRemove={
+                  sf.isBasicScope
+                    ? undefined
+                    : () => setConfiguration(removeSafetyFunctions(configuration, [sf.id]))
+                }
               />
             ))}
           </SectionPanel>

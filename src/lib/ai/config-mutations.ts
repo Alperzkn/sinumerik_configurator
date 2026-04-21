@@ -291,16 +291,20 @@ export function addSoftwareOption(
   };
 }
 
-/** Remove a software option (by id). */
+/** Remove a software option by id OR order code (e.g. "opt-A03" or "A03"). */
 export function removeSoftwareOption(
   config: GeneratedConfiguration,
-  optionId: string
+  identifier: string
 ): GeneratedConfiguration {
-  const { [optionId]: _dropped, ...rest } = config.optionQuantities;
+  const target = config.softwareOptions.find(
+    (o) => o.id === identifier || o.orderCode === identifier
+  );
+  if (!target) return config;
+  const { [target.id]: _dropped, ...rest } = config.optionQuantities;
   void _dropped;
   return {
     ...config,
-    softwareOptions: config.softwareOptions.filter((o) => o.id !== optionId),
+    softwareOptions: config.softwareOptions.filter((o) => o.id !== target.id),
     optionQuantities: rest,
   };
 }
@@ -373,6 +377,111 @@ export function addTechnologyPackage(
     technologyPackages: [...config.technologyPackages, pkg],
     softwareOptions: config.softwareOptions.filter((o) => !bundled.has(o.orderCode)),
   };
+}
+
+/** Remove a technology package by id or order code. */
+export function removeTechnologyPackage(
+  config: GeneratedConfiguration,
+  identifier: string
+): GeneratedConfiguration {
+  const target = config.technologyPackages.find(
+    (p) => p.id === identifier || p.orderCode === identifier
+  );
+  if (!target) return config;
+  return {
+    ...config,
+    technologyPackages: config.technologyPackages.filter((p) => p.id !== target.id),
+  };
+}
+
+/**
+ * Switch the CNC software variant (export ↔ full_scope) by finding a matching
+ * catalog entry of the same SW version. Caller must pass in the catalog so we
+ * stay decoupled from data imports here.
+ */
+export function setCncSoftwareVariant(
+  config: GeneratedConfiguration,
+  variant: "export" | "full_scope",
+  catalog: import("@/types/catalog").CncSoftware[]
+): GeneratedConfiguration {
+  if (config.softwareVariant === variant) return config;
+  const currentVersion = config.cncSoftware.swVersion;
+  const matching = catalog.find(
+    (sw) => sw.variant === variant && sw.swVersion === currentVersion
+  ) ?? catalog.find((sw) => sw.variant === variant);
+  if (!matching) return config;
+  return { ...config, cncSoftware: matching, softwareVariant: variant };
+}
+
+/**
+ * Replace the HMI panel and matching MCP based on a target panel size in inches.
+ * For NCU control units this also re-derives the matching MCP. For PPU control
+ * units (panel-based) this is a no-op since the HMI is built in.
+ */
+export function setHmiPanelSize(
+  config: GeneratedConfiguration,
+  panelSizeInch: number,
+  catalog: HmiComponent[]
+): GeneratedConfiguration {
+  if (config.controlUnit.id === "PPU_1740") return config;
+
+  const currentHmi = config.hmiComponents.find(
+    (h) =>
+      h.category === "thin_client" ||
+      h.category === "panel_pc" ||
+      h.category === "flat_panel"
+  );
+  const category = currentHmi?.category ?? "thin_client";
+  const newHmi =
+    catalog.find((h) => h.category === category && h.screenSize === panelSizeInch) ??
+    catalog.find((h) => h.category === category);
+
+  const mcpMatch = getMatchingMcp(panelSizeInch);
+  const mcpFromCatalog = catalog.find(
+    (h) => h.category === "mcp" && h.articleNumber === mcpMatch.mcpArticle
+  );
+  const mcpComponent: HmiComponent =
+    mcpFromCatalog ?? {
+      id: mcpMatch.mcpId,
+      articleNumber: mcpMatch.mcpArticle,
+      name: mcpMatch.mcpName,
+      category: "mcp",
+      compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+      description: `Machine Control Panel matching ${panelSizeInch}" display`,
+    };
+
+  const next = config.hmiComponents.filter(
+    (h) => h.category !== "mcp" && h.category !== category
+  );
+  if (newHmi) next.push(newHmi);
+  next.push(mcpComponent);
+  return { ...config, hmiComponents: next };
+}
+
+/** Replace the operator HMI by article number; MCP is re-matched to the new size. */
+export function swapHmi(
+  config: GeneratedConfiguration,
+  hmiArticle: string,
+  catalog: HmiComponent[]
+): GeneratedConfiguration {
+  const newHmi = catalog.find((h) => h.articleNumber === hmiArticle);
+  if (!newHmi) return config;
+  if (newHmi.category === "mcp") return swapMcp(config, hmiArticle, catalog);
+  // Re-derive MCP for the new panel size
+  return setHmiPanelSize(config, newHmi.screenSize ?? 15, catalog);
+}
+
+/** Replace the MCP only, leaving the HMI panel unchanged. */
+export function swapMcp(
+  config: GeneratedConfiguration,
+  mcpArticle: string,
+  catalog: HmiComponent[]
+): GeneratedConfiguration {
+  const newMcp = catalog.find((h) => h.category === "mcp" && h.articleNumber === mcpArticle);
+  if (!newMcp) return config;
+  const next = config.hmiComponents.filter((h) => h.category !== "mcp");
+  next.push(newMcp);
+  return { ...config, hmiComponents: next };
 }
 
 function autoSizeLineModule(config: GeneratedConfiguration) {

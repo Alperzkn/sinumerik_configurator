@@ -173,6 +173,65 @@ function getHeuristicMockResponse(req: string) {
     };
   }
 
+  // Tech package remove
+  const removePkgMatch = r.match(/(remove|drop|delete)\s+(s4\d|m30|m34|s35)/i);
+  if (removePkgMatch) {
+    const pkg = removePkgMatch[2].toUpperCase();
+    return {
+      action: "remove",
+      changes: { removePackages: [pkg] },
+      summary: `Removed technology package ${pkg}.`,
+    };
+  }
+
+  // CNC software variant
+  if (r.includes("full scope") || r.includes("full_scope") || (r.includes("upgrade") && r.includes("software"))) {
+    return {
+      action: "swap",
+      changes: { cncSoftwareVariant: "full_scope" },
+      summary: "Switched CNC software to full-scope (export-licensed).",
+    };
+  }
+  if (r.includes("export") && (r.includes("software") || r.includes("variant") || r.includes("downgrade"))) {
+    return {
+      action: "swap",
+      changes: { cncSoftwareVariant: "export" },
+      summary: "Switched CNC software to export variant.",
+    };
+  }
+
+  // HMI panel size
+  const panelMatch = r.match(/(\d{2})["”'\s]*(?:inch|panel|hmi|display|screen)/i);
+  if (panelMatch) {
+    const size = parseInt(panelMatch[1], 10);
+    if ([12, 15, 19, 22, 24].includes(size)) {
+      return {
+        action: "swap",
+        changes: { hmiPanelSizeInch: size },
+        summary: `Changed HMI panel to ${size}" (MCP re-matched).`,
+      };
+    }
+  }
+
+  // Software option add by code
+  const optAddMatch = req.match(/\b(add|include)\s+([AMSPCKR]\d{2,3})\b/i);
+  if (optAddMatch) {
+    return {
+      action: "add",
+      changes: { addOptions: [{ orderCode: optAddMatch[2].toUpperCase(), reason: "User-requested addition" }] },
+      summary: `Added option ${optAddMatch[2].toUpperCase()}.`,
+    };
+  }
+  // Software option remove by code
+  const optRemoveMatch = req.match(/\b(remove|drop|delete)\s+([AMSPCKR]\d{2,3})\b/i);
+  if (optRemoveMatch) {
+    return {
+      action: "remove",
+      changes: { removeOptions: [optRemoveMatch[2].toUpperCase()] },
+      summary: `Removed option ${optRemoveMatch[2].toUpperCase()}.`,
+    };
+  }
+
   // Control unit upgrade
   if (r.includes("ncu 1760") || r.includes("hsc")) {
     return {

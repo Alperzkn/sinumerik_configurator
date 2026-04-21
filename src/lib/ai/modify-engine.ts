@@ -4,14 +4,21 @@ import {
   addSoftwareOption,
   removeSoftwareOption,
   addTechnologyPackage,
+  removeTechnologyPackage,
   addSafetyFunction,
   removeSafetyFunctions,
+  setCncSoftwareVariant,
+  setHmiPanelSize,
+  swapHmi,
+  swapMcp,
 } from "./config-mutations";
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
-import { MOTOR_MODULE_SPECS, selectLineModule } from "@/lib/validation/drive-system-rules";
+import { selectLineModule } from "@/lib/validation/drive-system-rules";
 import { softwareOptions as catalogOptions } from "@/data/software-options";
 import { technologyPackages as catalogPackages } from "@/data/technology-packages";
 import { safetyFunctions as catalogSafetyFunctions } from "@/data/safety";
+import { cncSoftwareOptions as catalogCncSoftware } from "@/data/cnc-software";
+import { hmiComponents as catalogHmi } from "@/data/hmi-components";
 
 export interface ModifyResult {
   updatedConfiguration?: GeneratedConfiguration;
@@ -25,19 +32,34 @@ interface ModifyInstruction {
   changes?: {
     /** Override user mechanical specs and re-run sizing engine */
     userSpecsOverride?: Partial<UserSpecsInput>;
-    /** Direct article-number swaps */
+
+    /** Control unit */
     controlUnitId?: string;
     controlUnitArticle?: string;
+
+    /** CNC software */
+    cncSoftwareVariant?: "export" | "full_scope";
+
+    /** Drive system */
     lineModuleArticle?: string;
     feedMotorArticle?: string;
     spindleMotorArticle?: string;
-    /** Architecture preference flips */
+    feedMotorModuleArticle?: string;
+    spindleMotorModuleArticle?: string;
     preferActiveLineModule?: boolean;
-    /** Software changes */
+
+    /** HMI / MCP */
+    hmiPanelSizeInch?: number;
+    hmiArticle?: string;
+    mcpArticle?: string;
+
+    /** Software options (orderCode form preferred — AI may not know internal ids) */
     addOptions?: { orderCode: string; quantity?: number; reason?: string }[];
     removeOptions?: string[];
     addPackages?: { id: string; reason?: string }[];
-    /** Safety changes — strings can be order codes (S60, S61, K06) or ids */
+    removePackages?: string[];
+
+    /** Safety — strings can be order codes (S60, S61, K06) or ids */
     addSafety?: string[];
     removeSafety?: string[];
   };
@@ -80,19 +102,33 @@ The user has an existing configuration. Translate their request into a structure
 CURRENT CONFIGURATION:
 ${currentSummary}
 
-Respond with JSON ONLY (no markdown, no prose). Schema:
+Respond with JSON ONLY (no markdown, no prose). Every field is optional — include only what changes. Schema:
 {
   "action": "swap" | "add" | "remove" | "resize" | "no_change",
   "changes": {
     "userSpecsOverride": { "spindlePowerKw": 30, "spindleMaxRpm": 12000, "movingMassKg": 500, "rapidTraverseMpm": 40 },
+
     "controlUnitId": "NCU_1750",
+    "controlUnitArticle": "6FC5317-5AA00-0AA1",
+
+    "cncSoftwareVariant": "full_scope",
+
     "preferActiveLineModule": true,
     "lineModuleArticle": "6SL3130-7TE25-5AA3",
     "feedMotorArticle": "1FT7086-5AF71-1DA1",
     "spindleMotorArticle": "1PH8163-1FF10-0LA1",
+    "feedMotorModuleArticle": "6SL3120-1TE21-0AD0",
+    "spindleMotorModuleArticle": "6SL3120-1TE24-5AC0",
+
+    "hmiPanelSizeInch": 19,
+    "hmiArticle": "6AV6646-1BA15-0NA1",
+    "mcpArticle": "6FC5303-0AP02-0AA0",
+
     "addOptions": [{ "orderCode": "M72", "quantity": 1, "reason": "TRAORI requested" }],
-    "removeOptions": ["opt-A05"],
+    "removeOptions": ["A05"],
     "addPackages": [{ "id": "S43", "reason": "5-axis upgrade" }],
+    "removePackages": ["S41"],
+
     "addSafety": ["S60", "S61"],
     "removeSafety": ["S60", "S61", "K06"]
   },
@@ -101,10 +137,12 @@ Respond with JSON ONLY (no markdown, no prose). Schema:
 }
 
 RULES
-- For motor sizing changes (e.g. "make spindle 30 kW"), use userSpecsOverride. Do NOT pick a specific motor article — the deterministic sizing engine will pick the right motor from the catalog when userSpecsOverride is provided.
+- For motor sizing changes (e.g. "make spindle 30 kW"), use userSpecsOverride. Do NOT pick a specific motor article — the deterministic sizing engine picks the right motor from the catalog when userSpecsOverride is provided.
 - For specific component swaps (e.g. "use Active Line Module 55 kW"), use the article-number fields directly.
 - For preference flips (e.g. "switch to active line module"), use preferActiveLineModule: true.
-- For software options, use addOptions / removeOptions / addPackages.
+- For HMI panel size changes (e.g. "use 19\" panel"), use hmiPanelSizeInch — the matching MCP is re-derived automatically.
+- For CNC SW variant ("switch to full scope" / "downgrade to export"), use cncSoftwareVariant.
+- For software options, use addOptions (orderCode form e.g. "M72") / removeOptions (also orderCode e.g. "A03") / addPackages / removePackages.
 - For safety changes:
   * "remove safety" / "drop S60" / "no safety options" → removeSafety: ["S60", "S61", ...all extended safety codes currently in the config]
   * "add safe axis monitoring" / "add S61" → addSafety: ["S60", "S61"] (S61 requires S60)
@@ -236,6 +274,14 @@ function applyModifications(
     updated = applySwap(updated, "motor_spindle", changes.spindleMotorArticle);
     appliedSummary.push(`Spindle motor → ${changes.spindleMotorArticle}`);
   }
+  if (changes.feedMotorModuleArticle) {
+    updated = applySwap(updated, "motor_module_feed", changes.feedMotorModuleArticle);
+    appliedSummary.push(`Feed Motor Module → ${changes.feedMotorModuleArticle}`);
+  }
+  if (changes.spindleMotorModuleArticle) {
+    updated = applySwap(updated, "motor_module_spindle", changes.spindleMotorModuleArticle);
+    appliedSummary.push(`Spindle Motor Module → ${changes.spindleMotorModuleArticle}`);
+  }
   if (changes.controlUnitArticle) {
     updated = applySwap(updated, "control_unit", changes.controlUnitArticle);
     appliedSummary.push(`Control unit → ${changes.controlUnitArticle}`);
@@ -251,6 +297,29 @@ function applyModifications(
       updated = applySwap(updated, "control_unit", article);
       appliedSummary.push(`Control unit → ${changes.controlUnitId}`);
     }
+  }
+
+  // 3b. CNC software variant
+  if (changes.cncSoftwareVariant) {
+    const before = updated.softwareVariant;
+    updated = setCncSoftwareVariant(updated, changes.cncSoftwareVariant, catalogCncSoftware);
+    if (updated.softwareVariant !== before) {
+      appliedSummary.push(`CNC software variant → ${changes.cncSoftwareVariant}`);
+    }
+  }
+
+  // 3c. HMI / MCP
+  if (changes.hmiPanelSizeInch) {
+    updated = setHmiPanelSize(updated, changes.hmiPanelSizeInch, catalogHmi);
+    appliedSummary.push(`HMI panel size → ${changes.hmiPanelSizeInch}" (MCP re-matched)`);
+  }
+  if (changes.hmiArticle) {
+    updated = swapHmi(updated, changes.hmiArticle, catalogHmi);
+    appliedSummary.push(`HMI → ${changes.hmiArticle}`);
+  }
+  if (changes.mcpArticle) {
+    updated = swapMcp(updated, changes.mcpArticle, catalogHmi);
+    appliedSummary.push(`MCP → ${changes.mcpArticle}`);
   }
 
   // 4. Software options
@@ -280,6 +349,15 @@ function applyModifications(
         appliedSummary.push(`Added package ${pkg.orderCode} (${pkg.name})`);
       } else {
         appliedSummary.push(`⚠ Package ${p.id} not found in catalog`);
+      }
+    }
+  }
+  if (changes.removePackages) {
+    for (const id of changes.removePackages) {
+      const before = updated.technologyPackages.length;
+      updated = removeTechnologyPackage(updated, id);
+      if (updated.technologyPackages.length < before) {
+        appliedSummary.push(`Removed package ${id}`);
       }
     }
   }
