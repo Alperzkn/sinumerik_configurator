@@ -14,6 +14,12 @@ export interface MachineSpecs {
   material: string;
   machineSize: string;
   safetyLevel: string;
+  /** "" | "none" | "ht2" | "ht10" (optional) */
+  handheldUnit: string;
+  /** "" = default PP 72/48, "pp_72_48" | "et200sp" | "none" */
+  ioModule: string;
+  /** Preferred motor/encoder cable length in meters (default 10) */
+  cableLengthMeters: string;
 }
 
 const SIZE_OPTIONS = [
@@ -27,6 +33,18 @@ const SAFETY_OPTIONS = [
   { value: "basic", label: "Basic", hint: "STO/SS1/SBC only — simple e-stop" },
   { value: "extended", label: "Extended", hint: "S60+S61 — safe axis monitoring (SLS/SOS)" },
   { value: "full", label: "Full / Kinematics", hint: "S60+S61+K — per-axis + safe kinematics" },
+];
+
+const HANDHELD_OPTIONS = [
+  { value: "none", label: "None", hint: "Not required" },
+  { value: "ht2", label: "HT 2", hint: "Compact 4.6″ display, handwheel + e-stop" },
+  { value: "ht10", label: "HT 10", hint: "10″ touch, for setup-heavy operation" },
+];
+
+const IO_OPTIONS = [
+  { value: "pp_72_48", label: "PP 72/48", hint: "Default — 72 DI / 48 DO over PROFINET" },
+  { value: "et200sp", label: "ET 200SP", hint: "Modular distributed I/O for larger / mixed signal layouts" },
+  { value: "none", label: "None", hint: "I/O handled externally" },
 ];
 
 interface MachineSpecsFormProps {
@@ -178,6 +196,73 @@ export function MachineSpecsForm({ specs, onChange }: MachineSpecsFormProps) {
           ))}
         </div>
       </div>
+
+      {/* I/O module (default PP 72/48) */}
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+          Machine I/O Module
+          <span className="text-[10px] text-muted-foreground/70 ml-1 font-normal">(default: PP 72/48)</span>
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {IO_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => update("ioModule", opt.value)}
+              className={cn(
+                "rounded-lg border p-2 text-left transition-all text-xs",
+                (specs.ioModule || "pp_72_48") === opt.value
+                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                  : "hover:border-primary/30"
+              )}
+            >
+              <div className="font-medium">{opt.label}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">{opt.hint}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Handheld terminal (optional) */}
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+          Handheld Unit
+          <span className="text-[10px] text-muted-foreground/70 ml-1 font-normal">(optional)</span>
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {HANDHELD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => update("handheldUnit", opt.value)}
+              className={cn(
+                "rounded-lg border p-2 text-left transition-all text-xs",
+                (specs.handheldUnit || "none") === opt.value
+                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                  : "hover:border-primary/30"
+              )}
+            >
+              <div className="font-medium">{opt.label}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">{opt.hint}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Cable length */}
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">
+          Motor / Encoder Cable Length (m)
+          <span className="text-[10px] text-muted-foreground/70 ml-1 font-normal">(default: 10)</span>
+        </label>
+        <Input
+          placeholder="10"
+          inputMode="numeric"
+          value={specs.cableLengthMeters}
+          onChange={(e) => update("cableLengthMeters", e.target.value)}
+          className="text-sm max-w-32"
+        />
+      </div>
     </motion.div>
   );
 }
@@ -221,4 +306,7 @@ export const EMPTY_SPECS: MachineSpecs = {
   material: "",
   machineSize: "",
   safetyLevel: "",
+  handheldUnit: "",
+  ioModule: "",
+  cableLengthMeters: "",
 };

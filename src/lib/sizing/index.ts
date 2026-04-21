@@ -18,6 +18,12 @@ export interface UserSpecsInput {
   machineSize?: "small" | "medium" | "large" | "very_large" | "";
   /** Primary workpiece material — influences speed/power mix defaults */
   material?: string;
+  /** "" = default PP 72/48 for NCU, "pp_72_48", "et200sp", or "none" */
+  ioModule?: string;
+  /** "" | "none" | "ht2" | "ht10" */
+  handheldUnit?: string;
+  /** Preferred motor/encoder cable length in meters (default 10) */
+  cableLengthMeters?: string;
 }
 
 export interface SizedSelection {

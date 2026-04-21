@@ -219,7 +219,9 @@ export type HmiCategory =
   | "panel_pc"
   | "cabinet_ipc"
   | "mcp"
-  | "handwheel";
+  | "handwheel"
+  | "handheld_terminal"
+  | "io_module";
 
 export interface HmiComponent {
   id: string;

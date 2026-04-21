@@ -16,6 +16,12 @@ export interface MachineSpecsState {
   material: string;
   machineSize: string;
   safetyLevel: string;
+  /** "" | "none" | "ht2" | "ht10" */
+  handheldUnit: string;
+  /** "" = default (pp_72_48), "pp_72_48" | "et200sp" | "none" */
+  ioModule: string;
+  /** Desired motor/encoder cable length in meters (default 10) */
+  cableLengthMeters: string;
 }
 
 interface ConfiguratorState {
@@ -68,6 +74,9 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
     material: "",
     machineSize: "",
     safetyLevel: "",
+    handheldUnit: "",
+    ioModule: "",
+    cableLengthMeters: "",
   },
   aiMessages: [],
   isAiProcessing: false,
@@ -150,6 +159,9 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
         material: "",
         machineSize: "",
         safetyLevel: "",
+        handheldUnit: "",
+        ioModule: "",
+        cableLengthMeters: "",
       },
       aiMessages: [],
       isAiProcessing: false,

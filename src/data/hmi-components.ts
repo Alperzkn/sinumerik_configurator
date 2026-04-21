@@ -465,4 +465,90 @@ export const hmiComponents: HmiComponent[] = [
     },
     description: "Electronic handwheel with 120mm x 120mm front panel for machine integration",
   },
+
+  // ---- Machine I/O Modules ----
+  // PP 72/48 D PN (default) — compact digital I/O for NCU-based machines
+  {
+    id: "io_pp_72_48",
+    articleNumber: "6FC5611-0CA01-0AA0",
+    name: "PP 72/48 D PN",
+    category: "io_module",
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "basic",
+      NCU_1750: "basic",
+      NCU_1760: "basic",
+    },
+    description: "Push-button panel with 72 digital inputs / 48 digital outputs over PROFINET. Default I/O module for SINUMERIK ONE. Directly addressable by the integrated PLC.",
+  },
+  // ET 200SP — modular distributed I/O for larger / custom I/O layouts
+  {
+    id: "io_et200sp_cpu",
+    articleNumber: "6ES7510-1DJ01-0AB0",
+    name: "ET 200SP CPU 1510SP-1 PN",
+    category: "io_module",
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "option",
+      NCU_1750: "option",
+      NCU_1760: "option",
+    },
+    description: "Distributed I/O head station (CPU) for ET 200SP over PROFINET. Choose when PP 72/48 channel count is insufficient or when modular / mixed signal I/O is required.",
+  },
+  {
+    id: "io_et200sp_di16",
+    articleNumber: "6ES7131-6BH01-0BA0",
+    name: "ET 200SP DI 16x24VDC HF",
+    category: "io_module",
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "option",
+      NCU_1750: "option",
+      NCU_1760: "option",
+    },
+    description: "16-channel digital input module for ET 200SP (high feature). Typical add-on when using ET 200SP head station.",
+  },
+  {
+    id: "io_et200sp_do16",
+    articleNumber: "6ES7132-6BH01-0BA0",
+    name: "ET 200SP DQ 16x24VDC/0.5A HF",
+    category: "io_module",
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "option",
+      NCU_1750: "option",
+      NCU_1760: "option",
+    },
+    description: "16-channel digital output module for ET 200SP (high feature). Typical add-on when using ET 200SP head station.",
+  },
+
+  // ---- Handheld Terminals ----
+  // HT 2 is a compact manual machine terminal with handwheel + e-stop for jog/setup
+  {
+    id: "handheld_ht2",
+    articleNumber: "6FC5303-0AF35-0CA0",
+    name: "Handheld Terminal HT 2",
+    category: "handheld_terminal",
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "option",
+      NCU_1750: "option",
+      NCU_1760: "option",
+    },
+    description: "Compact handheld unit for jog/setup — 4.6\" display, emergency stop, enabling button, built-in handwheel. PROFINET over cable.",
+  },
+  // HT 10 is the full-size handheld with a larger graphical display (touch)
+  {
+    id: "handheld_ht10",
+    articleNumber: "6FC5303-0AF45-0CA0",
+    name: "Handheld Terminal HT 10",
+    category: "handheld_terminal",
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "option",
+      NCU_1750: "option",
+      NCU_1760: "option",
+    },
+    description: "Full-size handheld terminal with 10\" touch display, emergency stop, enabling button, handwheel. PROFINET. Suitable for large machines or setup-intensive operation.",
+  },
 ];

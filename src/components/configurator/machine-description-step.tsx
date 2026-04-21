@@ -117,6 +117,9 @@ export function MachineDescriptionStep() {
     rapidTraverseMpm: parseNumeric(s.rapidTraverse),
     machineSize: (s.machineSize || "") as UserSpecsInput["machineSize"],
     material: s.material,
+    ioModule: s.ioModule,
+    handheldUnit: s.handheldUnit,
+    cableLengthMeters: s.cableLengthMeters,
   });
 
   const handleProceed = async () => {

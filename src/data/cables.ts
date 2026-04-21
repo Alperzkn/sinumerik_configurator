@@ -138,6 +138,33 @@ export const cablesCatalog: CableAccessory[] = [
     quantity: 1,
     description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 63-100, 5m",
   },
+  {
+    id: "occ-cable-sh20-30-10m",
+    articleNumber: "6FX2002-8QN04-1BA0",
+    name: "OCC cable SH20-30, 10m",
+    category: "motor_cable",
+    length: "10m",
+    quantity: 1,
+    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 20-30, 10m",
+  },
+  {
+    id: "occ-cable-sh40-52-10m",
+    articleNumber: "6FX2002-8QN08-1BA0",
+    name: "OCC cable SH40-52, 10m",
+    category: "motor_cable",
+    length: "10m",
+    quantity: 1,
+    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 40-52, 10m",
+  },
+  {
+    id: "occ-cable-sh63-100-10m",
+    articleNumber: "6FX2002-8QN11-1BA0",
+    name: "OCC cable SH63-100, 10m",
+    category: "motor_cable",
+    length: "10m",
+    quantity: 1,
+    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 63-100, 10m",
+  },
 
   // ─── PROFINET/Ethernet cables ───
   {
@@ -253,18 +280,27 @@ export function selectCables(config: {
   driveFamily?: string;
   feedMotorShaftHeight?: number;
   spindleMotorShaftHeight?: number;
+  /** User-preferred length in meters for motor/encoder cables. Default 10. */
+  cableLengthMeters?: string;
 }): CableAccessory[] {
   const cables: CableAccessory[] = [];
   const totalDriveAxes = config.feedAxes + config.spindleAxes;
   const isS210 = config.driveFamily === "S210";
 
+  // Map user-preferred length to a catalog length suffix. 10m is the default.
+  const rawLen = parseInt(config.cableLengthMeters || "10", 10);
+  const resolvedLen = Number.isFinite(rawLen) && rawLen > 0 ? rawLen : 10;
+  // Catalog currently stocks 5m and 10m cuts; snap to the nearest available.
+  const catalogLen = resolvedLen <= 7 ? "5m" : "10m";
+
   if (isS210) {
-    // S210 uses OCC (One Cable Connection) — one cable per axis
+    // S210 uses OCC (One Cable Connection) — one cable per axis.
     const shFeed = config.feedMotorShaftHeight || 40;
-    const occId = shFeed <= 30 ? "occ-cable-sh20-30-5m"
-                : shFeed <= 52 ? "occ-cable-sh40-52-5m"
-                : "occ-cable-sh63-100-5m";
-    const occ = cablesCatalog.find((c) => c.id === occId);
+    const shPart = shFeed <= 30 ? "sh20-30" : shFeed <= 52 ? "sh40-52" : "sh63-100";
+    const occId = `occ-cable-${shPart}-${catalogLen}`;
+    const occ = cablesCatalog.find((c) => c.id === occId)
+      ?? cablesCatalog.find((c) => c.id === `occ-cable-${shPart}-10m`)
+      ?? cablesCatalog.find((c) => c.id === `occ-cable-${shPart}-5m`);
     if (occ) {
       cables.push({ ...occ, quantity: config.feedAxes });
     }
@@ -275,11 +311,12 @@ export function selectCables(config: {
     const dcliq = cablesCatalog.find((c) => c.id === "dcliq-1m")!;
     cables.push({ ...dcliq, quantity: dcliqCount });
 
-    // Feed motor power cables — cross-section matched to motor shaft height
+    // Feed motor power cables — cross-section matched to motor shaft height.
+    // Length defaults to 10m; user can override via cableLengthMeters.
     const shFeed = config.feedMotorShaftHeight || 63;
     const feedCableSize = getMotorCableSize(shFeed);
-    const feedCableId = `motor-power-${feedCableSize}-5m`;
-    const feedCable = cablesCatalog.find((c) => c.id === feedCableId);
+    const feedCable = cablesCatalog.find((c) => c.id === `motor-power-${feedCableSize}-${catalogLen}`)
+      ?? cablesCatalog.find((c) => c.id === `motor-power-${feedCableSize}-10m`);
     if (feedCable) {
       cables.push({ ...feedCable, quantity: config.feedAxes });
     }
@@ -288,22 +325,28 @@ export function selectCables(config: {
     if (config.spindleAxes > 0) {
       const shSpindle = config.spindleMotorShaftHeight || 132;
       const spindleCableSize = getMotorCableSize(shSpindle);
-      const spindleCableId = `motor-power-${spindleCableSize}-5m`;
-      const spindleCable = cablesCatalog.find((c) => c.id === spindleCableId);
+      const spindleCable = cablesCatalog.find((c) => c.id === `motor-power-${spindleCableSize}-${catalogLen}`)
+        ?? cablesCatalog.find((c) => c.id === `motor-power-${spindleCableSize}-10m`);
       if (spindleCable) {
         cables.push({ ...spindleCable, quantity: config.spindleAxes });
       }
     }
 
-    // Signal/encoder cables: only for motors WITHOUT integrated DRIVE-CLiQ
-    // 1FT7 and 1FK7 with DRIVE-CLiQ encoder don't need separate encoder cables
-    // 1PH8 with motor-integrated sensor module also doesn't need them
-    // Only third-party motors or motors with external encoders need signal cables
-    // For standard configs: 0 separate encoder cables (all modern SIMOTICS have DRIVE-CLiQ)
+    // Encoder signal cables: one per axis. Modern SIMOTICS have integrated
+    // DRIVE-CLiQ encoders that don't strictly need a separate signal cable,
+    // but ordering practice conventionally includes them (for external
+    // measuring systems, service spares, and commissioning probes).
+    const encoderCable = cablesCatalog.find((c) => c.id === `signal-cable-${catalogLen}`)
+      ?? cablesCatalog.find((c) => c.id === "signal-cable-10m");
+    if (encoderCable) {
+      cables.push({ ...encoderCable, quantity: config.feedAxes + config.spindleAxes });
+    }
   }
 
-  // PROFINET cable for HMI
-  const profinet = cablesCatalog.find((c) => c.id === "profinet-5m")!;
+  // PROFINET cables — 10m default + one extra per peripheral device
+  // (HMI, MCP, I/O module, handheld each need their own PROFINET run)
+  const profinet = cablesCatalog.find((c) => c.id === "profinet-10m")
+    ?? cablesCatalog.find((c) => c.id === "profinet-5m")!;
   cables.push({ ...profinet, quantity: 1 });
 
   // 24V supply

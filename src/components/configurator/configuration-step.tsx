@@ -306,29 +306,86 @@ export function ConfigurationStep() {
           </SectionPanel>
         )}
 
-        {/* HMI */}
-        {configuration.hmiComponents.length > 0 && (
-          <SectionPanel
-            value="hmi"
-            title="HMI Components"
-            icon={
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
-              </svg>
-            }
-            itemCount={configuration.hmiComponents.length}
-          >
-            {configuration.hmiComponents.map((hmi) => (
-              <ComponentCard
-                key={hmi.id}
-                name={hmi.name}
-                articleNumber={hmi.articleNumber}
-                description={hmi.description}
-                isNew={hmi.isNew}
-              />
-            ))}
-          </SectionPanel>
-        )}
+        {/* HMI — operator panel + MCP + handwheel */}
+        {(() => {
+          const operatorComponents = configuration.hmiComponents.filter(
+            (h) => h.category !== "io_module" && h.category !== "handheld_terminal"
+          );
+          return operatorComponents.length > 0 ? (
+            <SectionPanel
+              value="hmi"
+              title="HMI Components"
+              icon={
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+                </svg>
+              }
+              itemCount={operatorComponents.length}
+            >
+              {operatorComponents.map((hmi) => (
+                <ComponentCard
+                  key={hmi.id}
+                  name={hmi.name}
+                  articleNumber={hmi.articleNumber}
+                  description={hmi.description}
+                  isNew={hmi.isNew}
+                />
+              ))}
+            </SectionPanel>
+          ) : null;
+        })()}
+
+        {/* I/O Modules */}
+        {(() => {
+          const ioModules = configuration.hmiComponents.filter((h) => h.category === "io_module");
+          return ioModules.length > 0 ? (
+            <SectionPanel
+              value="io-modules"
+              title="I/O Modules"
+              icon={
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              }
+              itemCount={ioModules.length}
+            >
+              {ioModules.map((io) => (
+                <ComponentCard
+                  key={io.id}
+                  name={io.name}
+                  articleNumber={io.articleNumber}
+                  description={io.description}
+                />
+              ))}
+            </SectionPanel>
+          ) : null;
+        })()}
+
+        {/* Handheld Terminal */}
+        {(() => {
+          const handhelds = configuration.hmiComponents.filter((h) => h.category === "handheld_terminal");
+          return handhelds.length > 0 ? (
+            <SectionPanel
+              value="handheld"
+              title="Handheld Terminal"
+              icon={
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                </svg>
+              }
+              itemCount={handhelds.length}
+            >
+              {handhelds.map((hh) => (
+                <ComponentCard
+                  key={hh.id}
+                  name={hh.name}
+                  articleNumber={hh.articleNumber}
+                  description={hh.description}
+                />
+              ))}
+            </SectionPanel>
+          ) : null;
+        })()}
 
         {/* Safety */}
         {configuration.safetyFunctions.length > 0 && (

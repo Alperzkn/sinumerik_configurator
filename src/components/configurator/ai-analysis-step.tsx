@@ -26,6 +26,9 @@ function specsToSizingInput(specs: MachineSpecsState): UserSpecsInput {
     rapidTraverseMpm: parseNumeric(specs.rapidTraverse),
     machineSize: (specs.machineSize || "") as UserSpecsInput["machineSize"],
     material: specs.material,
+    ioModule: specs.ioModule,
+    handheldUnit: specs.handheldUnit,
+    cableLengthMeters: specs.cableLengthMeters,
   };
 }
 

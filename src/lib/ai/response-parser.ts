@@ -37,6 +37,10 @@ let catalogData: {
     spindleAxes: number;
     controlUnitId: string;
     hmiCategory?: string;
+    driveFamily?: string;
+    feedMotorShaftHeight?: number;
+    spindleMotorShaftHeight?: number;
+    cableLengthMeters?: string;
   }) => CableAccessory[];
 } | null = null;
 
@@ -147,6 +151,18 @@ export function parseAiResponse(
         softwareOptions.push(found);
         optionQuantities[found.id] = opt.quantity || 1;
       }
+    }
+  }
+
+  // Auto-include SINUMERIK Operate /NCU (S00) for every NCU-based config.
+  // Operate runs on the NCU and is the HMI software that the thin client /
+  // panel PC connects to. Without it, the thin client displays nothing.
+  // PPU has Operate baked in (panel-based), so no separate license needed.
+  if (controlUnitId.startsWith("NCU") && !includedOptionCodes.has("S00")) {
+    const operate = findOption("S00");
+    if (operate && !softwareOptions.some((o) => o.id === operate.id)) {
+      softwareOptions.push(operate);
+      optionQuantities[operate.id] = 1;
     }
   }
 
@@ -330,6 +346,28 @@ export function parseAiResponse(
     if (mcp) hmiComponents.push(mcp);
   }
 
+  // ─── 9b. I/O module (user-selectable, default PP 72/48 for NCU) ───
+  // "" (empty string) = use default, "none" = explicitly no I/O module,
+  // "pp_72_48" or "et200sp" = user choice.
+  if (catalogData && controlUnitId.startsWith("NCU")) {
+    const ioChoice = specs?.ioModule ?? "";
+    if (ioChoice !== "none") {
+      const ioId = ioChoice === "et200sp" ? "io_et200sp_cpu" : "io_pp_72_48";
+      const io = catalogData.hmiComponents.find((h) => h.id === ioId);
+      if (io) hmiComponents.push(io);
+    }
+  }
+
+  // ─── 9c. Handheld terminal (fully optional) ───
+  if (catalogData) {
+    const hh = specs?.handheldUnit;
+    if (hh === "ht2" || hh === "ht10") {
+      const hhId = hh === "ht10" ? "handheld_ht10" : "handheld_ht2";
+      const handheld = catalogData.hmiComponents.find((h) => h.id === hhId);
+      if (handheld) hmiComponents.push(handheld);
+    }
+  }
+
   // ─── 10. Safety ───
   const safetyFunctions: SafetyFunction[] = [];
   const basicSafety = catalogData?.safetyFunctions.filter((sf) => sf.isBasicScope);
@@ -347,6 +385,10 @@ export function parseAiResponse(
       spindleAxes: spindleCount,
       controlUnitId,
       hmiCategory: hmiComponents[0]?.category,
+      driveFamily: family,
+      feedMotorShaftHeight: sized.feed?.specs.shaftHeight,
+      spindleMotorShaftHeight: sized.spindle?.specs.shaftHeight,
+      cableLengthMeters: specs?.cableLengthMeters,
     });
   }
 
