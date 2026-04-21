@@ -24,7 +24,7 @@ import { softwareOptions as catalogSoftwareOptions } from "@/data/software-optio
 import { technologyPackages as catalogTechPackages } from "@/data/technology-packages";
 
 export function ConfigurationStep() {
-  const { configuration, setStep, completeStep, setConfiguration } = useConfiguratorStore();
+  const { configuration, setStep, completeStep, setConfiguration, aiMessages } = useConfiguratorStore();
   const [swapState, setSwapState] = useState<{
     category: SwapCategory;
     currentArticle?: string;
@@ -403,7 +403,11 @@ export function ConfigurationStep() {
 
       {/* Navigation */}
       <div className="flex items-center justify-between pt-2 border-t">
-        <Button variant="ghost" size="sm" onClick={() => setStep("analysis")}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setStep(aiMessages.length > 0 ? "analysis" : "description")}
+        >
           <svg className="mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>

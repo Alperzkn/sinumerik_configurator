@@ -11,6 +11,8 @@ import {
   MachineSpecsForm,
   type MachineSpecs,
 } from "./machine-specs-form";
+import { buildConfigFromTemplate } from "@/lib/ai/build-from-template";
+import type { UserSpecsInput } from "@/lib/sizing";
 
 const templates: {
   type: MachineType;
@@ -91,18 +93,57 @@ export function MachineDescriptionStep() {
     setMachineSpecs,
     setStep,
     completeStep,
+    setConfiguration,
   } = useConfiguratorStore();
 
   const [mode, setMode] = useState<"template" | "custom">("template");
   const [showSpecs, setShowSpecs] = useState(false);
+  const [buildingTemplate, setBuildingTemplate] = useState(false);
 
   const hasTemplate = mode === "template" && selectedTemplate;
   const hasCustom = mode === "custom" && machineDescription.trim().length > 10;
   const canProceed = hasTemplate || hasCustom;
 
-  const handleProceed = () => {
-    // Specs are stored separately and read by the AI analysis step.
-    // Do NOT mutate machineDescription here (was causing double-appending bug).
+  const parseNumeric = (s: string | undefined) => {
+    if (!s) return undefined;
+    const m = s.match(/([\d.]+)/);
+    return m ? parseFloat(m[1]) : undefined;
+  };
+
+  const specsToSizingInput = (s: typeof machineSpecs): UserSpecsInput => ({
+    spindlePowerKw: parseNumeric(s.spindlePower),
+    spindleMaxRpm: parseNumeric(s.spindleSpeed),
+    movingMassKg: parseNumeric(s.movingMass),
+    rapidTraverseMpm: parseNumeric(s.rapidTraverse),
+    machineSize: (s.machineSize || "") as UserSpecsInput["machineSize"],
+    material: s.material,
+  });
+
+  const handleProceed = async () => {
+    // Template flow — skip AI round-trip, build config deterministically.
+    // User can still tweak via the Ask-AI pane on the configuration page.
+    if (mode === "template" && selectedTemplate && selectedTemplate !== "custom") {
+      setBuildingTemplate(true);
+      try {
+        const config = await buildConfigFromTemplate(
+          selectedTemplate,
+          specsToSizingInput(machineSpecs)
+        );
+        if (config) {
+          setConfiguration(config);
+          completeStep("description");
+          completeStep("analysis"); // mark as skipped/completed
+          setStep("configuration");
+          return;
+        }
+      } catch (err) {
+        console.error("[Template] Failed to build config:", err);
+      } finally {
+        setBuildingTemplate(false);
+      }
+    }
+
+    // Custom description or template build failure → fall back to AI flow.
     completeStep("description");
     setStep("analysis");
   };
@@ -252,11 +293,15 @@ export function MachineDescriptionStep() {
       {/* Proceed */}
       <div className="flex items-center gap-3 pt-2">
         <Button
-          disabled={!canProceed}
+          disabled={!canProceed || buildingTemplate}
           onClick={handleProceed}
           className="gap-2"
         >
-          Continue to AI Analysis
+          {buildingTemplate
+            ? "Building configuration…"
+            : mode === "template"
+              ? "Continue to Configuration"
+              : "Continue to AI Analysis"}
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>
