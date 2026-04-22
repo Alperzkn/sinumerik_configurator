@@ -50,19 +50,31 @@ export const safetyFunctions: SafetyFunction[] = [
       "Enables failsafe PLC programming on SINUMERIK ONE. Prerequisite for all extended safety functions. Does not include axis monitoring by itself.",
   },
 
-  // ── Safety axis/spindle (K01-K09) ──────────────────────────────────
-  {
-    id: "safety-axis-k",
-    articleNumber: "6FC5800-0BK00-0YB0",
-    orderCode: "K01-K09",
-    name: "Safety axis/spindle monitoring (per axis)",
-    category: "axis_monitoring",
-    isBasicScope: false,
-    compatibility: allUnitsOption,
-    requirements: ["f-plc-s60"],
-    description:
-      "Enables safe motion monitoring for 1 axis or spindle. Order one per axis/spindle requiring safety monitoring. Requires F-PLC (S60).",
-  },
+  // ── Safety axis/spindle (K01..K09) ─────────────────────────────────
+  // Split into individual entries so findSafetyFunction("K06") resolves.
+  // Each K-option is the same physical license — order one per axis that
+  // needs safe motion monitoring.
+  ...(() => {
+    const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
+    return ordinals.map((ordinal, idx) => {
+      const n = idx + 1;
+      const code = `K0${n}`;
+      return {
+        id: `safety-axis-k0${n}`,
+        articleNumber: "6FC5800-0BK00-0YB0",
+        orderCode: code,
+        name: `Safety axis/spindle monitoring (${ordinal})`,
+        category: "axis_monitoring" as const,
+        isBasicScope: false,
+        compatibility: allUnitsOption,
+        requirements: ["f-plc-s60"],
+        description:
+          `Enables safe motion monitoring for the ${ordinal} axis/spindle. ` +
+          "Order one K-option per axis/spindle requiring safety monitoring. " +
+          "Requires F-PLC (S60).",
+      };
+    });
+  })(),
 
   // ── Safety multi-axis package (S61) ────────────────────────────────
   {

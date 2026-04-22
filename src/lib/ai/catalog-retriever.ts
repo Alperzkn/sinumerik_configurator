@@ -97,7 +97,9 @@ or a synchronous / built-in spindle.
 | Active 55kW | 55 | 6SL3130-7TE25-5AA3 | 6SL3100-0BE25-5AB0 |
 | Active 80kW | 80 | 6SL3130-7TE28-0AA3 | 6SL3100-0BE28-0AB0 |
 | Active 120kW | 120 | 6SL3130-7TE31-2AA3 | 6SL3100-0BE31-2AB0 |
-| Basic 20/40/100 kW | … | 6SL3130-1TE2…/1TE3… | — |
+| Basic 20kW | 20 | 6SL3130-1TE22-0AA0 | — |
+| Basic 40kW | 40 | 6SL3130-1TE24-0AA0 | — |
+| Basic 100kW | 100 | 6SL3130-1TE31-0AA0 | — |
 
 Active Line Modules regenerate back to grid (needed for high-dynamic /
 frequent deceleration machines: lasers, robots, 5-axis HSC, mill-turn).

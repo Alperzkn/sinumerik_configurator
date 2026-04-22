@@ -669,8 +669,25 @@ function applyModifications(
   }
 
   // 4. Software options
+  // Safety codes (S60/S61/K01..K09) are canonical SafetyFunctions, not
+  // SoftwareOptions. If the AI routes one here by mistake, reroute to the
+  // safety path so the user gets the correct entry.
+  const isSafetyCode = (code: string) => /^(S60|S61|K0\d)$/i.test(code);
+
   if (changes.addOptions) {
     for (const a of changes.addOptions) {
+      if (isSafetyCode(a.orderCode)) {
+        const sf = catalogSafetyFunctions.find(
+          (s) => s.orderCode === a.orderCode || s.id === a.orderCode
+        );
+        if (sf) {
+          updated = addSafetyFunction(updated, sf);
+          appliedSummary.push(`Added safety ${sf.orderCode || sf.id} (${sf.name}) [rerouted from addOptions]`);
+        } else {
+          appliedSummary.push(`⚠ Safety ${a.orderCode} not found`);
+        }
+        continue;
+      }
       const opt = catalogOptions.find((o) => o.orderCode === a.orderCode);
       if (opt) {
         updated = addSoftwareOption(updated, opt, a.quantity || 1);
@@ -681,7 +698,21 @@ function applyModifications(
     }
   }
   if (changes.removeOptions) {
+    const safetyToRemove: string[] = [];
+    const optionsToRemove: string[] = [];
     for (const id of changes.removeOptions) {
+      if (isSafetyCode(id)) safetyToRemove.push(id);
+      else optionsToRemove.push(id);
+    }
+    if (safetyToRemove.length > 0) {
+      const before = updated.safetyFunctions.filter((s) => !s.isBasicScope).length;
+      updated = removeSafetyFunctions(updated, safetyToRemove);
+      const after = updated.safetyFunctions.filter((s) => !s.isBasicScope).length;
+      if (after < before) {
+        appliedSummary.push(`Removed ${before - after} safety option(s) (${safetyToRemove.join(", ")}) [rerouted from removeOptions]`);
+      }
+    }
+    for (const id of optionsToRemove) {
       const before = updated.softwareOptions.length;
       updated = removeSoftwareOption(updated, id);
       if (updated.softwareOptions.length < before) appliedSummary.push(`Removed option ${id}`);

@@ -120,4 +120,38 @@ export const technologyPackages: TechnologyPackage[] = [
     exportAvailable: true,
     recommendedFor: ["grinding"],
   },
+  {
+    id: "pkg-laser",
+    orderCode: "M37_M38",
+    articleNumber: "6FC5800-0BM37-0YB0",
+    name: "Laser Cutting Package (Power Control + High-Speed Switching)",
+    description:
+      "Combined laser-processing package bundling path-velocity-dependent laser power control (M37) and high-speed laser on/off switching (M38). Typical starting point for 2D/3D laser cutting machines.",
+    includedOptions: ["M37", "M38"],
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "option",
+      NCU_1750: "option",
+      NCU_1760: "option",
+    },
+    exportAvailable: true,
+    recommendedFor: ["laser"],
+  },
+  {
+    id: "pkg-punching",
+    orderCode: "M33_M43",
+    articleNumber: "6FC5800-0BM33-0YB0",
+    name: "Punching/Nibbling Package",
+    description:
+      "Sheet-metal punching/nibbling package bundling automatic path segmentation (M33) and cross-mode ASUB actions (M43) for synchronized ram and feed control.",
+    includedOptions: ["M33", "M43"],
+    compatibility: {
+      PPU_1740: "option",
+      NCU_1740: "option",
+      NCU_1750: "option",
+      NCU_1760: "option",
+    },
+    exportAvailable: true,
+    recommendedFor: ["punching"],
+  },
 ];

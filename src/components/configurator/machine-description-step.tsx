@@ -13,6 +13,7 @@ import {
 } from "./machine-specs-form";
 import { buildConfigFromTemplate } from "@/lib/ai/build-from-template";
 import { SaveLoadDialog } from "./save-load-dialog";
+import { ShareConfigDialog } from "./share-config-dialog";
 import type { UserSpecsInput } from "@/lib/sizing";
 
 const templates: {
@@ -101,6 +102,7 @@ export function MachineDescriptionStep() {
   const [showSpecs, setShowSpecs] = useState(false);
   const [buildingTemplate, setBuildingTemplate] = useState(false);
   const [showLoad, setShowLoad] = useState(false);
+  const [showShare, setShowShare] = useState(false);
 
   const hasTemplate = mode === "template" && selectedTemplate;
   const hasCustom = mode === "custom" && machineDescription.trim().length > 10;
@@ -172,18 +174,32 @@ export function MachineDescriptionStep() {
             Choose a template and specify mechanical details for proper motor/drive sizing
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setShowLoad(true)}
-          className="gap-1.5 text-xs h-8 shrink-0"
-          title="Open a saved configuration"
-        >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-          </svg>
-          Open saved
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowShare(true)}
+            className="gap-1.5 text-xs h-8"
+            title="Paste a configuration someone shared as text — optionally ask the AI to modify it"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
+            </svg>
+            Paste shared
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowLoad(true)}
+            className="gap-1.5 text-xs h-8"
+            title="Open a saved configuration"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+            </svg>
+            Open saved
+          </Button>
+        </div>
       </div>
 
       {/* Mode toggle */}
@@ -343,6 +359,15 @@ export function MachineDescriptionStep() {
           open={showLoad}
           mode="load"
           onClose={() => setShowLoad(false)}
+        />
+      )}
+
+      {/* Paste shared text / import dialog */}
+      {showShare && (
+        <ShareConfigDialog
+          open={showShare}
+          onClose={() => setShowShare(false)}
+          defaultTab="import"
         />
       )}
     </motion.div>

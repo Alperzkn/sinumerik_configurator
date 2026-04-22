@@ -118,7 +118,7 @@ export const machineTemplates: MachineTemplate[] = [
     typicalAxes: 2,
     typicalSpindles: 0,
     defaultControlUnit: "NCU_1740",
-    defaultPackages: ["M33"],
+    defaultPackages: ["M33_M43"],
     defaultSafetyOptions: ["S60", "S61"],
     defaultDriveFamily: "S120_booksize",
     defaultMotorTypes: ["feed_servo_sync"],

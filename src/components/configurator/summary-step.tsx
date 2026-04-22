@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import type { GeneratedConfiguration, BomItem } from "@/types/catalog";
 import { SaveLoadDialog } from "./save-load-dialog";
+import { ShareConfigDialog } from "./share-config-dialog";
 
 function buildBom(config: GeneratedConfiguration): BomItem[] {
   const lines: BomItem[] = [];
@@ -107,6 +108,7 @@ export function SummaryStep() {
   const { configuration, resetAll, setStep } = useConfiguratorStore();
   const [copied, setCopied] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<"save" | "load" | null>(null);
+  const [showShare, setShowShare] = useState(false);
 
   if (!configuration) {
     return (
@@ -263,6 +265,18 @@ export function SummaryStep() {
           PDF
         </Button>
         <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowShare(true)}
+            className="gap-1.5"
+            title="Share as text — copy a message someone else can paste back"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+            </svg>
+            Share
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setSaveLoadMode("save")} className="gap-1.5">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -365,6 +379,15 @@ export function SummaryStep() {
           open={saveLoadMode !== null}
           mode={saveLoadMode}
           onClose={() => setSaveLoadMode(null)}
+        />
+      )}
+
+      {/* Share / Import-and-modify dialog */}
+      {showShare && (
+        <ShareConfigDialog
+          open={showShare}
+          onClose={() => setShowShare(false)}
+          defaultTab="share"
         />
       )}
     </motion.div>

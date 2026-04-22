@@ -63,8 +63,10 @@ function findCncSoftware(
   );
 }
 
-function findTechPackage(id: string): TechnologyPackage | undefined {
-  return catalogData?.technologyPackages.find((tp) => tp.id === id);
+function findTechPackage(idOrCode: string): TechnologyPackage | undefined {
+  return catalogData?.technologyPackages.find(
+    (tp) => tp.id === idOrCode || tp.orderCode === idOrCode
+  );
 }
 
 function findOption(orderCode: string): SoftwareOption | undefined {
@@ -142,15 +144,24 @@ export function parseAiResponse(
   }
 
   // ─── 4. Software options with quantities ───
+  // Safety codes (S60/S61/K01..K09) canonically live in safetyFunctions.
+  // Collect any that the AI routed through additionalOptions so they can
+  // be merged into raw.safety.options in step 10 below.
+  const isSafetyCode = (code: string) => /^(S60|S61|K0\d)$/i.test(code);
+  const reroutedSafetyCodes: string[] = [];
+
   const softwareOptions: SoftwareOption[] = [];
   const optionQuantities: Record<string, number> = {};
   for (const opt of raw.additionalOptions || []) {
-    if (!includedOptionCodes.has(opt.orderCode)) {
-      const found = findOption(opt.orderCode);
-      if (found) {
-        softwareOptions.push(found);
-        optionQuantities[found.id] = opt.quantity || 1;
-      }
+    if (includedOptionCodes.has(opt.orderCode)) continue;
+    if (isSafetyCode(opt.orderCode)) {
+      reroutedSafetyCodes.push(opt.orderCode.toUpperCase());
+      continue;
+    }
+    const found = findOption(opt.orderCode);
+    if (found) {
+      softwareOptions.push(found);
+      optionQuantities[found.id] = opt.quantity || 1;
     }
   }
 
@@ -372,9 +383,15 @@ export function parseAiResponse(
   const safetyFunctions: SafetyFunction[] = [];
   const basicSafety = catalogData?.safetyFunctions.filter((sf) => sf.isBasicScope);
   if (basicSafety) safetyFunctions.push(...basicSafety);
-  for (const code of raw.safety?.options || []) {
+  const safetyCodes = new Set<string>([
+    ...(raw.safety?.options || []).map((c) => c.toUpperCase()),
+    ...reroutedSafetyCodes,
+  ]);
+  for (const code of safetyCodes) {
     const sf = findSafetyFunction(code);
-    if (sf && !sf.isBasicScope) safetyFunctions.push(sf);
+    if (sf && !sf.isBasicScope && !safetyFunctions.some((s) => s.id === sf.id)) {
+      safetyFunctions.push(sf);
+    }
   }
 
   // ─── 11. Cables — auto-select ───
