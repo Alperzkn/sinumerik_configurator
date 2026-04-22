@@ -23,6 +23,8 @@ import { hmiComponents as catalogHmi } from "@/data/hmi-components";
 
 export interface ModifyResult {
   updatedConfiguration?: GeneratedConfiguration;
+  /** True when at least one apply branch actually mutated the config. */
+  hadChanges?: boolean;
   summary: string;
   warnings?: string[];
 }
@@ -91,8 +93,161 @@ export async function modifyConfiguration(
     throw new Error(`Modification failed: ${response.statusText}`);
   }
 
-  const instruction = (await response.json()) as ModifyInstruction;
+  const raw = (await response.json()) as Record<string, unknown>;
+  const instruction = normaliseInstruction(raw);
   return applyModifications(current, instruction, baselineSpecs);
+}
+
+/**
+ * The AI doesn't always return our exact schema. Common variations we've
+ * seen: `controlUnit: { id }` instead of `controlUnitId`, `controlUnit` as
+ * a plain string, `spindleMotor: { articleNumber }` instead of
+ * `spindleMotorArticle`, `cncSoftware: { variant }` instead of
+ * `cncSoftwareVariant`, `safety: { add, remove }` etc.
+ *
+ * This pass folds those shapes back into the canonical schema so
+ * applyModifications has one shape to consume.
+ */
+function normaliseInstruction(raw: Record<string, unknown>): ModifyInstruction {
+  const inChanges = (raw.changes ?? raw) as Record<string, unknown>;
+  const out: ModifyInstruction["changes"] = {};
+
+  // Helper: pick a string field from an object regardless of whether the AI
+  // gave us a plain string, an { id } / { articleNumber } object, or a
+  // typo-ed key.
+  const pickStr = (...vals: unknown[]): string | undefined => {
+    for (const v of vals) {
+      if (typeof v === "string" && v.trim()) return v.trim();
+      if (v && typeof v === "object") {
+        const o = v as Record<string, unknown>;
+        if (typeof o.articleNumber === "string") return o.articleNumber;
+        if (typeof o.id === "string") return o.id;
+        if (typeof o.value === "string") return o.value;
+        if (typeof o.code === "string") return o.code;
+      }
+    }
+    return undefined;
+  };
+
+  // Control unit — accept controlUnitId | controlUnit | controlUnitArticle
+  const cuArticle = pickStr(inChanges.controlUnitArticle);
+  const cuId = pickStr(inChanges.controlUnitId, inChanges.controlUnit, inChanges.cu);
+  if (cuArticle) out.controlUnitArticle = cuArticle;
+  if (cuId) out.controlUnitId = cuId;
+
+  // CNC software variant — accept cncSoftwareVariant | cncSoftware.variant | softwareVariant
+  const swVariant = pickStr(
+    inChanges.cncSoftwareVariant,
+    inChanges.softwareVariant,
+    inChanges.cncSoftware
+  );
+  if (swVariant === "export" || swVariant === "full_scope") {
+    out.cncSoftwareVariant = swVariant;
+  }
+
+  // Line / motor / motor-module articles — accept *Article OR nested object
+  const lm = pickStr(inChanges.lineModuleArticle, inChanges.lineModule);
+  if (lm) out.lineModuleArticle = lm;
+  const fm = pickStr(inChanges.feedMotorArticle, inChanges.feedMotor);
+  if (fm) out.feedMotorArticle = fm;
+  const sm = pickStr(inChanges.spindleMotorArticle, inChanges.spindleMotor);
+  if (sm) out.spindleMotorArticle = sm;
+  const fmm = pickStr(inChanges.feedMotorModuleArticle, inChanges.feedMotorModule);
+  if (fmm) out.feedMotorModuleArticle = fmm;
+  const smm = pickStr(inChanges.spindleMotorModuleArticle, inChanges.spindleMotorModule);
+  if (smm) out.spindleMotorModuleArticle = smm;
+
+  if (typeof inChanges.preferActiveLineModule === "boolean") {
+    out.preferActiveLineModule = inChanges.preferActiveLineModule;
+  }
+
+  // HMI
+  if (typeof inChanges.hmiPanelSizeInch === "number") {
+    out.hmiPanelSizeInch = inChanges.hmiPanelSizeInch;
+  } else if (inChanges.hmi && typeof inChanges.hmi === "object") {
+    const h = inChanges.hmi as Record<string, unknown>;
+    if (typeof h.panelSizeInch === "number") out.hmiPanelSizeInch = h.panelSizeInch;
+  }
+  const hmiArt = pickStr(inChanges.hmiArticle);
+  if (hmiArt) out.hmiArticle = hmiArt;
+  const mcpArt = pickStr(inChanges.mcpArticle);
+  if (mcpArt) out.mcpArticle = mcpArt;
+
+  // userSpecsOverride — pass through if shape looks reasonable
+  if (inChanges.userSpecsOverride && typeof inChanges.userSpecsOverride === "object") {
+    out.userSpecsOverride = inChanges.userSpecsOverride as Partial<UserSpecsInput>;
+  }
+
+  // Software options — addOptions / removeOptions / addPackages / removePackages
+  // Accept arrays of strings (just order codes) or arrays of objects.
+  const toOptionList = (v: unknown): { orderCode: string; quantity?: number; reason?: string }[] | undefined => {
+    if (!Array.isArray(v)) return undefined;
+    return v
+      .map((item) => {
+        if (typeof item === "string") return { orderCode: item.toUpperCase() };
+        if (item && typeof item === "object") {
+          const o = item as Record<string, unknown>;
+          const code = pickStr(o.orderCode, o.code, o.id);
+          if (!code) return null;
+          return {
+            orderCode: code.toUpperCase(),
+            quantity: typeof o.quantity === "number" ? o.quantity : undefined,
+            reason: typeof o.reason === "string" ? o.reason : undefined,
+          };
+        }
+        return null;
+      })
+      .filter((x): x is { orderCode: string } => x !== null);
+  };
+  const addOpts = toOptionList(inChanges.addOptions);
+  if (addOpts && addOpts.length > 0) out.addOptions = addOpts;
+  if (Array.isArray(inChanges.removeOptions)) {
+    out.removeOptions = (inChanges.removeOptions as unknown[])
+      .map((v) => (typeof v === "string" ? v : pickStr(v)))
+      .filter((v): v is string => Boolean(v));
+  }
+  if (Array.isArray(inChanges.addPackages)) {
+    out.addPackages = (inChanges.addPackages as unknown[])
+      .map((v) => {
+        if (typeof v === "string") return { id: v };
+        if (v && typeof v === "object") {
+          const o = v as Record<string, unknown>;
+          const id = pickStr(o.id, o.orderCode, o.code);
+          return id ? { id, reason: typeof o.reason === "string" ? o.reason : undefined } : null;
+        }
+        return null;
+      })
+      .filter((v): v is { id: string } => v !== null);
+  }
+  if (Array.isArray(inChanges.removePackages)) {
+    out.removePackages = (inChanges.removePackages as unknown[])
+      .map((v) => (typeof v === "string" ? v : pickStr(v)))
+      .filter((v): v is string => Boolean(v));
+  }
+
+  // Safety — addSafety / removeSafety, also support safety: { add, remove }
+  const safetyObj = inChanges.safety as Record<string, unknown> | undefined;
+  const addSafetyRaw = inChanges.addSafety ?? safetyObj?.add ?? safetyObj?.addOptions;
+  const removeSafetyRaw = inChanges.removeSafety ?? safetyObj?.remove ?? safetyObj?.removeOptions;
+  if (Array.isArray(addSafetyRaw)) {
+    out.addSafety = (addSafetyRaw as unknown[])
+      .map((v) => (typeof v === "string" ? v : pickStr(v)))
+      .filter((v): v is string => Boolean(v));
+  }
+  if (Array.isArray(removeSafetyRaw)) {
+    out.removeSafety = (removeSafetyRaw as unknown[])
+      .map((v) => (typeof v === "string" ? v : pickStr(v)))
+      .filter((v): v is string => Boolean(v));
+  }
+
+  return {
+    action: typeof raw.action === "string" ? raw.action : undefined,
+    changes: out,
+    summary: typeof raw.summary === "string" ? raw.summary : undefined,
+    warnings: Array.isArray(raw.warnings)
+      ? (raw.warnings as unknown[]).filter((w): w is string => typeof w === "string")
+      : undefined,
+  };
 }
 
 function buildModifyPrompt(currentSummary: string): string {
@@ -396,10 +551,23 @@ function applyModifications(
   // negligible and a single source of truth is safer than per-branch logic.
   updated = regenerateCablesFor(updated);
 
+  // If the AI claimed a change but none of our apply branches fired, tell
+  // the user instead of silently pretending it worked.
+  const warnings = [...(instruction.warnings ?? [])];
+  if (appliedSummary.length === 0) {
+    warnings.push(
+      "The AI's response didn't match any known change type — configuration left unchanged. Try rephrasing with a specific component name (e.g. \"swap spindle motor to 1PH8163\") or order code (e.g. \"add M72\")."
+    );
+  }
+
   return {
-    updatedConfiguration: updated,
-    summary: instruction.summary || appliedSummary.join("; ") || "Configuration updated.",
-    warnings: instruction.warnings,
+    updatedConfiguration: appliedSummary.length > 0 ? updated : undefined,
+    hadChanges: appliedSummary.length > 0,
+    summary:
+      instruction.summary ||
+      appliedSummary.join("; ") ||
+      "No actionable change — configuration unchanged.",
+    warnings: warnings.length > 0 ? warnings : undefined,
   };
 }
 

@@ -32,7 +32,9 @@ export const useToastStore = create<ToastStore>((set) => ({
       title: t.title,
       description: t.description,
       tone: t.tone,
-      duration: t.duration ?? 4000,
+      // Default: sticky (0 = manual-dismiss only). Caller can pass a positive
+      // duration if they want a transient toast.
+      duration: t.duration ?? 0,
     };
     set((s) => ({ toasts: [...s.toasts, item] }));
     return id;
@@ -51,7 +53,7 @@ export const toast = {
   warning: (title: string, description?: string) =>
     useToastStore.getState().push({ title, description, tone: "warning" }),
   error: (title: string, description?: string) =>
-    useToastStore.getState().push({ title, description, tone: "error", duration: 6000 }),
+    useToastStore.getState().push({ title, description, tone: "error" }),
 };
 
 const TONE_STYLES: Record<ToastTone, { box: string; icon: string; iconColor: string }> = {
@@ -139,7 +141,7 @@ function ToastView({ item }: { item: ToastItem }) {
 export function Toaster() {
   const toasts = useToastStore((s) => s.toasts);
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-[1000] flex flex-col gap-2 items-end">
+    <div className="pointer-events-none fixed bottom-4 right-4 z-1000 flex flex-col gap-2 items-end">
       <AnimatePresence>
         {toasts.map((t) => (
           <ToastView key={t.id} item={t} />
