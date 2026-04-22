@@ -4,9 +4,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useConfiguratorStore, type HistoryKind } from "@/store/configurator-store";
+import {
+  useConfiguratorStore,
+  type HistoryEntry,
+  type HistoryKind,
+} from "@/store/configurator-store";
 import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import type { ChangeItem } from "@/lib/history/diff";
 
 const KIND_META: Record<HistoryKind, { label: string; tone: string; iconPath: string }> = {
   init: {
@@ -81,6 +86,113 @@ function formatTime(ms: number): string {
   const h = Math.floor(min / 60);
   if (h < 24) return `${h}h ago`;
   return new Date(ms).toLocaleString();
+}
+
+interface ChangeRowProps {
+  item: ChangeItem;
+  variant: "added" | "removed" | "quantity";
+}
+
+function ChangeRow({ item, variant }: ChangeRowProps) {
+  const symbol = variant === "added" ? "+" : variant === "removed" ? "−" : "Δ";
+  const tone =
+    variant === "added"
+      ? "text-emerald-400"
+      : variant === "removed"
+        ? "text-destructive"
+        : "text-amber-400";
+
+  return (
+    <div className="flex items-baseline gap-2 text-[11px] leading-snug py-0.5">
+      <span className={cn("font-mono w-3 text-center shrink-0", tone)}>{symbol}</span>
+      <span className="text-muted-foreground/70 w-20 shrink-0 truncate">{item.category}</span>
+      <code className="font-mono text-[10.5px] text-foreground/80 whitespace-nowrap">
+        {item.articleNumber}
+      </code>
+      {variant === "quantity" && (
+        <span className="text-muted-foreground tabular-nums shrink-0">
+          {item.prevQuantity} → <span className="text-amber-400 font-medium">{item.newQuantity}</span>
+        </span>
+      )}
+      {variant !== "quantity" && (item.newQuantity ?? item.prevQuantity ?? 1) > 1 && (
+        <span className="text-muted-foreground tabular-nums shrink-0">
+          × {item.newQuantity ?? item.prevQuantity}
+        </span>
+      )}
+      <span className="text-muted-foreground truncate">{item.name}</span>
+    </div>
+  );
+}
+
+function HistoryChanges({ entry }: { entry: HistoryEntry }) {
+  const [expanded, setExpanded] = useState(false);
+  const c = entry.changes;
+  if (!c || c.totalChanges === 0) return null;
+
+  return (
+    <div className="mt-1.5">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-[10.5px] text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <svg
+          className={cn(
+            "h-3 w-3 transition-transform",
+            expanded ? "rotate-90" : ""
+          )}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2.2}
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+        <span>
+          {c.totalChanges} MLFB change{c.totalChanges === 1 ? "" : "s"}
+        </span>
+        <span className="flex items-center gap-1.5">
+          {c.added.length > 0 && (
+            <Badge variant="outline" className="text-[9px] text-emerald-400 border-emerald-500/30 px-1 py-0 h-4">
+              +{c.added.length}
+            </Badge>
+          )}
+          {c.removed.length > 0 && (
+            <Badge variant="outline" className="text-[9px] text-destructive border-destructive/30 px-1 py-0 h-4">
+              −{c.removed.length}
+            </Badge>
+          )}
+          {c.quantityChanged.length > 0 && (
+            <Badge variant="outline" className="text-[9px] text-amber-400 border-amber-500/30 px-1 py-0 h-4">
+              Δ{c.quantityChanged.length}
+            </Badge>
+          )}
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1.5 ml-1 pl-2 border-l border-border/40 py-0.5">
+              {c.added.map((item, i) => (
+                <ChangeRow key={`a-${i}`} item={item} variant="added" />
+              ))}
+              {c.removed.map((item, i) => (
+                <ChangeRow key={`r-${i}`} item={item} variant="removed" />
+              ))}
+              {c.quantityChanged.map((item, i) => (
+                <ChangeRow key={`q-${i}`} item={item} variant="quantity" />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export function HistoryPanel() {
@@ -194,6 +306,7 @@ export function HistoryPanel() {
                                   {entry.details}
                                 </div>
                               )}
+                              <HistoryChanges entry={entry} />
                               <div className="text-[10px] text-muted-foreground/70 mt-1 tabular-nums">
                                 {formatTime(entry.timestamp)}
                               </div>

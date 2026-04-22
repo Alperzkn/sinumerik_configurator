@@ -6,6 +6,7 @@ import type {
   MachineType,
   WizardStep,
 } from "@/types/catalog";
+import { diffConfigurations, type HistoryDiff } from "@/lib/history/diff";
 
 export type HistoryKind =
   | "init"
@@ -31,6 +32,12 @@ export interface HistoryEntry {
   details?: string;
   /** Snapshot of the configuration AFTER this change — enables revert */
   snapshot: GeneratedConfiguration;
+  /**
+   * MLFB-level diff vs the previous history entry. Empty for "init" entries
+   * (no prior state) and for no-op updates that didn't actually change any
+   * article.
+   */
+  changes?: HistoryDiff;
 }
 
 export interface MachineSpecsState {
@@ -274,6 +281,10 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
     set((state) => {
       const cfg = snapshot ?? state.configuration;
       if (!cfg) return state;
+      const prev = state.history.length > 0
+        ? state.history[state.history.length - 1].snapshot
+        : null;
+      const changes = diffConfigurations(prev, cfg);
       return {
         history: [
           ...state.history,
@@ -284,6 +295,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
             title,
             details,
             snapshot: cfg,
+            changes: changes.totalChanges > 0 ? changes : undefined,
           },
         ],
       };
@@ -293,6 +305,11 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
     set((state) => {
       const entry = state.history.find((h) => h.id === id);
       if (!entry) return state;
+      const currentSnapshot =
+        state.history.length > 0
+          ? state.history[state.history.length - 1].snapshot
+          : state.configuration;
+      const changes = diffConfigurations(currentSnapshot, entry.snapshot);
       return {
         configuration: entry.snapshot,
         history: [
@@ -304,6 +321,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
             title: `Reverted to "${entry.title}"`,
             details: new Date(entry.timestamp).toLocaleTimeString(),
             snapshot: entry.snapshot,
+            changes: changes.totalChanges > 0 ? changes : undefined,
           },
         ],
       };
