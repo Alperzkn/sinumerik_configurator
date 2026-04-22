@@ -20,6 +20,7 @@ import { technologyPackages as catalogPackages } from "@/data/technology-package
 import { safetyFunctions as catalogSafetyFunctions } from "@/data/safety";
 import { cncSoftwareOptions as catalogCncSoftware } from "@/data/cnc-software";
 import { hmiComponents as catalogHmi } from "@/data/hmi-components";
+import { diffConfigurations } from "@/lib/history/diff";
 
 export interface ModifyResult {
   updatedConfiguration?: GeneratedConfiguration;
@@ -551,22 +552,35 @@ function applyModifications(
   // negligible and a single source of truth is safer than per-branch logic.
   updated = regenerateCablesFor(updated);
 
-  // If the AI claimed a change but none of our apply branches fired, tell
-  // the user instead of silently pretending it worked.
+  // Ground hadChanges in an ACTUAL MLFB-level diff — not in "we called
+  // applySwap". The AI sometimes returns the current value (e.g.
+  // controlUnitId: "NCU_1740" when the user asked for NCU_1760), which
+  // fires the apply branch but produces a no-op swap. That used to mark
+  // hadChanges=true and trigger a misleading "Configuration updated" toast.
+  const diff = diffConfigurations(current, updated);
+  const actuallyChanged = diff.totalChanges > 0;
+
   const warnings = [...(instruction.warnings ?? [])];
-  if (appliedSummary.length === 0) {
-    warnings.push(
-      "The AI's response didn't match any known change type — configuration left unchanged. Try rephrasing with a specific component name (e.g. \"swap spindle motor to 1PH8163\") or order code (e.g. \"add M72\")."
-    );
+  if (!actuallyChanged) {
+    if (appliedSummary.length > 0) {
+      warnings.push(
+        "The AI's response was applied but didn't change any article number — it may have returned the current value by mistake. Try rephrasing with the exact target (e.g. \"swap control unit to 6FC5317-6AA00-0AA0 (NCU 1760)\")."
+      );
+    } else {
+      warnings.push(
+        "The AI's response didn't match any known change type — configuration left unchanged. Try rephrasing with a specific component name (e.g. \"swap spindle motor to 1PH8163\") or order code (e.g. \"add M72\")."
+      );
+    }
   }
 
   return {
-    updatedConfiguration: appliedSummary.length > 0 ? updated : undefined,
-    hadChanges: appliedSummary.length > 0,
-    summary:
-      instruction.summary ||
-      appliedSummary.join("; ") ||
-      "No actionable change — configuration unchanged.",
+    updatedConfiguration: actuallyChanged ? updated : undefined,
+    hadChanges: actuallyChanged,
+    summary: actuallyChanged
+      ? instruction.summary || appliedSummary.join("; ") || "Configuration updated."
+      : // Do NOT echo AI's claim when reality disagrees — that's how the
+        // "Configuration updated" bug reached the user. Give ground truth.
+        "Nothing changed — AI's intent couldn't be translated into a real MLFB change.",
     warnings: warnings.length > 0 ? warnings : undefined,
   };
 }

@@ -69,11 +69,21 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
         }
         onApplied?.();
       } else {
+        // No actual MLFB change happened (either AI returned a no-op or the
+        // schema was unrecognised). Show the warnings so the user sees WHY.
         setLastMessage({
           role: "assistant",
-          content: result.summary || "I couldn't modify the configuration. Please try rephrasing.",
+          content:
+            result.warnings && result.warnings.length > 0
+              ? `${result.summary}\n\n${result.warnings.join("\n")}`
+              : result.summary || "I couldn't modify the configuration. Please try rephrasing.",
         });
-        toast.info("No change applied", result.summary);
+        toast.warning(
+          "No change applied",
+          result.warnings && result.warnings.length > 0
+            ? result.warnings.join("\n")
+            : result.summary
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
