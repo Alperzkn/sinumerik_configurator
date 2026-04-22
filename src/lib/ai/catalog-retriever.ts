@@ -28,9 +28,8 @@ and whether a high-speed or synchronous spindle is wanted.
 |---|---|---|---|---|
 | SIMOTICS S-1FT7 | Compact (natural) | 36-132 | 1500-6000 rpm | Standard high-performance servo for S120 booksize |
 | SIMOTICS S-1FT7 | Forced Ventilation | 80-132 | 1500-3000 rpm | Heavy-duty; large moving mass or high-duty cycle |
-| SIMOTICS S-1FT2 | Compact (newer) | 20-52 | 3000-6000 rpm | Higher torque density than 1FT7 at small SH — great for compact axes |
-| SIMOTICS S-1FK2 | OCC (S210 only) | 20-52 | 3000-4500 rpm | 1-Cable Connection — use with SINAMICS S210 |
-| SIMOTICS S-1FK7 | Compact (legacy) | 28-132 | 1500-6000 rpm | Established platform; retrofit-friendly, wide encoder options |
+| SIMOTICS S-1FT2 | Compact (newer) | 30-80 | 3000-6000 rpm | Higher torque density than 1FT7 at small SH — great for compact axes |
+| SIMOTICS S-1FK2 | OCC (S210 only) | 20-100 | 3000-6000 rpm | 1-Cable Connection — use with SINAMICS S210 |
 
 ### Main spindle motor families
 | Family | Variant | Power range | nN range | Max rpm | Notes |
@@ -39,7 +38,6 @@ and whether a high-speed or synchronous spindle is wanted.
 | SIMOTICS M-1PH8 | Async 1500 rpm | 5.5-75 kW | 1500 rpm | 4500-9000 | Balanced milling / turning |
 | SIMOTICS M-1PH8 | Async 2000 rpm | 7-70 kW | 2000 rpm | 6000-12000 | High-speed milling |
 | SIMOTICS M-1PH8 | Synchronous HighSpeed | 16-52 kW | 3000 rpm | 12000-15000 | HSC / mold-making / high-precision |
-| SIMOTICS M-1PH3 | Asynchronous | 7.5-45 kW | 1500 rpm | 5000-7000 | Older generation, cheaper — conventional spindles |
 | SIMOTICS M-1FE1 | Built-in (sync) | 9-55 kW | 7500-10000 rpm | 18000-40000 | Direct-drive spindle stators — micro / HSC / mold |
 | SIMOTICS M-1FE2 | Built-in (async) | 12-22 kW | 10000 rpm | 42000-60000 | Ultra-high-speed built-in motor spindles |
 

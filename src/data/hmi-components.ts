@@ -467,11 +467,13 @@ export const hmiComponents: HmiComponent[] = [
   },
 
   // ---- Machine I/O Modules ----
-  // PP 72/48 D PN (default) — compact digital I/O for NCU-based machines
+  // PP 72/48 D PN (default) — verified against NC63 catalog
+  // Real article: 6FC5311-0AA00-0AA0 (NC63 page lists "SINUMERIK PP 72/48D PN I/O module")
+  // Variant 6FC5311-0AA00-1AA0 = PP 72/48D 2/2A PN with extra analog
   {
     id: "io_pp_72_48",
-    articleNumber: "6FC5611-0CA01-0AA0",
-    name: "PP 72/48 D PN",
+    articleNumber: "6FC5311-0AA00-0AA0",
+    name: "SINUMERIK PP 72/48D PN I/O module",
     category: "io_module",
     compatibility: {
       PPU_1740: "option",
@@ -479,7 +481,7 @@ export const hmiComponents: HmiComponent[] = [
       NCU_1750: "basic",
       NCU_1760: "basic",
     },
-    description: "Push-button panel with 72 digital inputs / 48 digital outputs over PROFINET. Default I/O module for SINUMERIK ONE. Directly addressable by the integrated PLC.",
+    description: "Push-button panel with 72 digital inputs / 48 digital outputs over PROFINET. Default I/O module for SINUMERIK ONE. A 2/2A variant with extra analog channels is available as 6FC5311-0AA00-1AA0.",
   },
   // ET 200SP — modular distributed I/O for larger / custom I/O layouts
   {
@@ -493,7 +495,7 @@ export const hmiComponents: HmiComponent[] = [
       NCU_1750: "option",
       NCU_1760: "option",
     },
-    description: "Distributed I/O head station (CPU) for ET 200SP over PROFINET. Choose when PP 72/48 channel count is insufficient or when modular / mixed signal I/O is required.",
+    description: "Distributed I/O head station (CPU) for ET 200SP over PROFINET. Choose when PP 72/48 channel count is insufficient or when modular / mixed signal I/O is required. (Source: Siemens SIMATIC catalog ST 70 — verify in your edition.)",
   },
   {
     id: "io_et200sp_di16",
@@ -506,7 +508,7 @@ export const hmiComponents: HmiComponent[] = [
       NCU_1750: "option",
       NCU_1760: "option",
     },
-    description: "16-channel digital input module for ET 200SP (high feature). Typical add-on when using ET 200SP head station.",
+    description: "16-channel digital input module for ET 200SP (high feature). Typical add-on when using ET 200SP head station. (Source: Siemens SIMATIC catalog ST 70 — verify in your edition.)",
   },
   {
     id: "io_et200sp_do16",
@@ -519,7 +521,7 @@ export const hmiComponents: HmiComponent[] = [
       NCU_1750: "option",
       NCU_1760: "option",
     },
-    description: "16-channel digital output module for ET 200SP (high feature). Typical add-on when using ET 200SP head station.",
+    description: "16-channel digital output module for ET 200SP (high feature). Typical add-on when using ET 200SP head station. (Source: Siemens SIMATIC catalog ST 70 — verify in your edition.)",
   },
 
   // ---- Handheld Terminals ----

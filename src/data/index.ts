@@ -14,17 +14,10 @@ export { hmiComponents } from "./hmi-components";
 export { machineTemplates } from "./machine-templates";
 export { compatibilityRules } from "./compatibility-rules";
 export { cablesCatalog, selectCables } from "./cables";
-export {
-  s120MotorModules,
-  s120LineModules,
-  s220LineModules,
-  s210Converters,
-  s210Motors,
-  s210Matches,
-  selectMotorModule,
-  selectLineModule,
-  selectS210System,
-} from "./drive-selection";
+// Note: ./drive-selection.ts removed — its parallel motor/cable lookup
+// data was unverified against the catalog and the active code uses
+// MOTOR_SPECS / MOTOR_MODULE_SPECS in src/lib/validation/drive-system-rules.ts
+// + selectCables in ./cables.ts as the single source of truth.
 export {
   BASE_SCOPE,
   AXIS_RULES,

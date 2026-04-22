@@ -332,8 +332,8 @@ SCHEMA
     "userSpecsOverride": {
       "spindlePowerKw": 30, "spindleMaxRpm": 12000,
       "movingMassKg": 500, "rapidTraverseMpm": 40,
-      "feedMotorFamily": "1FT2"|"1FT7"|"1FK2"|"1FK7",
-      "spindleMotorFamily": "1PH8"|"1PH3"
+      "feedMotorFamily": "1FT2"|"1FT7"|"1FK2",
+      "spindleMotorFamily": "1PH8"
     },
 
     "addOptions":    [{ "orderCode": "M72", "quantity": 1, "reason": "..." }],
@@ -446,9 +446,11 @@ Example 10 — Request the AI cannot translate
 AVAILABLE MOTOR FAMILIES
 ═══════════════════════════════════════════════════════════════════
 - Feed servo:    1FT7 (compact + forced vent), 1FT2 (newer compact),
-                 1FK2 (S210 OCC), 1FK7 (legacy 2-cable)
-- Main spindle:  1PH8 (async 1000/1500/2000 rpm + sync HighSpeed),
-                 1PH3 (older async)
+                 1FK2 (S210 OCC only)
+- Main spindle:  1PH8 (async 1000/1500/2000 rpm + sync HighSpeed)
+- Built-in:      1FE1 (sync high-speed), 1FE2 (async ultra-high-speed)
+- Linear:        1FN3 (direct-drive linear axes)
+- Torque:        1FW6 (frameless rotary — swivel heads, rotary tables)
 ALL of the above are valid — NEVER tell the user a family is unsupported.
 For a family swap use userSpecsOverride.{feed,spindle}MotorFamily.
 

@@ -31,139 +31,145 @@ export const cablesCatalog: CableAccessory[] = [
     description: "DRIVE-CLiQ cable IP20/IP20, 5m",
   },
 
-  // ─── Motor power cables by cross-section (MOTION-CONNECT 500) ───
-  // Small motors (up to 9A / SH48): 3x1.5mm²
+  // ─── Motor power cables — MOTION-CONNECT 800PLUS (catalog base MLFBs)
+  // Length is encoded in the order suffix (….) — e.g. -1AF0=5m, -1BA0=10m
+  // Real catalog codes from D21.4 part 3 (motor↔cable selection table).
+  // ─────────────────────────────────────────────────────────────────────
+  // Small motors (4×1.5 mm²) — 1FT7 SH48 etc.
   {
     id: "motor-power-1.5mm-5m",
-    articleNumber: "6FX3002-5CK01-1AF0",
-    name: "Motor power cable 3x1.5mm² 5m",
+    articleNumber: "6FX8002-5CA15-1AF0",
+    name: "Motor power cable 4×1.5 mm² 5 m (MC 800PLUS)",
     category: "motor_cable",
     length: "5m",
     quantity: 1,
-    description: "MOTION-CONNECT 500, 3x1.5+2x1.5, 5m — for motors up to 9A (SH20-48)",
+    description: "MOTION-CONNECT 800PLUS, 4×1.5 mm² with brake cores, 5 m — base 6FX8002-5CA15. Suffix encodes length / connector.",
   },
   {
     id: "motor-power-1.5mm-10m",
-    articleNumber: "6FX3002-5CK01-1BA0",
-    name: "Motor power cable 3x1.5mm² 10m",
+    articleNumber: "6FX8002-5CA15-1BA0",
+    name: "Motor power cable 4×1.5 mm² 10 m (MC 800PLUS)",
     category: "motor_cable",
     length: "10m",
     quantity: 1,
-    description: "MOTION-CONNECT 500, 3x1.5+2x1.5, 10m — for motors up to 9A (SH20-48)",
+    description: "MOTION-CONNECT 800PLUS, 4×1.5 mm², 10 m — base 6FX8002-5CA15. Suffix encodes length / connector.",
   },
-  // Medium motors (9-30A / SH63-100): 3x2.5mm²
+  // Medium motors (4×2.5 mm²) — 1PH8 SH80, large 1FT7
   {
     id: "motor-power-2.5mm-5m",
-    articleNumber: "6FX3002-5CK21-1AF0",
-    name: "Motor power cable 3x2.5mm² 5m",
+    articleNumber: "6FX8002-5CR10-1AF0",
+    name: "Motor power cable 4×2.5 mm² 5 m (MC 800PLUS)",
     category: "motor_cable",
     length: "5m",
     quantity: 1,
-    description: "MOTION-CONNECT 500, 3x2.5+2x1.5, 5m — for motors 9-30A (SH63-100)",
+    description: "MOTION-CONNECT 800PLUS, 4×2.5 mm², 5 m — base 6FX8002-5CR10. For SIMOTICS M-1PH8 SH80 / large feed motors.",
   },
   {
     id: "motor-power-2.5mm-10m",
-    articleNumber: "6FX3002-5CK21-1BA0",
-    name: "Motor power cable 3x2.5mm² 10m",
+    articleNumber: "6FX8002-5CR10-1BA0",
+    name: "Motor power cable 4×2.5 mm² 10 m (MC 800PLUS)",
     category: "motor_cable",
     length: "10m",
     quantity: 1,
-    description: "MOTION-CONNECT 500, 3x2.5+2x1.5, 10m — for motors 9-30A (SH63-100)",
+    description: "MOTION-CONNECT 800PLUS, 4×2.5 mm², 10 m — base 6FX8002-5CR10.",
   },
-  // Large motors (30-85A / SH132+): 3x6mm²
+  // Large motors (4×6 mm²) — 1PH8 SH132 spindle
   {
     id: "motor-power-6mm-5m",
-    articleNumber: "6FX3002-5CK31-1AF0",
-    name: "Motor power cable 3x6mm² 5m",
+    articleNumber: "6FX8002-5CG21-1AF0",
+    name: "Motor power cable 4×6 mm² 5 m (MC 800PLUS)",
     category: "motor_cable",
     length: "5m",
     quantity: 1,
-    description: "MOTION-CONNECT 500, 3x6+2x1.5, 5m — for motors 30-85A (SH132+)",
+    description: "MOTION-CONNECT 800PLUS, 4×6 mm², 5 m — base 6FX8002-5CG21. For SIMOTICS M-1PH8 SH132 spindles, ≤45 A.",
   },
   {
     id: "motor-power-6mm-10m",
-    articleNumber: "6FX3002-5CK31-1BA0",
-    name: "Motor power cable 3x6mm² 10m",
+    articleNumber: "6FX8002-5CG21-1BA0",
+    name: "Motor power cable 4×6 mm² 10 m (MC 800PLUS)",
     category: "motor_cable",
     length: "10m",
     quantity: 1,
-    description: "MOTION-CONNECT 500, 3x6+2x1.5, 10m — for motors 30-85A (SH132+)",
+    description: "MOTION-CONNECT 800PLUS, 4×6 mm², 10 m — base 6FX8002-5CG21.",
   },
 
-  // ─── Signal/encoder cables ───
+  // ─── Signal / encoder cables — MOTION-CONNECT 500 ───
+  // Real catalog: 6FX5002-2DC… for DRIVE-CLiQ encoder signal cables and
+  // 6FX8002-2BA20 / 2BA21 for PROFIBUS-style signal cables.
   {
     id: "signal-cable-5m",
-    articleNumber: "6FX3002-2DB10-1AF0",
-    name: "Signal cable encoder 5m",
+    articleNumber: "6FX5002-2DC10-1AF0",
+    name: "Encoder signal cable 5 m (MC 500)",
     category: "encoder_cable",
     length: "5m",
     quantity: 1,
-    description: "Pre-assembled signal cable for incremental/absolute encoders, shielded, 5m",
+    description: "MOTION-CONNECT 500 pre-assembled signal cable for absolute / incremental encoders, 5 m — base 6FX5002-2DC10.",
   },
   {
     id: "signal-cable-10m",
-    articleNumber: "6FX3002-2DB10-1BA0",
-    name: "Signal cable encoder 10m",
+    articleNumber: "6FX5002-2DC10-1BA0",
+    name: "Encoder signal cable 10 m (MC 500)",
     category: "encoder_cable",
     length: "10m",
     quantity: 1,
-    description: "Pre-assembled signal cable for encoders, shielded, 10m",
+    description: "MOTION-CONNECT 500 pre-assembled signal cable for encoders, 10 m — base 6FX5002-2DC10.",
   },
 
-  // ─── S210 OCC (One Cable Connection) cables ───
+  // ─── S210 OCC (One Cable Connection) cables — real D32 catalog codes ─
+  // Base: 6FX8002-8QN04 (SH20-30), 8QN08 (SH40-52), 8QN11 (SH63-100)
   {
     id: "occ-cable-sh20-30-5m",
-    articleNumber: "6FX2002-8QN04-1AF0",
-    name: "OCC cable SH20-30, 5m",
+    articleNumber: "6FX8002-8QN04-1AF0",
+    name: "OCC cable SH20-30, 5 m",
     category: "motor_cable",
     length: "5m",
     quantity: 1,
-    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 20-30, 5m",
+    description: "One Cable Connection for SIMOTICS S-1FK2 SH20-30, 5 m — base 6FX8002-8QN04. SINAMICS S210.",
   },
   {
     id: "occ-cable-sh40-52-5m",
-    articleNumber: "6FX2002-8QN08-1AF0",
-    name: "OCC cable SH40-52, 5m",
+    articleNumber: "6FX8002-8QN08-1AF0",
+    name: "OCC cable SH40-52, 5 m",
     category: "motor_cable",
     length: "5m",
     quantity: 1,
-    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 40-52, 5m",
+    description: "One Cable Connection for SIMOTICS S-1FK2 SH40-52, 5 m — base 6FX8002-8QN08. SINAMICS S210.",
   },
   {
     id: "occ-cable-sh63-100-5m",
-    articleNumber: "6FX2002-8QN11-1AF0",
-    name: "OCC cable SH63-100, 5m",
+    articleNumber: "6FX8002-8QN11-1AF0",
+    name: "OCC cable SH63-100, 5 m",
     category: "motor_cable",
     length: "5m",
     quantity: 1,
-    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 63-100, 5m",
+    description: "One Cable Connection for SIMOTICS S-1FK2 SH63-100, 5 m — base 6FX8002-8QN11.",
   },
   {
     id: "occ-cable-sh20-30-10m",
-    articleNumber: "6FX2002-8QN04-1BA0",
-    name: "OCC cable SH20-30, 10m",
+    articleNumber: "6FX8002-8QN04-1BA0",
+    name: "OCC cable SH20-30, 10 m",
     category: "motor_cable",
     length: "10m",
     quantity: 1,
-    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 20-30, 10m",
+    description: "One Cable Connection for SIMOTICS S-1FK2 SH20-30, 10 m — base 6FX8002-8QN04.",
   },
   {
     id: "occ-cable-sh40-52-10m",
-    articleNumber: "6FX2002-8QN08-1BA0",
-    name: "OCC cable SH40-52, 10m",
+    articleNumber: "6FX8002-8QN08-1BA0",
+    name: "OCC cable SH40-52, 10 m",
     category: "motor_cable",
     length: "10m",
     quantity: 1,
-    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 40-52, 10m",
+    description: "One Cable Connection for SIMOTICS S-1FK2 SH40-52, 10 m — base 6FX8002-8QN08.",
   },
   {
     id: "occ-cable-sh63-100-10m",
-    articleNumber: "6FX2002-8QN11-1BA0",
-    name: "OCC cable SH63-100, 10m",
+    articleNumber: "6FX8002-8QN11-1BA0",
+    name: "OCC cable SH63-100, 10 m",
     category: "motor_cable",
     length: "10m",
     quantity: 1,
-    description: "One Cable Connection for SIMOTICS S-1FK2/1FT2, shaft height 63-100, 10m",
+    description: "One Cable Connection for SIMOTICS S-1FK2 SH63-100, 10 m — base 6FX8002-8QN11.",
   },
 
   // ─── PROFINET/Ethernet cables ───
@@ -196,13 +202,17 @@ export const cablesCatalog: CableAccessory[] = [
   },
 
   // ─── Power supply ───
+  // Real catalog code from D21.4 — SITOP 24 V DC supply for the drive
+  // bus and NCU/PPU. 6SL3000-0CE21-0AA0 = 1 m / 10 A. Other lengths /
+  // ratings: 0CE22 (2 m), 0CE23-6 (3.6 m / 24 A), 0CE24 (4 m), 0CE25-5
+  // (5.5 m / 30 A).
   {
     id: "24v-supply",
-    articleNumber: "6SL3062-2AA00-0DA0",
-    name: "24V DC supply cable for NCU/PPU",
+    articleNumber: "6SL3000-0CE21-0AA0",
+    name: "24 V DC supply cable for NCU / PPU (1 m)",
     category: "power_cable",
     quantity: 1,
-    description: "24V DC power supply cable for SINUMERIK ONE NCU/PPU",
+    description: "SITOP 24 V DC supply cable for SINUMERIK ONE NCU/PPU and drive bus, 1 m. For longer runs use 6SL3000-0CE22…0CE25 lengths.",
   },
 
   // ─── HDBaseT cables for Flat Panels ───
@@ -254,15 +264,9 @@ export const cablesCatalog: CableAccessory[] = [
     description: "Connector set for SINUMERIK ONE MCP (6 units: 3x X515 + 3x X516)",
   },
 
-  // ─── SD card ───
-  {
-    id: "sd-card-cnc",
-    articleNumber: "6FC5313-6AG00-0AA0",
-    name: "SD card for NCU/PPU (spare)",
-    category: "accessory",
-    quantity: 1,
-    description: "Industrial SD card for SINUMERIK ONE NCU/PPU, 16 GB",
-  },
+  // (SD card entry removed — couldn't verify a single SINUMERIK ONE
+  // spare-SD-card MLFB against the NC63 catalog. The catalog ships the
+  // SD as part of the CNC Software variant article (6FC5852-…).)
 ];
 
 /**
