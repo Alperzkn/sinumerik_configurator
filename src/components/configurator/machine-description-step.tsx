@@ -330,9 +330,9 @@ export function MachineDescriptionStep() {
             {mode === "template" ? "Select a machine type above" : "Enter at least 10 characters"}
           </span>
         )}
-        {canProceed && !specs.machineSize && (
-          <span className="text-xs text-amber-500">
-            Fill in machine specs above for optimal motor/drive sizing
+        {canProceed && (
+          <span className="text-xs text-muted-foreground">
+            Mechanical specs are <strong className="text-foreground/80">optional</strong> — every component can also be added or changed on the next page.
           </span>
         )}
       </div>

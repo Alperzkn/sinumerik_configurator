@@ -63,6 +63,15 @@ export function MachineSpecsForm({ specs, onChange }: MachineSpecsFormProps) {
       animate={{ opacity: 1, height: "auto" }}
       className="space-y-4"
     >
+      <div className="rounded-lg border border-dashed bg-muted/20 px-3 py-2 flex items-start gap-2.5">
+        <svg className="h-4 w-4 text-primary mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <div className="text-[11px] leading-relaxed text-muted-foreground">
+          <strong className="text-foreground/90">All fields below are optional.</strong>{" "}
+          Defaults are derived from the machine class — you can also add, swap, or remove any component on the next page (handheld, I/O module, motors, software options, …).
+        </div>
+      </div>
       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         Machine Specifications (for motor/drive sizing)
       </div>

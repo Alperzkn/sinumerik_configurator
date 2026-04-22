@@ -40,6 +40,14 @@ and whether a high-speed or synchronous spindle is wanted.
 | SIMOTICS M-1PH8 | Async 2000 rpm | 7-70 kW | 2000 rpm | 6000-12000 | High-speed milling |
 | SIMOTICS M-1PH8 | Synchronous HighSpeed | 16-52 kW | 3000 rpm | 12000-15000 | HSC / mold-making / high-precision |
 | SIMOTICS M-1PH3 | Asynchronous | 7.5-45 kW | 1500 rpm | 5000-7000 | Older generation, cheaper — conventional spindles |
+| SIMOTICS M-1FE1 | Built-in (sync) | 9-55 kW | 7500-10000 rpm | 18000-40000 | Direct-drive spindle stators — micro / HSC / mold |
+| SIMOTICS M-1FE2 | Built-in (async) | 12-22 kW | 10000 rpm | 42000-60000 | Ultra-high-speed built-in motor spindles |
+
+### Special motor families (manual selection only — sizing engine doesn't auto-pick)
+| Family | Type | Force / Torque range | Max speed | Used for |
+|---|---|---|---|---|
+| SIMOTICS L-1FN3 | Linear (iron-core) | 240-5500 N | 120-650 m/min | Direct-drive linear axes (HSC, EDM, wafer) |
+| SIMOTICS T-1FW6 | Torque (frameless) | 85-5800 Nm | 90-550 rpm | B/C swivel heads, rotary tables, direct-drive C axis |
 
 Set driveArchitecture.highSpeedSpindle=true if the user needs >10000 rpm
 or a synchronous / built-in spindle.
@@ -50,6 +58,19 @@ or a synchronous / built-in spindle.
 | S120 booksize | Default for machine tools — shared DC bus, scales to many axes |
 | S210 | Single-axis servo, OCC cables. Prefer 1FK2 motor family |
 | S120 chassis | High power (>100 kW) spindles |
+
+### Auxiliary drive components (DRIVE-CLiQ bus accessories)
+| Component | Article | Use |
+|---|---|---|
+| TM31 Terminal Module | 6SL3055-0AA00-3AA1 | 8 DI / 4 DI/DO / 2 RO + 2 AI / 2 AO — general I/O on drive bus |
+| TM41 Terminal Module | 6SL3055-0AA00-3PA1 | Encoder simulator — TTL pulses to external CNC/PLC |
+| TM15 Terminal Module | 6SL3055-0AA00-3FA0 | 24 bidirectional 24V DI/DO |
+| TM17 Terminal Module | 6SL3055-0AA00-3HA0 | 16 ultra-fast 24V I/O — touch probes, latching |
+| TM120 Temperature Module | 6SL3055-0AA00-3KA0 | 4 PT100/PT1000/KTY — safety isolated |
+| TM150 Temperature Module | 6SL3055-0AA00-3LA0 | 12 PT100/PT1000/KTY/NTC channels |
+| NX10.3 Hub | 6SL3040-1NC00-0AA0 | Adds DRIVE-CLiQ ports when NCU runs out |
+| NX15.3 Hub | 6SL3040-1NB00-0AA0 | Extended DRIVE-CLiQ hub for distributed topologies |
+| Voltage Protection Module 200 | 6SL3000-2BE32-1AA0 | DC-link clamp for high-inertia spindles with sudden braking |
 
 ### S120 Motor Modules (booksize) — auto-paired to motors by sizing engine
 | Rating | Article |

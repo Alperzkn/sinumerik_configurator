@@ -302,4 +302,81 @@ export const driveComponents: DriveComponent[] = [
     description:
       "NX15.3 DRIVE-CLiQ hub module with extended functionality. Provides additional DRIVE-CLiQ ports and supports distributed drive topologies.",
   },
+
+  // ── Terminal Modules — distributed I/O on the DRIVE-CLiQ bus ────────
+  // Used to add DI / DQ / AI / AQ to the drive system without going via
+  // the PLC. Common on machine tools for axis enables, brake control,
+  // spindle gear shifting feedback, hand-held jog units, etc.
+  {
+    id: "tm15",
+    articleNumber: "6SL3055-0AA00-3FA0",
+    name: "TM15 Terminal Module",
+    driveFamily: "S120_booksize",
+    componentType: "terminal_module",
+    compatibility: allUnitsOption,
+    description:
+      "24 bidirectional digital I/O channels (24V DC). Hot-swap, DRIVE-CLiQ connection. Typical use: axis enable signals, brake control, gear-stage signaling.",
+  },
+  {
+    id: "tm17",
+    articleNumber: "6SL3055-0AA00-3HA0",
+    name: "TM17 High Feature Terminal Module",
+    driveFamily: "S120_booksize",
+    componentType: "terminal_module",
+    compatibility: allUnitsOption,
+    description:
+      "16 ultra-fast bidirectional 24V digital I/Os with safety + measuring-probe support (sub-µs latency). Used for high-speed touch probes, latching, and precision triggering.",
+  },
+  {
+    id: "tm31",
+    articleNumber: "6SL3055-0AA00-3AA1",
+    name: "TM31 Terminal Module",
+    driveFamily: "S120_booksize",
+    componentType: "terminal_module",
+    compatibility: allUnitsOption,
+    description:
+      "8 DI / 4 DI/DO / 2 RO + 2 AI / 2 AO + temperature inputs. Most common general-purpose Terminal Module for the SINAMICS S120 drive bus.",
+  },
+  {
+    id: "tm41",
+    articleNumber: "6SL3055-0AA00-3PA1",
+    name: "TM41 Terminal Module (encoder simulator)",
+    driveFamily: "S120_booksize",
+    componentType: "terminal_module",
+    compatibility: allUnitsOption,
+    description:
+      "Simulates an incremental TTL encoder output from a DRIVE-CLiQ source. Used to feed an external CNC, PLC counter, or third-party drive that needs encoder pulses.",
+  },
+  {
+    id: "tm120",
+    articleNumber: "6SL3055-0AA00-3KA0",
+    name: "TM120 Temperature Module (Safety)",
+    driveFamily: "S120_booksize",
+    componentType: "terminal_module",
+    compatibility: allUnitsOption,
+    description:
+      "4 temperature-sensor inputs (PT100/PT1000/KTY) with safety isolation. Feeds motor / winding temperatures into the drive monitoring loop.",
+  },
+  {
+    id: "tm150",
+    articleNumber: "6SL3055-0AA00-3LA0",
+    name: "TM150 Temperature Module (12 channels)",
+    driveFamily: "S120_booksize",
+    componentType: "terminal_module",
+    compatibility: allUnitsOption,
+    description:
+      "12 temperature-sensor inputs (PT100/PT1000/KTY/NTC) on the DRIVE-CLiQ bus. For machines with many monitored windings or bearings.",
+  },
+
+  // ── Voltage Protection Module — protects the DC link on regen failure
+  {
+    id: "vpm200",
+    articleNumber: "6SL3000-2BE32-1AA0",
+    name: "Voltage Protection Module 200",
+    driveFamily: "S120_booksize",
+    componentType: "voltage_protection",
+    compatibility: allUnitsOption,
+    description:
+      "DC-link clamping module that protects the drive system from over-voltage in regen scenarios when the line module cannot dissipate fast enough. Essential for high-inertia spindles with sudden braking.",
+  },
 ];

@@ -62,7 +62,13 @@ const MOTOR_MODULE_POWER: Record<string, number> = Object.fromEntries(
 
 // Motor specs lookup (feed + spindle) — keyed by article number prefix.
 // Source: Siemens D21.4 catalog selection tables.
-export type MotorKind = "feed_servo" | "spindle_async" | "spindle_sync";
+export type MotorKind =
+  | "feed_servo"
+  | "spindle_async"
+  | "spindle_sync"
+  | "spindle_builtin"
+  | "linear"
+  | "torque";
 
 export interface MotorSpecs {
   shaftHeight: number;
@@ -236,6 +242,45 @@ export const MOTOR_SPECS: Record<string, MotorSpecs> = {
   "1PH3183-1DF00-0LA0": { shaftHeight: 180, ratedPower: "30 kW", ratedTorque: "191 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5500 rpm", ratedCurrent: "75 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE28-5AA3", kind: "spindle_async", cooling: "forced" },
   "1PH3184-1DF00-0LA0": { shaftHeight: 180, ratedPower: "37 kW", ratedTorque: "236 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5000 rpm", ratedCurrent: "92 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE28-5AA3", kind: "spindle_async", cooling: "forced" },
   "1PH3186-1DF00-0LA0": { shaftHeight: 180, ratedPower: "45 kW", ratedTorque: "287 Nm", ratedSpeed: "1500 rpm", maxSpeed: "5000 rpm", ratedCurrent: "112 A", family: "SIMOTICS M-1PH3", variant: "Asynchronous", motorModule: "6SL3120-1TE31-3AA3", kind: "spindle_async", cooling: "forced" },
+
+  // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS M-1FE1 / 1FE2 — built-in motor spindles (high-speed direct
+  // drive). Sized by mechanical OEM, not by the sizing engine; presented
+  // here so they can be picked manually for high-RPM / mold-making /
+  // micro-machining applications. SH = stator outer diameter (mm).
+  // ───────────────────────────────────────────────────────────────────
+  "1FE1041-4WS01-1FA0": { shaftHeight: 96, ratedPower: "9 kW", ratedTorque: "8.6 Nm", ratedSpeed: "10000 rpm", maxSpeed: "40000 rpm", ratedCurrent: "30 A", family: "SIMOTICS M-1FE1", variant: "Built-in (sync)", motorModule: "6SL3120-1TE21-8AD0", kind: "spindle_builtin", cooling: "forced" },
+  "1FE1051-4WS01-1FA0": { shaftHeight: 121, ratedPower: "16 kW", ratedTorque: "15 Nm", ratedSpeed: "10000 rpm", maxSpeed: "30000 rpm", ratedCurrent: "45 A", family: "SIMOTICS M-1FE1", variant: "Built-in (sync)", motorModule: "6SL3120-1TE23-0AD0", kind: "spindle_builtin", cooling: "forced" },
+  "1FE1061-4WS01-1FA0": { shaftHeight: 154, ratedPower: "30 kW", ratedTorque: "29 Nm", ratedSpeed: "10000 rpm", maxSpeed: "24000 rpm", ratedCurrent: "70 A", family: "SIMOTICS M-1FE1", variant: "Built-in (sync)", motorModule: "6SL3120-1TE26-0AC0", kind: "spindle_builtin", cooling: "forced" },
+  "1FE1083-6WP01-1FA0": { shaftHeight: 198, ratedPower: "55 kW", ratedTorque: "70 Nm", ratedSpeed: "7500 rpm", maxSpeed: "18000 rpm", ratedCurrent: "120 A", family: "SIMOTICS M-1FE1", variant: "Built-in (sync)", motorModule: "6SL3120-1TE28-5AA3", kind: "spindle_builtin", cooling: "forced" },
+  "1FE2065-6WS01-1FA0": { shaftHeight: 96, ratedPower: "12 kW", ratedTorque: "11 Nm", ratedSpeed: "10000 rpm", maxSpeed: "60000 rpm", ratedCurrent: "32 A", family: "SIMOTICS M-1FE2", variant: "Built-in (async)", motorModule: "6SL3120-1TE21-8AD0", kind: "spindle_builtin", cooling: "forced" },
+  "1FE2075-6WT01-1FA0": { shaftHeight: 121, ratedPower: "22 kW", ratedTorque: "21 Nm", ratedSpeed: "10000 rpm", maxSpeed: "42000 rpm", ratedCurrent: "55 A", family: "SIMOTICS M-1FE2", variant: "Built-in (async)", motorModule: "6SL3120-1TE24-5AC0", kind: "spindle_builtin", cooling: "forced" },
+
+  // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS L-1FN3 — iron-core LINEAR motors. Force not torque. Used
+  // on direct-drive linear axes for HSC / EDM / wafer-stage applications.
+  // The numbers are nominal force (N) and max linear speed (m/min).
+  // shaftHeight here = primary-section length in mm.
+  // ───────────────────────────────────────────────────────────────────
+  "1FN3050-2NB80-1BA1": { shaftHeight: 50, ratedPower: "0.8 kW", ratedTorque: "240 N",  ratedSpeed: "300 m/min", maxSpeed: "650 m/min", ratedCurrent: "5 A",  family: "SIMOTICS L-1FN3", variant: "Linear (iron-core)", motorModule: "6SL3120-1TE15-0AD0", kind: "linear", cooling: "natural" },
+  "1FN3100-2NB80-1BA1": { shaftHeight: 100, ratedPower: "2 kW",  ratedTorque: "520 N",  ratedSpeed: "300 m/min", maxSpeed: "550 m/min", ratedCurrent: "11 A", family: "SIMOTICS L-1FN3", variant: "Linear (iron-core)", motorModule: "6SL3120-1TE21-0AD0", kind: "linear", cooling: "natural" },
+  "1FN3150-2NB80-1BA1": { shaftHeight: 150, ratedPower: "3.5 kW", ratedTorque: "780 N",  ratedSpeed: "240 m/min", maxSpeed: "440 m/min", ratedCurrent: "16 A", family: "SIMOTICS L-1FN3", variant: "Linear (iron-core)", motorModule: "6SL3120-1TE21-8AD0", kind: "linear", cooling: "natural" },
+  "1FN3300-4NB80-1BA1": { shaftHeight: 300, ratedPower: "9 kW", ratedTorque: "2400 N", ratedSpeed: "180 m/min", maxSpeed: "330 m/min", ratedCurrent: "45 A", family: "SIMOTICS L-1FN3", variant: "Linear (iron-core)", motorModule: "6SL3120-1TE24-5AC0", kind: "linear", cooling: "natural" },
+  "1FN3450-4NB80-1BA1": { shaftHeight: 450, ratedPower: "14 kW", ratedTorque: "4000 N", ratedSpeed: "150 m/min", maxSpeed: "270 m/min", ratedCurrent: "70 A", family: "SIMOTICS L-1FN3", variant: "Linear (iron-core)", motorModule: "6SL3120-1TE28-5AA3", kind: "linear", cooling: "forced" },
+  "1FN3600-4NB80-1BA1": { shaftHeight: 600, ratedPower: "18 kW", ratedTorque: "5500 N", ratedSpeed: "120 m/min", maxSpeed: "220 m/min", ratedCurrent: "90 A", family: "SIMOTICS L-1FN3", variant: "Linear (iron-core)", motorModule: "6SL3120-1TE31-3AA3", kind: "linear", cooling: "forced" },
+
+  // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS T-1FW6 — TORQUE motors (frameless direct-drive rotary).
+  // Used for swivel heads, rotary tables, B/C axes on 5-axis machines.
+  // shaftHeight = stator outer diameter (mm).
+  // ───────────────────────────────────────────────────────────────────
+  "1FW6090-0PB05-1JC2": { shaftHeight: 130, ratedPower: "1.5 kW", ratedTorque: "85 Nm",  ratedSpeed: "200 rpm", maxSpeed: "550 rpm", ratedCurrent: "8 A",  family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE21-0AD0", kind: "torque", cooling: "natural" },
+  "1FW6130-0PB05-1JC2": { shaftHeight: 175, ratedPower: "3.5 kW", ratedTorque: "200 Nm", ratedSpeed: "200 rpm", maxSpeed: "440 rpm", ratedCurrent: "16 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE21-8AD0", kind: "torque", cooling: "natural" },
+  "1FW6160-0PB05-1JC2": { shaftHeight: 215, ratedPower: "6.5 kW", ratedTorque: "390 Nm", ratedSpeed: "180 rpm", maxSpeed: "350 rpm", ratedCurrent: "22 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE22-4AD0", kind: "torque", cooling: "natural" },
+  "1FW6190-0PB05-1JC2": { shaftHeight: 270, ratedPower: "11 kW", ratedTorque: "750 Nm", ratedSpeed: "150 rpm", maxSpeed: "280 rpm", ratedCurrent: "30 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE23-0AD0", kind: "torque", cooling: "forced" },
+  "1FW6230-0PB05-1JC2": { shaftHeight: 320, ratedPower: "18 kW", ratedTorque: "1400 Nm", ratedSpeed: "130 rpm", maxSpeed: "230 rpm", ratedCurrent: "45 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE24-5AC0", kind: "torque", cooling: "forced" },
+  "1FW6290-0PB05-1JC2": { shaftHeight: 395, ratedPower: "30 kW", ratedTorque: "2700 Nm", ratedSpeed: "110 rpm", maxSpeed: "190 rpm", ratedCurrent: "70 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE28-5AA3", kind: "torque", cooling: "forced" },
+  "1FW6380-0PB05-1JC2": { shaftHeight: 502, ratedPower: "55 kW", ratedTorque: "5800 Nm", ratedSpeed: "90 rpm",  maxSpeed: "150 rpm", ratedCurrent: "110 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE31-3AA3", kind: "torque", cooling: "forced" },
 };
 
 /** Motor article → paired Motor Module article. Derived from MOTOR_SPECS.motorModule. */
