@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/toast";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import {
@@ -186,8 +186,8 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-3 border-b">
+      <DialogContent className="p-0! gap-0! max-w-[min(48rem,calc(100vw-2rem))]! sm:max-w-[min(48rem,calc(100vw-2rem))]! max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
           <DialogTitle className="text-base">Share configuration as text</DialogTitle>
           <DialogDescription className="text-xs">
             Copy this config as a single message you can paste into chat or email — and load/modify
@@ -195,21 +195,46 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab((v as "share" | "import") || "share")} className="px-5 pt-3 pb-5 gap-3">
-          <TabsList>
-            <TabsTrigger value="share" disabled={!configuration}>
+        {/* Segmented tab switcher — plain state, avoids Tabs-primitive layout quirks */}
+        <div className="px-5 pt-3 shrink-0">
+          <div className="inline-flex rounded-lg border bg-muted/40 p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setTab("share")}
+              disabled={!configuration}
+              className={cn(
+                "px-3 py-1.5 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
+                tab === "share"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
               Share
-            </TabsTrigger>
-            <TabsTrigger value="import">Import & modify</TabsTrigger>
-          </TabsList>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("import")}
+              className={cn(
+                "px-3 py-1.5 rounded-md transition-colors",
+                tab === "import"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Import & modify
+            </button>
+          </div>
+        </div>
 
-          <TabsContent value="share" className="space-y-3">
-            {!configuration ? (
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {tab === "share" ? (
+            !configuration ? (
               <div className="text-sm text-muted-foreground py-6 text-center">
                 No configuration to share yet — build one first.
               </div>
             ) : (
-              <>
+              <div className="space-y-3">
                 <div className="text-[11px] text-muted-foreground">
                   The markdown summary is human-readable; the trailing comment carries a
                   base64-encoded payload that lets the app reload the exact configuration.
@@ -244,75 +269,75 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
                     )}
                   </Button>
                 </div>
-              </>
-            )}
-          </TabsContent>
-
-          <TabsContent value="import" className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-1">
-                Paste the shared configuration text
-              </label>
-              <Textarea
-                value={pastedText}
-                onChange={(e) => setPastedText(e.target.value)}
-                placeholder="Paste the full shared message here (markdown BOM plus the trailing comment), or a .json export."
-                className="min-h-[180px] text-[11px] font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-1">
-                Optional — what should the AI change?
-              </label>
-              <Textarea
-                value={changeRequest}
-                onChange={(e) => setChangeRequest(e.target.value)}
-                placeholder="e.g. 'Make the spindle 40 kW and switch to an Active Line Module' — leave empty to just load the config."
-                className="min-h-[72px] text-[13px]"
-                disabled={isProcessing}
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-xs px-3 py-2">
-                {error}
               </div>
-            )}
-
-            <div className="flex items-center justify-between gap-2">
-              <div className="text-[11px] text-muted-foreground">
-                The loaded config replaces your current wizard state. Modify requests go through the
-                existing AI modify pipeline.
+            )
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Paste the shared configuration text
+                </label>
+                <Textarea
+                  value={pastedText}
+                  onChange={(e) => setPastedText(e.target.value)}
+                  placeholder="Paste the full shared message here (markdown BOM plus the trailing comment), or a .json export."
+                  className="min-h-[180px] text-[11px] font-mono"
+                />
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLoadOnly}
-                  disabled={!pastedText.trim() || isProcessing}
-                >
-                  Load only
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleLoadAndModify}
-                  disabled={!pastedText.trim() || isProcessing}
-                  className="gap-1.5"
-                >
-                  {isProcessing ? (
-                    <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="30 60" />
-                    </svg>
-                  ) : null}
-                  {changeRequest.trim() ? "Load & modify" : "Load"}
-                </Button>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Optional — what should the AI change?
+                </label>
+                <Textarea
+                  value={changeRequest}
+                  onChange={(e) => setChangeRequest(e.target.value)}
+                  placeholder="e.g. 'Make the spindle 40 kW and switch to an Active Line Module' — leave empty to just load the config."
+                  className="min-h-[72px] text-[13px]"
+                  disabled={isProcessing}
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-xs px-3 py-2">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="text-[11px] text-muted-foreground max-w-[320px]">
+                  The loaded config replaces your current wizard state. Modify requests go through the
+                  existing AI modify pipeline.
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLoadOnly}
+                    disabled={!pastedText.trim() || isProcessing}
+                  >
+                    Load only
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleLoadAndModify}
+                    disabled={!pastedText.trim() || isProcessing}
+                    className="gap-1.5"
+                  >
+                    {isProcessing ? (
+                      <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="30 60" />
+                      </svg>
+                    ) : null}
+                    {changeRequest.trim() ? "Load & modify" : "Load"}
+                  </Button>
+                </div>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
 
-        <div className="flex justify-end px-5 py-3 border-t bg-muted/30">
+        <div className="flex justify-end px-5 py-3 border-t bg-muted/30 shrink-0">
           <Button variant="outline" size="sm" onClick={onClose}>
             Close
           </Button>
