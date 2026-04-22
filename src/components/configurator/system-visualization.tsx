@@ -101,18 +101,27 @@ function cableCategoryLabel(c: CableAccessory): string {
 // ─── Reusable visual primitives ────────────────────────────────────────
 
 interface LevelProps {
-  tone: "violet" | "primary" | "blue" | "emerald" | "amber" | "slate";
+  tone: "violet" | "primary" | "blue" | "rose" | "amber" | "slate";
   title: string;
   desc?: string;
   rounded?: "top" | "bottom" | "both" | "none";
   children: React.ReactNode;
 }
 
+// Palette rationale: each level gets a distinct hue on the wheel so two
+// adjacent levels never share a perceived colour at a glance.
+//   violet  — Operator (HMI / MCP / handheld)
+//   primary — Control (NCU/PPU + on-PROFINET I/O modules)
+//   blue    — Drive (line modules, motor modules, DRIVE-CLiQ aux)
+//   rose    — Motor (replaces the former emerald: emerald was too close
+//             to the petrol primary and made Control ↔ Motor hard to
+//             tell apart at a glance)
+//   amber   — Cables & accessories
 const TONE_BG: Record<LevelProps["tone"], string> = {
   violet: "bg-violet-500/5",
   primary: "bg-primary/5",
   blue: "bg-sky-500/5",
-  emerald: "bg-emerald-500/5",
+  rose: "bg-rose-500/6",
   amber: "bg-amber-500/5",
   slate: "bg-slate-500/5",
 };
@@ -120,7 +129,7 @@ const TONE_DOT: Record<LevelProps["tone"], string> = {
   violet: "bg-violet-500",
   primary: "bg-primary",
   blue: "bg-sky-500",
-  emerald: "bg-emerald-500",
+  rose: "bg-rose-500",
   amber: "bg-amber-500",
   slate: "bg-slate-400",
 };
@@ -128,7 +137,7 @@ const TONE_TEXT: Record<LevelProps["tone"], string> = {
   violet: "text-violet-700 dark:text-violet-300",
   primary: "text-primary",
   blue: "text-sky-700 dark:text-sky-300",
-  emerald: "text-emerald-700 dark:text-emerald-300",
+  rose: "text-rose-700 dark:text-rose-300",
   amber: "text-amber-700 dark:text-amber-300",
   slate: "text-slate-700 dark:text-slate-300",
 };
@@ -136,7 +145,7 @@ const TONE_BORDER: Record<LevelProps["tone"], string> = {
   violet: "border-violet-300/40 dark:border-violet-700/40",
   primary: "border-primary/30 dark:border-primary/40",
   blue: "border-sky-300/40 dark:border-sky-700/40",
-  emerald: "border-emerald-300/40 dark:border-emerald-700/40",
+  rose: "border-rose-300/40 dark:border-rose-700/40",
   amber: "border-amber-300/40 dark:border-amber-700/40",
   slate: "border-slate-300/40 dark:border-slate-700/40",
 };
@@ -212,7 +221,7 @@ function NodeCard({ tone, label, qty, name, mlfb, meta, emphasized }: NodeCardPr
       </div>
       <span className="mt-1 text-[12.5px] font-medium leading-tight line-clamp-2">{name}</span>
       {mlfb && (
-        <code className="mt-1 text-[10.5px] font-mono text-muted-foreground bg-muted/40 rounded px-1.5 py-0.5 self-start">
+        <code className="mlfb mt-1 text-[10.5px] text-foreground/85 bg-muted/50 border border-border/50 rounded px-1.5 py-0.5 self-start">
           {mlfb}
         </code>
       )}
@@ -298,7 +307,7 @@ export function SystemVisualization({ configuration }: SystemVisualizationProps)
         <LegendDot tone="violet" label="Operator" />
         <LegendDot tone="primary" label="Control" />
         <LegendDot tone="blue" label="Drive" />
-        <LegendDot tone="emerald" label="Motor" />
+        <LegendDot tone="rose" label="Motor" />
         <LegendDot tone="amber" label="Cables & Accessories" />
       </motion.div>
 
@@ -337,14 +346,22 @@ export function SystemVisualization({ configuration }: SystemVisualizationProps)
           </>
         )}
 
-        {/* CONTROL LEVEL */}
+        {/* CONTROL LEVEL — NCU/PPU plus any on-PROFINET I/O modules.
+            I/O is part of the control scope conceptually (it sits on the
+            same PROFINET trunk as the PLC), so show them in the same
+            panel rather than a separate sub-level that made the diagram
+            feel like more hops than it really is. */}
         <Level
           tone="primary"
           title="Control Level"
-          desc={`${totalAxes} axes · ${totalChannels} channel${totalChannels !== 1 ? "s" : ""}`}
+          desc={
+            ioModules.length > 0
+              ? `${totalAxes} axes · ${totalChannels} channel${totalChannels !== 1 ? "s" : ""} · +${ioModules.length} I/O`
+              : `${totalAxes} axes · ${totalChannels} channel${totalChannels !== 1 ? "s" : ""}`
+          }
           rounded={operatorComps.length === 0 ? "top" : "none"}
         >
-          <div className="flex justify-center">
+          <div className="flex flex-wrap gap-3 justify-center">
             <NodeCard
               tone="primary"
               label={controlUnitLabel}
@@ -356,34 +373,22 @@ export function SystemVisualization({ configuration }: SystemVisualizationProps)
               ]}
               emphasized
             />
+            {ioModules.map((io, i) => (
+              <NodeCard
+                key={io.id + i}
+                tone="primary"
+                label={`${hmiCategoryLabel(io.category)} · PROFINET`}
+                name={io.name}
+                mlfb={io.articleNumber}
+              />
+            ))}
           </div>
+          {ioModules.length > 0 && (
+            <div className="mt-3 text-center text-[10px] uppercase tracking-wider text-primary/70">
+              ↔ PROFINET trunk — NCU · machine I/O
+            </div>
+          )}
         </Level>
-
-        {/* I/O on PROFINET — sits between control and drive logically */}
-        {ioModules.length > 0 && (
-          <>
-            <motion.div variants={fadeUp} className="flex justify-center">
-              <ConnectionLine label="PROFINET" tone="primary" />
-            </motion.div>
-            <Level
-              tone="primary"
-              title="Machine I/O (PROFINET)"
-              desc={`${ioModules.length} module${ioModules.length === 1 ? "" : "s"}`}
-            >
-              <div className="flex flex-wrap gap-3 justify-center">
-                {ioModules.map((io, i) => (
-                  <NodeCard
-                    key={io.id + i}
-                    tone="primary"
-                    label={hmiCategoryLabel(io.category)}
-                    name={io.name}
-                    mlfb={io.articleNumber}
-                  />
-                ))}
-              </div>
-            </Level>
-          </>
-        )}
 
         {/* DRIVE LEVEL */}
         {(groupedDrives.length > 0) && (
@@ -465,10 +470,10 @@ export function SystemVisualization({ configuration }: SystemVisualizationProps)
         {groupedMotors.length > 0 && (
           <>
             <motion.div variants={fadeUp} className="flex justify-center">
-              <ConnectionLine label="Motor Power + Encoder" tone="emerald" />
+              <ConnectionLine label="Motor Power + Encoder" tone="rose" />
             </motion.div>
             <Level
-              tone="emerald"
+              tone="rose"
               title="Motor Level"
               desc={`${groupedMotors.reduce((s, g) => s + g.qty, 0)} motor${
                 groupedMotors.reduce((s, g) => s + g.qty, 0) === 1 ? "" : "s"
@@ -484,7 +489,7 @@ export function SystemVisualization({ configuration }: SystemVisualizationProps)
                   return (
                     <NodeCard
                       key={item.id + "-m-" + i}
-                      tone="emerald"
+                      tone="rose"
                       label={motorTypeLabel(item)}
                       qty={qty}
                       name={`${item.series} · ${item.name.replace(item.series, "").trim()}`}
@@ -557,7 +562,7 @@ export function SystemVisualization({ configuration }: SystemVisualizationProps)
                               )}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <code className="text-[10.5px] font-mono text-muted-foreground bg-muted/50 rounded px-1.5 py-0.5">
+                              <code className="mlfb text-[10.5px] text-foreground/85 bg-muted/60 border border-border/50 rounded px-1.5 py-0.5">
                                 {c.articleNumber}
                               </code>
                               <Badge variant="outline" className="text-[9.5px] tabular-nums w-9 justify-center px-0 py-0 h-5">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { SystemVisualization } from "@/components/configurator/system-visualization";
@@ -13,9 +14,7 @@ export default function SystemPage() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-          <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-          </svg>
+          <AlertCircle className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
         </div>
         <div>
           <h2 className="text-lg font-semibold">No Configuration Found</h2>
@@ -63,9 +62,7 @@ export default function SystemPage() {
 
               <Link href="/configure">
                 <Button variant="ghost" size="sm" className="gap-1.5">
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                  </svg>
+                  <ArrowLeft className="h-3.5 w-3.5" />
                   Back to BOM
                 </Button>
               </Link>
