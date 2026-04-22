@@ -224,14 +224,19 @@ export function SummaryStep() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0"
+            className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0"
           >
-            <Check className="h-6 w-6" strokeWidth={1.75} />
+            <Check className="h-5 w-5" strokeWidth={1.75} />
           </motion.div>
           <div>
-            <h2 className="text-xl font-bold">Bill of Materials</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Your SINUMERIK ONE configuration is complete
+            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+              Step 04 · Bill of materials
+            </div>
+            <h2 className="text-2xl font-medium tracking-tight">
+              Complete — ready to order
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground max-w-xl">
+              Verified MLFBs with quantities, drawn from the Siemens NC63 / D21 / D31 catalogs. Export, copy, or share to anyone in one message.
             </p>
           </div>
         </div>
@@ -349,9 +354,9 @@ export function SummaryStep() {
 
       {/* Navigation */}
       <div className="flex items-center justify-between pt-2 border-t">
-        <Button variant="ghost" size="sm" onClick={() => setStep("review")} className="gap-1.5">
+        <Button variant="ghost" size="sm" onClick={() => setStep("configuration")} className="gap-1.5">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Review
+          Back to Configuration
         </Button>
         <div className="flex gap-2">
           <Link href="/configure/system">

@@ -2,7 +2,21 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ClipboardPaste, FolderOpen, Check, ArrowRight } from "lucide-react";
+import {
+  ClipboardPaste,
+  FolderOpen,
+  Check,
+  ArrowRight,
+  Box,
+  Rotate3d,
+  Cylinder,
+  Combine,
+  CircleDot,
+  Zap,
+  Grid3x3,
+  Bot,
+  Pencil,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useConfiguratorStore } from "@/store/configurator-store";
@@ -17,25 +31,27 @@ import { SaveLoadDialog } from "./save-load-dialog";
 import { ShareConfigDialog } from "./share-config-dialog";
 import type { UserSpecsInput } from "@/lib/sizing";
 
-const templates: {
+interface TemplateCard {
   type: MachineType;
   name: string;
-  icon: string;
+  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   description: string;
   axes: string;
   badge?: string;
-}[] = [
+}
+
+const templates: TemplateCard[] = [
   {
     type: "3axis_mill",
     name: "3-Axis Mill",
-    icon: "🏭",
+    Icon: Box,
     description: "Vertical milling center for general purpose machining",
     axes: "X, Y, Z + Spindle",
   },
   {
     type: "5axis_mill",
     name: "5-Axis Center",
-    icon: "⚙️",
+    Icon: Rotate3d,
     description: "Simultaneous 5-axis for complex geometry parts",
     axes: "X, Y, Z, A, C + Spindle",
     badge: "Advanced",
@@ -43,14 +59,14 @@ const templates: {
   {
     type: "cnc_lathe",
     name: "CNC Lathe",
-    icon: "🔧",
+    Icon: Cylinder,
     description: "2-axis turning for cylindrical parts production",
     axes: "X, Z + Main Spindle",
   },
   {
     type: "mill_turn",
     name: "Mill-Turn",
-    icon: "🔩",
+    Icon: Combine,
     description: "Combined turning and milling in a single setup",
     axes: "Multi-axis + Multi-spindle",
     badge: "Multi-Ch",
@@ -58,28 +74,28 @@ const templates: {
   {
     type: "grinding",
     name: "Grinding",
-    icon: "💎",
+    Icon: CircleDot,
     description: "Surface or cylindrical precision grinding",
     axes: "X, Y, Z + Wheel",
   },
   {
     type: "laser",
     name: "Laser Cutting",
-    icon: "⚡",
+    Icon: Zap,
     description: "2D/3D laser cutting with power control",
     axes: "X, Y, Z + Laser",
   },
   {
     type: "punching",
     name: "Punch / Nibble",
-    icon: "🔨",
+    Icon: Grid3x3,
     description: "Sheet metal punching and nibbling",
     axes: "X, Y + Tool",
   },
   {
     type: "robot",
     name: "Robot Cell",
-    icon: "🤖",
+    Icon: Bot,
     description: "6-axis articulated robot with CNC control",
     axes: "6 Joint Axes",
     badge: "Complex",
@@ -99,15 +115,16 @@ export function MachineDescriptionStep() {
     setConfiguration,
   } = useConfiguratorStore();
 
-  const [mode, setMode] = useState<"template" | "custom">("template");
-  const [showSpecs, setShowSpecs] = useState(false);
   const [buildingTemplate, setBuildingTemplate] = useState(false);
   const [showLoad, setShowLoad] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
-  const hasTemplate = mode === "template" && selectedTemplate;
-  const hasCustom = mode === "custom" && machineDescription.trim().length > 10;
+  const hasTemplate = !!selectedTemplate && selectedTemplate !== "custom";
+  const hasCustom = machineDescription.trim().length > 10;
   const canProceed = hasTemplate || hasCustom;
+  // Template flow uses deterministic build path; custom description goes
+  // through AI analysis.
+  const useTemplateFlow = hasTemplate;
 
   const parseNumeric = (s: string | undefined) => {
     if (!s) return undefined;
@@ -130,7 +147,7 @@ export function MachineDescriptionStep() {
   const handleProceed = async () => {
     // Template flow — skip AI round-trip, build config deterministically.
     // User can still tweak via the Ask-AI pane on the configuration page.
-    if (mode === "template" && selectedTemplate && selectedTemplate !== "custom") {
+    if (useTemplateFlow && selectedTemplate) {
       setBuildingTemplate(true);
       try {
         const config = await buildConfigFromTemplate(
@@ -170,9 +187,12 @@ export function MachineDescriptionStep() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold">Select Machine Type</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Choose a template and specify mechanical details for proper motor/drive sizing
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+            Step 01 · Input
+          </div>
+          <h2 className="text-2xl font-medium tracking-tight">Describe your machine</h2>
+          <p className="mt-1 text-sm text-muted-foreground max-w-xl">
+            Pick a template for the fast path, or write freely and let the AI infer the architecture. Mechanical specs are optional at this stage.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -199,149 +219,153 @@ export function MachineDescriptionStep() {
         </div>
       </div>
 
-      {/* Mode toggle */}
-      <div className="inline-flex rounded-lg border bg-muted/50 p-0.5">
-        <button
-          type="button"
-          className={cn(
-            "rounded-md px-4 py-1.5 text-xs font-medium transition-all",
-            mode === "template"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-          onClick={() => setMode("template")}
-        >
-          Templates
-        </button>
-        <button
-          type="button"
-          className={cn(
-            "rounded-md px-4 py-1.5 text-xs font-medium transition-all",
-            mode === "custom"
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-          onClick={() => setMode("custom")}
-        >
-          Custom Description
-        </button>
-      </div>
-
-      {mode === "template" ? (
-        <>
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            {templates.map((template, index) => {
-              const isSelected = selectedTemplate === template.type;
-              return (
-                <motion.button
-                  key={template.type}
-                  type="button"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.04 }}
-                  onClick={() => {
-                    selectTemplate(template.type);
-                    setShowSpecs(true);
-                  }}
-                  className={cn(
-                    "relative text-left rounded-xl border p-4 transition-all h-full flex flex-col",
-                    "hover:shadow-md hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                    isSelected
-                      ? "border-primary bg-primary/5 shadow-md ring-1 ring-primary/30"
-                      : "bg-card hover:bg-card/80"
-                  )}
-                >
-                  {template.badge && (
-                    <span className="absolute top-2 right-2 text-[9px] font-semibold uppercase tracking-wider text-primary/70 bg-primary/10 rounded px-1.5 py-0.5">
-                      {template.badge}
-                    </span>
-                  )}
-                  {isSelected && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute top-2 left-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center"
-                    >
-                      <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
-                    </motion.div>
-                  )}
-                  <span className="text-2xl mt-1">{template.icon}</span>
-                  <h3 className="mt-2 font-semibold text-sm leading-tight">{template.name}</h3>
-                  <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed flex-1">{template.description}</p>
-                  <div className="mt-3 pt-2 border-t border-border/50">
-                    <p className="text-[10px] text-primary/80 font-medium">{template.axes}</p>
-                  </div>
-                </motion.button>
-              );
-            })}
+      {/* ── Templates — always visible; selecting one toggles the fast path ── */}
+      <section className="space-y-3">
+        <div className="flex items-baseline justify-between">
+          <div className="flex items-center gap-2">
+            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/80">
+              01a
+            </div>
+            <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+              Quick-start templates
+            </h3>
           </div>
-
-          {/* Additional notes */}
           {selectedTemplate && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="max-w-3xl"
+            <button
+              type="button"
+              onClick={() => selectTemplate("custom")}
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
             >
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                Additional requirements (optional)
-              </label>
-              <Textarea
-                placeholder="e.g., gantry type X/Y, high-speed spindle, specific axis configuration..."
-                value={machineDescription}
-                onChange={(e) => setMachineDescription(e.target.value)}
-                className="min-h-20 text-sm resize-none"
-              />
-            </motion.div>
+              Clear selection — write from scratch
+            </button>
           )}
-        </>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="max-w-3xl space-y-3"
-        >
-          <Textarea
-            placeholder={"Describe your machine in detail:\n\ne.g., 5-axis gantry milling machine for aerospace parts, 3000x2000x1000mm travel, gantry moving mass ~2000kg per axis, spindle 24000rpm 30kW"}
-            value={machineDescription}
-            onChange={(e) => {
-              setMachineDescription(e.target.value);
-              if (e.target.value.length > 10) setShowSpecs(true);
-            }}
-            className="min-h-40 text-sm resize-none"
-          />
-        </motion.div>
-      )}
-
-      {/* Machine specs form — always shown after template/description */}
-      {(showSpecs || selectedTemplate) && canProceed && (
-        <div className="max-w-3xl">
-          <MachineSpecsForm specs={specs} onChange={handleSpecsChange} />
         </div>
-      )}
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {templates.map((template, index) => {
+            const isSelected = selectedTemplate === template.type;
+            const { Icon } = template;
+            return (
+              <motion.button
+                key={template.type}
+                type="button"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+                onClick={() => selectTemplate(template.type)}
+                className={cn(
+                  "relative text-left rounded-lg border p-4 transition-all h-full flex flex-col gap-2",
+                  "hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                    : "bg-card hover:bg-card/80"
+                )}
+              >
+                {template.badge && (
+                  <span className="absolute top-2 right-2 text-[9px] font-mono uppercase tracking-wider text-primary/70 bg-primary/10 rounded px-1.5 py-0.5">
+                    {template.badge}
+                  </span>
+                )}
+                {isSelected && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute top-2 left-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center shadow"
+                  >
+                    <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
+                  </motion.div>
+                )}
+                <Icon
+                  className={cn(
+                    "h-6 w-6 mt-1 transition-colors",
+                    isSelected ? "text-primary" : "text-muted-foreground"
+                  )}
+                  strokeWidth={1.5}
+                />
+                <h4 className="font-medium text-sm leading-tight">{template.name}</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed flex-1">
+                  {template.description}
+                </p>
+                <div className="mt-2 pt-2 border-t border-border/50">
+                  <p className="text-[10px] font-mono uppercase tracking-[0.1em] text-primary/80">
+                    {template.axes}
+                  </p>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Description — shared between template "additional notes" and full custom ── */}
+      <section className="space-y-2 max-w-3xl">
+        <div className="flex items-center gap-2">
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/80">
+            01b
+          </div>
+          <label
+            htmlFor="machine-description"
+            className="text-xs uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1.5"
+          >
+            <Pencil className="h-3 w-3" />
+            {useTemplateFlow ? "Additional notes" : "Machine description"}
+            <span className="text-[10px] text-muted-foreground/60 normal-case tracking-normal">
+              {useTemplateFlow ? "(optional)" : "(required — at least 10 chars)"}
+            </span>
+          </label>
+        </div>
+        <Textarea
+          id="machine-description"
+          placeholder={
+            useTemplateFlow
+              ? "Optional refinements — e.g. gantry type X/Y, forced-ventilation motors, 24 kW spindle at 18 000 rpm…"
+              : "Describe your machine. e.g. “5-axis gantry milling machine for aerospace parts, 3000×2000×1000 mm travel, gantry moving mass ~2000 kg per axis, spindle 24 000 rpm 30 kW, full-scope CNC with extended safety.”"
+          }
+          value={machineDescription}
+          onChange={(e) => setMachineDescription(e.target.value)}
+          className={cn("text-sm resize-none", useTemplateFlow ? "min-h-20" : "min-h-32")}
+        />
+      </section>
+
+      {/* ── Mechanical specs (always visible; optional) ── */}
+      <section className="space-y-2 max-w-3xl">
+        <div className="flex items-center gap-2">
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/80">
+            01c
+          </div>
+          <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+            Mechanical specs
+            <span className="ml-1.5 text-[10px] text-muted-foreground/60 normal-case tracking-normal">
+              (optional — sizing falls back to defaults)
+            </span>
+          </h3>
+        </div>
+        <MachineSpecsForm specs={specs} onChange={handleSpecsChange} />
+      </section>
 
       {/* Proceed */}
-      <div className="flex items-center gap-3 pt-2">
+      <div className="flex items-center gap-3 pt-2 border-t">
         <Button
           disabled={!canProceed || buildingTemplate}
           onClick={handleProceed}
-          className="gap-2"
+          className="gap-2 mt-2"
         >
           {buildingTemplate
             ? "Building configuration…"
-            : mode === "template"
-              ? "Continue to Configuration"
-              : "Continue to AI Analysis"}
+            : useTemplateFlow
+              ? "Build configuration"
+              : "Analyze with AI"}
           <ArrowRight className="h-3.5 w-3.5" />
         </Button>
         {!canProceed && (
-          <span className="text-xs text-muted-foreground">
-            {mode === "template" ? "Select a machine type above" : "Enter at least 10 characters"}
+          <span className="text-xs text-muted-foreground mt-2">
+            Select a template above <span className="text-muted-foreground/60">or</span> write a description of at least 10 characters.
           </span>
         )}
         {canProceed && (
-          <span className="text-xs text-muted-foreground">
-            Mechanical specs are <strong className="text-foreground/80">optional</strong> — every component can also be added or changed on the next page.
+          <span className="text-xs text-muted-foreground mt-2">
+            {useTemplateFlow
+              ? "Template path — BOM builds deterministically, no AI round-trip."
+              : "AI analysis — returns architecture, sizing engine fills in motors & drives."}
           </span>
         )}
       </div>

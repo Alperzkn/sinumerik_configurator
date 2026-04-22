@@ -74,7 +74,7 @@ export function ComponentCard({
             </Badge>
           )}
           {articleNumber && (
-            <code className="text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded whitespace-nowrap">
+            <code className="mlfb text-[11px] text-foreground/90 bg-muted/60 border border-border/60 px-1.5 py-0.5 rounded whitespace-nowrap">
               {articleNumber}
             </code>
           )}

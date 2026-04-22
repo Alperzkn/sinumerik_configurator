@@ -345,17 +345,18 @@ export interface AiMessage {
 }
 
 // --- Wizard Step ---
+// Four steps: describe → AI analysis (skipped for templates) → configure →
+// bill of materials. Previously a separate "review" step duplicated the
+// summary BOM without the export actions; merged into "summary".
 export type WizardStep =
   | "description"
   | "analysis"
   | "configuration"
-  | "review"
   | "summary";
 
 export const WIZARD_STEPS: { key: WizardStep; label: string; number: number }[] = [
-  { key: "description", label: "Describe Machine", number: 1 },
-  { key: "analysis", label: "AI Analysis", number: 2 },
-  { key: "configuration", label: "Configuration", number: 3 },
-  { key: "review", label: "Review", number: 4 },
-  { key: "summary", label: "Summary", number: 5 },
+  { key: "description", label: "Describe", number: 1 },
+  { key: "analysis", label: "Analyze", number: 2 },
+  { key: "configuration", label: "Configure", number: 3 },
+  { key: "summary", label: "Bill of materials", number: 4 },
 ];

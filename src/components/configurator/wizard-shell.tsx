@@ -7,7 +7,6 @@ import { StepIndicator } from "./step-indicator";
 import { MachineDescriptionStep } from "./machine-description-step";
 import { AiAnalysisStep } from "./ai-analysis-step";
 import { ConfigurationStep } from "./configuration-step";
-import { ReviewStep } from "./review-step";
 import { SummaryStep } from "./summary-step";
 import { SelectionSidebar } from "./selection-sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -23,8 +22,6 @@ export function WizardShell() {
         return <AiAnalysisStep />;
       case "configuration":
         return <ConfigurationStep />;
-      case "review":
-        return <ReviewStep />;
       case "summary":
         return <SummaryStep />;
       default:

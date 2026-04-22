@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useCallback, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useConfiguratorStore } from "@/store/configurator-store";
@@ -267,9 +268,12 @@ export function AiAnalysisStep() {
       className="max-w-3xl space-y-6"
     >
       <div>
-        <h2 className="text-xl font-bold">AI Analysis</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Analyzing your requirements and selecting optimal components
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+          Step 02 · Analyze
+        </div>
+        <h2 className="text-2xl font-medium tracking-tight">AI architecture analysis</h2>
+        <p className="mt-1 text-sm text-muted-foreground max-w-xl">
+          Reading your description and picking the control unit, technology packages, drive family, safety level, and HMI. The deterministic sizing engine takes over for motors and drives.
         </p>
       </div>
 
@@ -346,19 +350,16 @@ export function AiAnalysisStep() {
           variant="ghost"
           size="sm"
           onClick={() => useConfiguratorStore.getState().setStep("description")}
+          className="gap-1.5"
         >
-          <svg className="mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
+          <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Button>
         {isConfigurationReady && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
             <Button onClick={handleViewConfig} className="gap-2">
               View Configuration
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </motion.div>
         )}
