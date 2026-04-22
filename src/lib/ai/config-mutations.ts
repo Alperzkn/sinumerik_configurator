@@ -537,21 +537,45 @@ export function swapMcp(
 
 /**
  * Set or remove the handheld terminal.
- *   "ht2"  → SIMATIC HT 2  (compact 4.6")
- *   "ht10" → SIMATIC HT 10 (full-size 10" touch)
- *   "none" → remove any current handheld
+ *
+ * Auto-bundles the catalog accessories without which the handheld is
+ * physically unusable:
+ *   "ht2"  → SINUMERIK HT 2 (6FC5303-0AA00-2AA0)
+ *            + Basic PN connection module (6FC5303-0AA01-1AA0)
+ *            + Spiral connection cable 1.5–3.5 m (6FC5348-0AA08-3AA0)
+ *   "ht10" → SINUMERIK HT 10 (6FC5303-0AF20-2AA0)
+ *            + Connection cable 5 m (6XV1440-4BH50)  [user can swap length]
+ *   "none" → drop the handheld AND any handheld accessories
+ *
+ * Accessories from a previous handheld choice are removed first so we
+ * don't end up with HT 2 cables alongside an HT 10.
  */
 export function setHandheldTerminal(
   config: GeneratedConfiguration,
   choice: "none" | "ht2" | "ht10",
   catalog: HmiComponent[]
 ): GeneratedConfiguration {
-  const next = config.hmiComponents.filter((h) => h.category !== "handheld_terminal");
+  // Drop any current handheld + handheld accessories
+  const next = config.hmiComponents.filter(
+    (h) => h.category !== "handheld_terminal" && h.category !== "handheld_accessory"
+  );
+
   if (choice !== "none") {
-    const id = choice === "ht10" ? "handheld_ht10" : "handheld_ht2";
-    const hh = catalog.find((h) => h.id === id);
-    if (hh) next.push(hh);
+    const handheldId = choice === "ht10" ? "handheld_ht10" : "handheld_ht2";
+    const handheld = catalog.find((h) => h.id === handheldId);
+    if (handheld) next.push(handheld);
+
+    const accessoryIds =
+      choice === "ht2"
+        ? ["ht2_basic_pn_module", "ht2_spiral_cable"]
+        : ["ht10_cable_5m"];
+
+    for (const id of accessoryIds) {
+      const acc = catalog.find((h) => h.id === id);
+      if (acc) next.push(acc);
+    }
   }
+
   return { ...config, hmiComponents: next };
 }
 

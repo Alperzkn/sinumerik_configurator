@@ -221,6 +221,7 @@ export type HmiCategory =
   | "mcp"
   | "handwheel"
   | "handheld_terminal"
+  | "handheld_accessory"
   | "io_module";
 
 export interface HmiComponent {

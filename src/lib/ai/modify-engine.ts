@@ -413,8 +413,19 @@ Example 8 — "Add HT 10 handheld" (or "include a handheld terminal")
 {
   "action": "add",
   "changes": { "handheldUnit": "ht10" },
-  "summary": "Added SIMATIC HT 10 handheld terminal."
+  "summary": "Added SINUMERIK HT 10 handheld terminal (with default 5 m cable)."
 }
+
+Example 8b — "Add HT 2 handheld unit" / "I want a HT2"
+{
+  "action": "add",
+  "changes": { "handheldUnit": "ht2" },
+  "summary": "Added SINUMERIK HT 2 handheld terminal (with basic PN module + spiral cable)."
+}
+NOTE: HT 2 / HT 10 are HARDWARE units. NEVER substitute a software
+option (P17 ShopTurn/ShopMill, S00 Operate, etc.) when the user asks
+for a handheld terminal — handheldUnit IS the only correct field.
+The apply layer auto-bundles the connection module + cable.
 
 Example 9 — "Switch I/O to ET 200SP" (or "use modular I/O")
 {
