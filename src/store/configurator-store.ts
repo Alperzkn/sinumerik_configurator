@@ -7,6 +7,32 @@ import type {
   WizardStep,
 } from "@/types/catalog";
 
+export type HistoryKind =
+  | "init"
+  | "load"
+  | "swap"
+  | "add_option"
+  | "remove_option"
+  | "add_package"
+  | "remove_package"
+  | "add_safety"
+  | "remove_safety"
+  | "ai_modify"
+  | "revert";
+
+export interface HistoryEntry {
+  id: string;
+  /** Unix ms */
+  timestamp: number;
+  kind: HistoryKind;
+  /** Short headline shown in the list (1 short sentence) */
+  title: string;
+  /** Optional secondary detail line */
+  details?: string;
+  /** Snapshot of the configuration AFTER this change — enables revert */
+  snapshot: GeneratedConfiguration;
+}
+
 export interface MachineSpecsState {
   axisTravel: string;
   movingMass: string;
@@ -42,6 +68,9 @@ interface ConfiguratorState {
   // Step 3-4: Configuration
   configuration: GeneratedConfiguration | null;
 
+  // Change-history log
+  history: HistoryEntry[];
+
   // Actions
   setStep: (step: WizardStep) => void;
   completeStep: (step: WizardStep) => void;
@@ -69,6 +98,24 @@ interface ConfiguratorState {
     machineSpecs: MachineSpecsState;
     configuration: GeneratedConfiguration;
   }) => void;
+
+  /**
+   * Append a single history entry. Caller must provide the post-change
+   * configuration snapshot (used to revert later). If `snapshot` is omitted
+   * the current `configuration` is used.
+   */
+  pushHistory: (entry: {
+    kind: HistoryKind;
+    title: string;
+    details?: string;
+    snapshot?: GeneratedConfiguration;
+  }) => void;
+
+  /** Restore the configuration captured by a given history entry. */
+  revertToHistoryEntry: (id: string) => void;
+
+  /** Wipe the change log (keeps the configuration untouched). */
+  clearHistory: () => void;
 }
 
 export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
@@ -94,6 +141,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
   isAiProcessing: false,
   isConfigurationReady: false,
   configuration: null,
+  history: [],
 
   // Actions
   setStep: (step) => set({ currentStep: step }),
@@ -119,9 +167,26 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
   setConfigurationReady: (ready) => set({ isConfigurationReady: ready }),
 
   setConfiguration: (config) =>
-    set({
-      configuration: config,
-      isConfigurationReady: true,
+    set((state) => {
+      // First-time set (no prior config) → seed an "init" history entry so
+      // the user always has a baseline to revert to.
+      const isFirst = state.configuration === null;
+      const seededHistory: HistoryEntry[] = isFirst
+        ? [
+            {
+              id: `hist-${Date.now()}`,
+              timestamp: Date.now(),
+              kind: "init",
+              title: "Initial configuration generated",
+              snapshot: config,
+            },
+          ]
+        : state.history;
+      return {
+        configuration: config,
+        isConfigurationReady: true,
+        history: seededHistory,
+      };
     }),
 
   updateConfiguration: (updates) =>
@@ -154,6 +219,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
       isConfigurationReady: false,
       aiMessages: [],
       isAiProcessing: false,
+      history: [],
     }),
 
   resetAll: () =>
@@ -179,6 +245,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
       isAiProcessing: false,
       isConfigurationReady: false,
       configuration: null,
+      history: [],
     }),
 
   loadSavedSnapshot: (snapshot) =>
@@ -192,5 +259,55 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
       isAiProcessing: false,
       currentStep: "configuration",
       completedSteps: new Set(["description", "analysis"]),
+      history: [
+        {
+          id: `hist-${Date.now()}`,
+          timestamp: Date.now(),
+          kind: "load",
+          title: "Loaded saved configuration",
+          snapshot: snapshot.configuration,
+        },
+      ],
     }),
+
+  pushHistory: ({ kind, title, details, snapshot }) =>
+    set((state) => {
+      const cfg = snapshot ?? state.configuration;
+      if (!cfg) return state;
+      return {
+        history: [
+          ...state.history,
+          {
+            id: `hist-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            timestamp: Date.now(),
+            kind,
+            title,
+            details,
+            snapshot: cfg,
+          },
+        ],
+      };
+    }),
+
+  revertToHistoryEntry: (id) =>
+    set((state) => {
+      const entry = state.history.find((h) => h.id === id);
+      if (!entry) return state;
+      return {
+        configuration: entry.snapshot,
+        history: [
+          ...state.history,
+          {
+            id: `hist-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            timestamp: Date.now(),
+            kind: "revert",
+            title: `Reverted to "${entry.title}"`,
+            details: new Date(entry.timestamp).toLocaleTimeString(),
+            snapshot: entry.snapshot,
+          },
+        ],
+      };
+    }),
+
+  clearHistory: () => set({ history: [] }),
 }));

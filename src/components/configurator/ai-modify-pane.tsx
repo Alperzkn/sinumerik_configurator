@@ -23,7 +23,7 @@ const QUICK_ACTIONS = [
 ];
 
 export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
-  const { configuration, machineSpecs, setConfiguration } = useConfiguratorStore();
+  const { configuration, machineSpecs, setConfiguration, pushHistory } = useConfiguratorStore();
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastMessage, setLastMessage] = useState<{ role: "user" | "assistant"; content: string } | null>(null);
@@ -53,6 +53,12 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
       const result = await modifyConfiguration(configuration, requestText, baselineSpecs);
       if (result.updatedConfiguration) {
         setConfiguration(result.updatedConfiguration);
+        pushHistory({
+          kind: "ai_modify",
+          title: requestText,
+          details: result.summary,
+          snapshot: result.updatedConfiguration,
+        });
         setLastMessage({
           role: "assistant",
           content: result.summary || "Configuration updated.",

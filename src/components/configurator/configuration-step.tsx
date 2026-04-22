@@ -13,6 +13,7 @@ import { ComponentSwapDialog, type SwapCategory } from "./component-swap-dialog"
 import { SoftwareOptionDialog } from "./software-option-dialog";
 import { SaveLoadDialog } from "./save-load-dialog";
 import { AiModifyPane } from "./ai-modify-pane";
+import { HistoryPanel } from "./history-panel";
 import {
   applySwap,
   addSoftwareOption,
@@ -26,7 +27,14 @@ import { technologyPackages as catalogTechPackages } from "@/data/technology-pac
 import { toast } from "@/components/ui/toast";
 
 export function ConfigurationStep() {
-  const { configuration, setStep, completeStep, setConfiguration, aiMessages } = useConfiguratorStore();
+  const {
+    configuration,
+    setStep,
+    completeStep,
+    setConfiguration,
+    aiMessages,
+    pushHistory,
+  } = useConfiguratorStore();
   const [swapState, setSwapState] = useState<{
     category: SwapCategory;
     currentArticle?: string;
@@ -42,6 +50,12 @@ export function ConfigurationStep() {
     if (!configuration || !swapState) return;
     const updated = applySwap(configuration, swapState.category, articleNumber);
     setConfiguration(updated);
+    pushHistory({
+      kind: "swap",
+      title: `Swapped ${swapState.category.replace(/_/g, " ")}`,
+      details: articleNumber,
+      snapshot: updated,
+    });
     toast.success("Component swapped", `${swapState.category.replace(/_/g, " ")} → ${articleNumber}`);
     setSwapState(null);
   };
@@ -190,7 +204,17 @@ export function ConfigurationStep() {
                 articleNumber={pkg.articleNumber}
                 orderCode={pkg.orderCode}
                 description={pkg.description}
-                onRemove={() => setConfiguration(removeTechnologyPackage(configuration, pkg.id))}
+                onRemove={() => {
+                  const updated = removeTechnologyPackage(configuration, pkg.id);
+                  setConfiguration(updated);
+                  pushHistory({
+                    kind: "remove_package",
+                    title: `Removed package ${pkg.orderCode}`,
+                    details: pkg.name,
+                    snapshot: updated,
+                  });
+                  toast.info("Package removed", `${pkg.orderCode} — ${pkg.name}`);
+                }}
               />
             ))}
           </SectionPanel>
@@ -236,7 +260,14 @@ export function ConfigurationStep() {
                 category={opt.category}
                 quantity={configuration.optionQuantities[opt.id]}
                 onRemove={() => {
-                  setConfiguration(removeSoftwareOption(configuration, opt.id));
+                  const updated = removeSoftwareOption(configuration, opt.id);
+                  setConfiguration(updated);
+                  pushHistory({
+                    kind: "remove_option",
+                    title: `Removed option ${opt.orderCode}`,
+                    details: opt.name,
+                    snapshot: updated,
+                  });
                   toast.info("Option removed", `${opt.orderCode} — ${opt.name}`);
                 }}
               />
@@ -438,7 +469,17 @@ export function ConfigurationStep() {
                 onRemove={
                   sf.isBasicScope
                     ? undefined
-                    : () => setConfiguration(removeSafetyFunctions(configuration, [sf.id]))
+                    : () => {
+                        const updated = removeSafetyFunctions(configuration, [sf.id]);
+                        setConfiguration(updated);
+                        pushHistory({
+                          kind: "remove_safety",
+                          title: `Removed safety ${sf.orderCode || sf.id}`,
+                          details: sf.name,
+                          snapshot: updated,
+                        });
+                        toast.info("Safety removed", sf.name);
+                      }
                 }
               />
             ))}
@@ -472,6 +513,9 @@ export function ConfigurationStep() {
 
       {/* AI modification pane */}
       <AiModifyPane />
+
+      {/* Change history */}
+      <HistoryPanel />
 
       {/* Notes */}
       {configuration.notes.length > 0 && (
@@ -526,11 +570,25 @@ export function ConfigurationStep() {
         catalogOptions={catalogSoftwareOptions}
         catalogPackages={catalogTechPackages}
         onAddOption={(opt, qty) => {
-          setConfiguration(addSoftwareOption(configuration, opt, qty));
+          const updated = addSoftwareOption(configuration, opt, qty);
+          setConfiguration(updated);
+          pushHistory({
+            kind: "add_option",
+            title: `Added option ${opt.orderCode}${qty > 1 ? ` × ${qty}` : ""}`,
+            details: opt.name,
+            snapshot: updated,
+          });
           toast.success("Option added", `${opt.orderCode}${qty > 1 ? ` × ${qty}` : ""} — ${opt.name}`);
         }}
         onAddPackage={(pkg) => {
-          setConfiguration(addTechnologyPackage(configuration, pkg));
+          const updated = addTechnologyPackage(configuration, pkg);
+          setConfiguration(updated);
+          pushHistory({
+            kind: "add_package",
+            title: `Added package ${pkg.orderCode}`,
+            details: pkg.name,
+            snapshot: updated,
+          });
           toast.success("Package added", `${pkg.orderCode} — ${pkg.name}`);
         }}
       />
