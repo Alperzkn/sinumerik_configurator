@@ -30,9 +30,9 @@ export default function HomePage() {
             </Link>
             <div className="h-5 w-px bg-border" />
             <div className="hidden sm:flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              <span>NC63</span>
+              <span>NC63 · D21 · D31</span>
               <span className="text-muted-foreground/40">·</span>
-              <span>Jan 2026</span>
+              <span>2026</span>
               <span className="text-muted-foreground/40">·</span>
               <span>v0.1</span>
             </div>
@@ -80,14 +80,14 @@ export default function HomePage() {
               A configurator for{" "}
               <span className="text-foreground">SINUMERIK ONE</span> CNC systems.
               It reads your machine spec, picks a control unit, sizes the drive
-              train against the real Siemens NC63 catalog, and returns a bill
-              of materials with actual MLFB article numbers — not a sales
-              quote.
+              train against the Siemens catalogs (NC63, D21, D31 and family),
+              and returns a bill of materials with actual MLFB article numbers
+              — not a sales quote.
             </p>
             <div className="mt-5 flex flex-wrap gap-2 text-[10px] font-mono uppercase tracking-[0.15em] text-muted-foreground">
               <span className="px-2 py-1 border rounded">4 Control Units</span>
-              <span className="px-2 py-1 border rounded">120+ Options</span>
-              <span className="px-2 py-1 border rounded">16 Motors</span>
+              <span className="px-2 py-1 border rounded">100+ Options</span>
+              <span className="px-2 py-1 border rounded">130+ Motor Variants</span>
               <span className="px-2 py-1 border rounded">8 Templates</span>
             </div>
           </div>
@@ -147,8 +147,8 @@ export default function HomePage() {
         <hr className="rule-tick" />
         <div className="grid sm:grid-cols-3 gap-x-10 gap-y-6 pt-8">
           <MethodNote
-            label="Catalog source"
-            body="Siemens NC63 — January 2026 catalog scope. Article numbers verified against published MLFBs; invented codes flagged and removed during audits."
+            label="Catalog sources"
+            body="Siemens NC63 (SINUMERIK ONE), D21 (SINAMICS drives + MOTION-CONNECT cables), D31 (SIMOTICS motors) and adjacent catalogs. Article numbers are verified against published MLFBs; invented codes are flagged and removed during audits."
           />
           <MethodNote
             label="Sizing"
@@ -165,9 +165,11 @@ export default function HomePage() {
       <footer className="mt-auto border-t">
         <div className="mx-auto max-w-6xl px-6 py-6 flex items-center justify-between text-[11px] text-muted-foreground">
           <p>
-            <span className="font-mono uppercase tracking-[0.15em]">NC63</span>
+            <span className="font-mono uppercase tracking-[0.15em]">
+              NC63 · D21 · D31
+            </span>
             <span className="mx-2 text-muted-foreground/40">·</span>
-            January 2026 catalog
+            Siemens catalogs, 2026 scope
           </p>
           <p>Independent tool · Unaffiliated with Siemens AG</p>
         </div>

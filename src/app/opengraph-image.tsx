@@ -80,7 +80,7 @@ export default function OgImage() {
               textTransform: "uppercase",
             }}
           >
-            <span>Catalog · NC63 · Jan 2026</span>
+            <span>NC63 · D21 · D31 · 2026</span>
             <span>Verified MLFB article numbers</span>
           </div>
         </div>

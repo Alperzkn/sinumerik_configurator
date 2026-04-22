@@ -185,7 +185,7 @@ export function SummaryStep() {
       { Field: "Total Quantity", Value: String(totalQty) },
       { Field: "", Value: "" },
       { Field: "Generated", Value: new Date().toISOString().split("T")[0] },
-      { Field: "Catalog", Value: "NC63 — January 2026" },
+      { Field: "Catalog sources", Value: "NC63 / D21 / D31 — Siemens 2026" },
     ];
     const ws2 = XLSX.utils.json_to_sheet(summaryData);
     ws2["!cols"] = [{ wch: 20 }, { wch: 40 }];
