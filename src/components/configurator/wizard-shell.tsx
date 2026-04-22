@@ -44,7 +44,7 @@ export function WizardShell() {
               {/* Logo — left aligned */}
               <Link href="/" className="shrink-0 flex items-center gap-2.5 group">
                 <div className="h-8 w-8 rounded-lg bg-linear-to-br from-primary to-primary/70 flex items-center justify-center shadow-sm shadow-primary/20 group-hover:shadow-primary/40 transition-shadow">
-                  <span className="text-primary-foreground text-xs font-bold tracking-tight">S1</span>
+                  <span className="text-primary-foreground text-xs font-bold tracking-tight">S</span>
                 </div>
                 <div className="text-sm font-semibold tracking-tight">
                   <span className="text-foreground">SINUMERIK</span>

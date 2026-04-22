@@ -41,7 +41,7 @@ export default function SystemPage() {
             <div className="flex items-center h-14 gap-8">
               <Link href="/" className="shrink-0 flex items-center gap-2">
                 <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground text-xs font-bold">S1</span>
+                  <span className="text-primary-foreground text-xs font-bold">S</span>
                 </div>
                 <div className="text-sm font-semibold tracking-tight">
                   <span className="text-foreground">SINUMERIK</span>
