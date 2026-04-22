@@ -11,6 +11,8 @@ import {
   setHmiPanelSize,
   swapHmi,
   swapMcp,
+  setHandheldTerminal,
+  setIoModule,
   regenerateCablesFor,
 } from "./config-mutations";
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
@@ -56,6 +58,10 @@ interface ModifyInstruction {
     hmiPanelSizeInch?: number;
     hmiArticle?: string;
     mcpArticle?: string;
+
+    /** Handheld terminal & machine I/O module */
+    handheldUnit?: "none" | "ht2" | "ht10";
+    ioModule?: "none" | "pp_72_48" | "et200sp";
 
     /** Software options (orderCode form preferred — AI may not know internal ids) */
     addOptions?: { orderCode: string; quantity?: number; reason?: string }[];
@@ -173,6 +179,33 @@ function normaliseInstruction(raw: Record<string, unknown>): ModifyInstruction {
   if (hmiArt) out.hmiArticle = hmiArt;
   const mcpArt = pickStr(inChanges.mcpArticle);
   if (mcpArt) out.mcpArticle = mcpArt;
+
+  // Handheld terminal — accept "ht2" / "ht10" / "none" / "HT 2" / "HT 10" /
+  // article numbers / { type: "ht10" } / { id: "handheld_ht10" }
+  const hhRaw = pickStr(inChanges.handheldUnit, inChanges.handheld, inChanges.handheldTerminal);
+  if (hhRaw) {
+    const lc = hhRaw.toLowerCase().replace(/\s+/g, "");
+    if (lc.includes("ht10") || lc.includes("handheld_ht10") || lc === "0aa20") {
+      out.handheldUnit = "ht10";
+    } else if (lc.includes("ht2") || lc.includes("handheld_ht2") || lc === "0ca0") {
+      out.handheldUnit = "ht2";
+    } else if (lc === "none" || lc === "remove" || lc === "no") {
+      out.handheldUnit = "none";
+    }
+  }
+
+  // I/O module — accept "pp_72_48" / "pp72/48" / "et200sp" / "none" / objects
+  const ioRaw = pickStr(inChanges.ioModule, inChanges.io, inChanges.ioModuleType);
+  if (ioRaw) {
+    const lc = ioRaw.toLowerCase().replace(/[\s/_-]+/g, "");
+    if (lc.includes("et200")) {
+      out.ioModule = "et200sp";
+    } else if (lc.includes("pp7248") || lc.includes("pp7248d") || lc.includes("pp72")) {
+      out.ioModule = "pp_72_48";
+    } else if (lc === "none" || lc === "remove" || lc === "no") {
+      out.ioModule = "none";
+    }
+  }
 
   // userSpecsOverride — pass through if shape looks reasonable
   if (inChanges.userSpecsOverride && typeof inChanges.userSpecsOverride === "object") {
@@ -293,6 +326,9 @@ SCHEMA
     "hmiArticle": "6AV6646-...",
     "mcpArticle": "6FC5303-...",
 
+    "handheldUnit": "none" | "ht2" | "ht10",
+    "ioModule":     "none" | "pp_72_48" | "et200sp",
+
     "userSpecsOverride": {
       "spindlePowerKw": 30, "spindleMaxRpm": 12000,
       "movingMassKg": 500, "rapidTraverseMpm": 40,
@@ -373,7 +409,21 @@ Example 7 — "Remove all safety options"
   "summary": "Removed extended safety. Basic safety (STO/SS1/SBC) is hardware and remains."
 }
 
-Example 8 — Request the AI cannot translate
+Example 8 — "Add HT 10 handheld" (or "include a handheld terminal")
+{
+  "action": "add",
+  "changes": { "handheldUnit": "ht10" },
+  "summary": "Added SIMATIC HT 10 handheld terminal."
+}
+
+Example 9 — "Switch I/O to ET 200SP" (or "use modular I/O")
+{
+  "action": "swap",
+  "changes": { "ioModule": "et200sp" },
+  "summary": "Switched machine I/O from PP 72/48 to ET 200SP modular distributed I/O."
+}
+
+Example 10 — Request the AI cannot translate
 {
   "action": "no_change",
   "changes": {},
@@ -401,6 +451,8 @@ ROUTING RULES
 - HMI panel size change                 → hmiPanelSizeInch (MCP re-matched automatically).
 - CNC SW variant                        → cncSoftwareVariant.
 - Software options                      → addOptions / removeOptions / addPackages / removePackages with order codes.
+- Handheld terminal request             → handheldUnit ("ht2" / "ht10" / "none"). NEVER tell the user a handheld is unsupported — it IS supported.
+- I/O module change                     → ioModule ("pp_72_48" / "et200sp" / "none").
 - Safety:
    * Basic safety (STO/SS1/SBC) is HARDWARE — never appears in addSafety / removeSafety.
    * Removing S60 cascades — also remove S61 and any K* codes.
@@ -578,6 +630,29 @@ function applyModifications(
   if (changes.mcpArticle) {
     updated = swapMcp(updated, changes.mcpArticle, catalogHmi);
     appliedSummary.push(`MCP → ${changes.mcpArticle}`);
+  }
+  if (changes.handheldUnit) {
+    const before = updated.hmiComponents.find((h) => h.category === "handheld_terminal");
+    updated = setHandheldTerminal(updated, changes.handheldUnit, catalogHmi);
+    const after = updated.hmiComponents.find((h) => h.category === "handheld_terminal");
+    if (before?.id !== after?.id) {
+      const label = changes.handheldUnit === "none" ? "removed" : changes.handheldUnit.toUpperCase();
+      appliedSummary.push(`Handheld terminal → ${label}`);
+    }
+  }
+  if (changes.ioModule) {
+    const before = updated.hmiComponents.find((h) => h.category === "io_module");
+    updated = setIoModule(updated, changes.ioModule, catalogHmi);
+    const after = updated.hmiComponents.find((h) => h.category === "io_module");
+    if (before?.id !== after?.id) {
+      const label =
+        changes.ioModule === "none"
+          ? "removed"
+          : changes.ioModule === "et200sp"
+            ? "ET 200SP"
+            : "PP 72/48";
+      appliedSummary.push(`I/O module → ${label}`);
+    }
   }
 
   // 4. Software options

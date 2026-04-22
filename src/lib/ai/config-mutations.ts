@@ -535,6 +535,47 @@ export function swapMcp(
   return { ...config, hmiComponents: next };
 }
 
+/**
+ * Set or remove the handheld terminal.
+ *   "ht2"  → SIMATIC HT 2  (compact 4.6")
+ *   "ht10" → SIMATIC HT 10 (full-size 10" touch)
+ *   "none" → remove any current handheld
+ */
+export function setHandheldTerminal(
+  config: GeneratedConfiguration,
+  choice: "none" | "ht2" | "ht10",
+  catalog: HmiComponent[]
+): GeneratedConfiguration {
+  const next = config.hmiComponents.filter((h) => h.category !== "handheld_terminal");
+  if (choice !== "none") {
+    const id = choice === "ht10" ? "handheld_ht10" : "handheld_ht2";
+    const hh = catalog.find((h) => h.id === id);
+    if (hh) next.push(hh);
+  }
+  return { ...config, hmiComponents: next };
+}
+
+/**
+ * Set or remove the machine I/O module.
+ *   "pp_72_48" → PP 72/48 D PN (default for NCU)
+ *   "et200sp"  → ET 200SP CPU + (caller can add DI/DQ modules separately)
+ *   "none"     → remove any current I/O module
+ */
+export function setIoModule(
+  config: GeneratedConfiguration,
+  choice: "none" | "pp_72_48" | "et200sp",
+  catalog: HmiComponent[]
+): GeneratedConfiguration {
+  // Drop any existing io_module entries (PP 72/48, ET200SP CPU, DI/DQ modules)
+  const next = config.hmiComponents.filter((h) => h.category !== "io_module");
+  if (choice !== "none") {
+    const id = choice === "et200sp" ? "io_et200sp_cpu" : "io_pp_72_48";
+    const io = catalog.find((h) => h.id === id);
+    if (io) next.push(io);
+  }
+  return { ...config, hmiComponents: next };
+}
+
 function autoSizeLineModule(config: GeneratedConfiguration) {
   const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
   const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));

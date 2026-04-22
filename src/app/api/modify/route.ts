@@ -222,6 +222,52 @@ function getHeuristicMockResponse(req: string) {
     };
   }
 
+  // Handheld terminal — "add HT10" / "remove handheld" / "include HT 2"
+  if (r.match(/\bht\s*10\b/) || r.includes("ht10")) {
+    return {
+      action: "add",
+      changes: { handheldUnit: "ht10" },
+      summary: "Added SIMATIC HT 10 handheld terminal.",
+    };
+  }
+  if (r.match(/\bht\s*2\b/) || r.includes("ht2")) {
+    return {
+      action: "add",
+      changes: { handheldUnit: "ht2" },
+      summary: "Added SIMATIC HT 2 handheld terminal.",
+    };
+  }
+  if ((r.includes("remove") || r.includes("drop") || r.includes("no")) && r.includes("handheld")) {
+    return {
+      action: "remove",
+      changes: { handheldUnit: "none" },
+      summary: "Removed handheld terminal.",
+    };
+  }
+
+  // I/O module — "use ET 200SP" / "switch to PP 72/48" / "remove I/O"
+  if (r.includes("et200") || r.includes("et 200") || r.includes("et-200")) {
+    return {
+      action: "swap",
+      changes: { ioModule: "et200sp" },
+      summary: "Switched machine I/O to ET 200SP modular distributed I/O.",
+    };
+  }
+  if (r.includes("pp 72") || r.includes("pp72") || r.includes("72/48")) {
+    return {
+      action: "swap",
+      changes: { ioModule: "pp_72_48" },
+      summary: "Switched machine I/O to PP 72/48 D PN.",
+    };
+  }
+  if ((r.includes("remove") || r.includes("drop") || r.includes("no")) && (r.includes("i/o") || r.includes("io module"))) {
+    return {
+      action: "remove",
+      changes: { ioModule: "none" },
+      summary: "Removed machine I/O module.",
+    };
+  }
+
   // HMI panel size
   const panelMatch = r.match(/(\d{2})["”'\s]*(?:inch|panel|hmi|display|screen)/i);
   if (panelMatch) {
