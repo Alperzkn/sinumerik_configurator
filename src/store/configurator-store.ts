@@ -57,6 +57,18 @@ interface ConfiguratorState {
   clearWarnings: () => void;
   resetConfiguration: () => void;
   resetAll: () => void;
+  /**
+   * Restore a snapshot from `saved-configs.ts`. Replaces the wizard state
+   * with the saved description / template / specs / configuration and
+   * marks the relevant steps as completed so the user lands on
+   * Configuration ready to review or modify.
+   */
+  loadSavedSnapshot: (snapshot: {
+    machineDescription: string;
+    selectedTemplate: MachineType | null;
+    machineSpecs: MachineSpecsState;
+    configuration: GeneratedConfiguration;
+  }) => void;
 }
 
 export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
@@ -167,5 +179,18 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
       isAiProcessing: false,
       isConfigurationReady: false,
       configuration: null,
+    }),
+
+  loadSavedSnapshot: (snapshot) =>
+    set({
+      machineDescription: snapshot.machineDescription,
+      selectedTemplate: snapshot.selectedTemplate,
+      machineSpecs: snapshot.machineSpecs,
+      configuration: snapshot.configuration,
+      isConfigurationReady: true,
+      aiMessages: [],
+      isAiProcessing: false,
+      currentStep: "configuration",
+      completedSteps: new Set(["description", "analysis"]),
     }),
 }));

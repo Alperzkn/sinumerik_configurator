@@ -339,10 +339,18 @@ export function calculateDriveCliqCables(
 // ≤ 60A (SH 100-132): 4x6mm² → MOTION-CONNECT 500
 // ≤ 85A (SH 132+): 4x10mm² → MOTION-CONNECT 800
 
-export function getMotorCableSize(shaftHeight: number): string {
-  if (shaftHeight <= 48) return "1.5mm²";
-  if (shaftHeight <= 100) return "2.5mm²";
-  return "6mm²";
+/**
+ * Motor power-cable cross-section by shaft height.
+ *
+ * NOTE: returns the BARE size (e.g. "1.5mm") because the cable catalog
+ * IDs are keyed by the bare size — `motor-power-1.5mm-10m`, not
+ * `motor-power-1.5mm²-10m`. Adding the unit suffix here previously caused
+ * every motor power cable lookup in `selectCables` to silently miss.
+ */
+export function getMotorCableSize(shaftHeight: number): "1.5mm" | "2.5mm" | "6mm" {
+  if (shaftHeight <= 48) return "1.5mm";
+  if (shaftHeight <= 100) return "2.5mm";
+  return "6mm";
 }
 
 // ─── MCP-HMI Matching ───
