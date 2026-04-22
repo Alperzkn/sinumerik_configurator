@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toast";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const roboto = Roboto({
   variable: "--font-sans",
@@ -29,8 +30,10 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${roboto.variable} ${robotoMono.variable} dark h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <ThemeProvider />
         {children}
         <Toaster />
       </body>

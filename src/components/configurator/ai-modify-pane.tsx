@@ -85,7 +85,7 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
   };
 
   return (
-    <div className="rounded-xl border bg-gradient-to-br from-primary/5 to-background overflow-hidden">
+    <div className="rounded-xl border bg-linear-to-br from-primary/8 via-card to-card overflow-hidden shadow-sm">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}

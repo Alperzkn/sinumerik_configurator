@@ -90,48 +90,69 @@ export function ConfigurationStep() {
       exit={{ opacity: 0, x: -20 }}
       className="space-y-6"
     >
-      {/* Header with stats */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-bold">Recommended Configuration</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            AI-generated component selection based on your requirements
-          </p>
+      {/* Header with stats — split into title row + metrics row for better hierarchy */}
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
+              Recommended Configuration
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              AI-generated component selection based on your requirements
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs gap-1.5"
+              onClick={() => setSaveLoadMode("save")}
+              title="Save this configuration to your browser"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+              Save
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs gap-1.5"
+              onClick={() => setSaveLoadMode("load")}
+              title="Load a previously saved configuration"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+              </svg>
+              Open
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Badge variant="outline" className="tabular-nums gap-1">
-            <span className="text-primary font-bold">{configuration.totalAxes}</span> axes
-          </Badge>
-          <Badge variant="outline" className="tabular-nums gap-1">
-            <span className="text-primary font-bold">{configuration.totalChannels}</span> ch
-          </Badge>
-          <Badge className={complexityColors[configuration.estimatedComplexity]}>
-            {configuration.estimatedComplexity}
-          </Badge>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs gap-1.5 ml-1"
-            onClick={() => setSaveLoadMode("save")}
-            title="Save this configuration to your browser"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-            </svg>
-            Save
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs gap-1.5"
-            onClick={() => setSaveLoadMode("load")}
-            title="Load a previously saved configuration"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-            </svg>
-            Open
-          </Button>
+
+        {/* Metric cards — separated row, more visual weight */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="rounded-lg border bg-card px-3 py-2.5 flex items-baseline justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Axes</div>
+              <div className="text-xl font-bold text-primary tabular-nums">{configuration.totalAxes}</div>
+            </div>
+          </div>
+          <div className="rounded-lg border bg-card px-3 py-2.5 flex items-baseline justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Channels</div>
+              <div className="text-xl font-bold text-primary tabular-nums">{configuration.totalChannels}</div>
+            </div>
+          </div>
+          <div className="rounded-lg border bg-card px-3 py-2.5">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Control Unit</div>
+            <div className="text-sm font-semibold mt-0.5 truncate">{configuration.controlUnit.id.replace("_", " ")}</div>
+          </div>
+          <div className="rounded-lg border bg-card px-3 py-2.5">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Complexity</div>
+            <Badge className={`${complexityColors[configuration.estimatedComplexity]} mt-0.5 capitalize`}>
+              {configuration.estimatedComplexity}
+            </Badge>
+          </div>
         </div>
       </div>
 
