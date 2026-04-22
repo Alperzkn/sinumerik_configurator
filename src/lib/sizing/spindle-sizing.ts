@@ -7,6 +7,13 @@ export interface SpindleRequirement {
   requiredMaxRpm: number;
   /** Optional preference for drive type: sync for high-speed/high-precision, async for general */
   preferSync?: boolean;
+  /**
+   * Restrict candidate set to a specific motor family (case-insensitive
+   * substring match against MotorSpecs.family — e.g. "1PH8", "1PH3").
+   * Falls back to the full catalog if the hint yields no matches that
+   * meet the power / speed requirements.
+   */
+  familyHint?: string;
 }
 
 export interface SpindleSelection {
@@ -59,6 +66,20 @@ export function selectSpindleMotor(req: SpindleRequirement): SpindleSelection {
   });
 
   let pool = fullyQualified;
+
+  // User asked for a specific family — narrow if any qualified candidates
+  // remain; otherwise fall back to all qualified (and warn).
+  if (req.familyHint) {
+    const hint = req.familyHint.toLowerCase();
+    const familyPool = pool.filter(([, s]) => s.family.toLowerCase().includes(hint));
+    if (familyPool.length > 0) {
+      pool = familyPool;
+    } else if (allSpindles.some(([, s]) => s.family.toLowerCase().includes(hint))) {
+      warnings.push(
+        `No ${req.familyHint} spindle motor meets ${req.requiredPowerKw} kW @ ${req.requiredMaxRpm} rpm — falling back to other families.`
+      );
+    }
+  }
 
   if (req.preferSync) {
     const sync = pool.filter(([, s]) => s.kind === "spindle_sync");

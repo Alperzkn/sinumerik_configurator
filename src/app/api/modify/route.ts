@@ -126,6 +126,28 @@ function getHeuristicMockResponse(req: string) {
     };
   }
 
+  // Family swap — "switch to 1FK2", "use 1FT2 motors", "spindle to 1PH3"
+  const feedFamilyMatch = req.match(/\b(1FT2|1FT7|1FK2|1FK7)\b/i);
+  const spindleFamilyMatch = req.match(/\b(1PH8|1PH3)\b/i);
+  if ((feedFamilyMatch || spindleFamilyMatch) &&
+      (r.includes("use") || r.includes("switch") || r.includes("change") || r.includes("swap") || r.includes("instead"))) {
+    const userSpecsOverride: { feedMotorFamily?: string; spindleMotorFamily?: string } = {};
+    const parts: string[] = [];
+    if (feedFamilyMatch) {
+      userSpecsOverride.feedMotorFamily = feedFamilyMatch[1].toUpperCase();
+      parts.push(`feed motor → ${feedFamilyMatch[1].toUpperCase()} family`);
+    }
+    if (spindleFamilyMatch) {
+      userSpecsOverride.spindleMotorFamily = spindleFamilyMatch[1].toUpperCase();
+      parts.push(`spindle motor → ${spindleFamilyMatch[1].toUpperCase()} family`);
+    }
+    return {
+      action: "resize",
+      changes: { userSpecsOverride },
+      summary: `Re-sized with family preference: ${parts.join(", ")}.`,
+    };
+  }
+
   // Spindle power upgrade
   const kwMatch = r.match(/(\d+(?:\.\d+)?)\s*kw/i);
   if (kwMatch && (r.includes("spindle") || r.includes("upgrade"))) {

@@ -24,6 +24,15 @@ export interface UserSpecsInput {
   handheldUnit?: string;
   /** Preferred motor/encoder cable length in meters (default 10) */
   cableLengthMeters?: string;
+  /**
+   * Restrict feed motor selection to a specific family (substring match
+   * against MotorSpecs.family, e.g. "1FT2", "1FK2", "1FK7", "1FT7").
+   */
+  feedMotorFamily?: string;
+  /**
+   * Restrict spindle motor selection to a specific family (e.g. "1PH8", "1PH3").
+   */
+  spindleMotorFamily?: string;
 }
 
 export interface SizedSelection {
@@ -159,12 +168,14 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
         requiredPowerKw: spindleKw,
         requiredMaxRpm: spindleRpm,
         preferSync,
+        familyHint: userSpecs.spindleMotorFamily,
       });
 
   const feed = selectFeedMotor({
     movingMassKg: massKg,
     rapidTraverseMpm: rapidMpm,
     axisKind: userSpecs.machineSize === "very_large" ? "gantry" : "horizontal",
+    familyHint: userSpecs.feedMotorFamily,
   });
 
   return {

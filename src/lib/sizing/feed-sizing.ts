@@ -7,6 +7,13 @@ export interface FeedRequirement {
   rapidTraverseMpm: number;
   /** Axis type — gantry and vertical axes need higher torque budget */
   axisKind?: "horizontal" | "vertical" | "gantry";
+  /**
+   * Restrict candidate set to a specific motor family (case-insensitive
+   * substring match against MotorSpecs.family — e.g. "1FT2", "1FK2",
+   * "1FK7", "1FT7"). Falls back to the full catalog if the hint yields
+   * no rows that meet the torque requirement.
+   */
+  familyHint?: string;
 }
 
 export interface FeedSelection {
@@ -61,9 +68,24 @@ export function selectFeedMotor(req: FeedRequirement): FeedSelection {
   const minTorque = estimateMinTorque(req);
   const isHeavyDuty = req.movingMassKg >= 1500;
 
-  const feedMotors = Object.entries(MOTOR_SPECS).filter(
+  const allFeed = Object.entries(MOTOR_SPECS).filter(
     ([, s]) => s.kind === "feed_servo"
   );
+
+  // Apply family hint first (e.g. user asked for 1FK2). If hint yields no
+  // rows that also meet torque, fall back to all feed motors and warn.
+  let feedMotors = allFeed;
+  if (req.familyHint) {
+    const hint = req.familyHint.toLowerCase();
+    const familyPool = allFeed.filter(([, s]) => s.family.toLowerCase().includes(hint));
+    if (familyPool.length > 0) {
+      feedMotors = familyPool;
+    } else if (allFeed.some(([, s]) => s.family.toLowerCase().includes(hint))) {
+      warnings.push(
+        `No ${req.familyHint} feed motor meets the torque requirement — falling back to other families.`
+      );
+    }
+  }
 
   // Prefer cooling type based on mass: heavy → forced, light/medium → natural
   let pool = feedMotors.filter(

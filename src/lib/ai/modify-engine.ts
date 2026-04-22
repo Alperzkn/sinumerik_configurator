@@ -106,7 +106,7 @@ Respond with JSON ONLY (no markdown, no prose). Every field is optional — incl
 {
   "action": "swap" | "add" | "remove" | "resize" | "no_change",
   "changes": {
-    "userSpecsOverride": { "spindlePowerKw": 30, "spindleMaxRpm": 12000, "movingMassKg": 500, "rapidTraverseMpm": 40 },
+    "userSpecsOverride": { "spindlePowerKw": 30, "spindleMaxRpm": 12000, "movingMassKg": 500, "rapidTraverseMpm": 40, "feedMotorFamily": "1FT2", "spindleMotorFamily": "1PH8" },
 
     "controlUnitId": "NCU_1750",
     "controlUnitArticle": "6FC5317-5AA00-0AA1",
@@ -136,8 +136,14 @@ Respond with JSON ONLY (no markdown, no prose). Every field is optional — incl
   "warnings": ["Optional: things the user should verify"]
 }
 
+AVAILABLE MOTOR FAMILIES (the deterministic sizing engine picks the article)
+- Feed servo: 1FT7 (compact + forced ventilation), 1FT2 (newer compact, higher torque density at small SH), 1FK2 (S210 OCC), 1FK7 (legacy 2-cable)
+- Main spindle: 1PH8 (async 1000/1500/2000 rpm + sync HighSpeed), 1PH3 (older async, conventional spindles)
+ALL of the above are valid choices. NEVER tell the user a family is unsupported — instead, use userSpecsOverride.feedMotorFamily / spindleMotorFamily to bias the sizing engine to that family.
+
 RULES
 - For motor sizing changes (e.g. "make spindle 30 kW"), use userSpecsOverride. Do NOT pick a specific motor article — the deterministic sizing engine picks the right motor from the catalog when userSpecsOverride is provided.
+- For "switch to <family>" requests (e.g. "use 1FK2", "swap spindle to 1PH3"), set userSpecsOverride.feedMotorFamily or spindleMotorFamily to the family code (e.g. "1FK2", "1PH3"). The sizing engine re-runs with that family preference.
 - For specific component swaps (e.g. "use Active Line Module 55 kW"), use the article-number fields directly.
 - For preference flips (e.g. "switch to active line module"), use preferActiveLineModule: true.
 - For HMI panel size changes (e.g. "use 19\" panel"), use hmiPanelSizeInch — the matching MCP is re-derived automatically.
