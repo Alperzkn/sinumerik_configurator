@@ -5,6 +5,10 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "SINUMERIK ONE Configurator — catalog-driven CNC configuration";
 
+// NOTE: Satori doesn't parse oklch() — every color in this ImageResponse
+// is a hex equivalent of the matching token in globals.css. Keep rough
+// parity if you change a --background / --primary / --foreground value.
+
 export default function OgImage() {
   return new ImageResponse(
     (
@@ -14,8 +18,10 @@ export default function OgImage() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: "oklch(0.14 0.006 220)",
-          color: "oklch(0.96 0.004 95)",
+          // oklch(0.14 0.006 220) — graphite body
+          background: "#070a0b",
+          // oklch(0.96 0.004 95) — paper cream
+          color: "#f2f2ef",
           padding: 64,
           fontFamily: "system-ui, -apple-system, sans-serif",
           position: "relative",
@@ -47,9 +53,9 @@ export default function OgImage() {
                 width: 56,
                 height: 56,
                 borderRadius: 12,
-                background:
-                  "linear-gradient(145deg, oklch(0.76 0.13 195), oklch(0.42 0.11 195))",
-                color: "oklch(0.12 0.006 220)",
+                // oklch(0.76 0.13 195) → oklch(0.42 0.11 195)
+                background: "linear-gradient(145deg, #00cacb, #005e60)",
+                color: "#040607", // oklch(0.12 0.006 220)
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -105,7 +111,7 @@ export default function OgImage() {
               fontWeight: 600,
               lineHeight: 1.05,
               letterSpacing: "-0.02em",
-              color: "oklch(0.82 0.14 195)",
+              color: "#00e0e0", // oklch(0.82 0.14 195) — highlight petrol
             }}
           >
             Get a verified bill of materials.
