@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { WIZARD_STEPS, type WizardStep } from "@/types/catalog";
 import { cn } from "@/lib/utils";
 
@@ -42,13 +43,7 @@ export function StepIndicator({
                     : "bg-muted text-muted-foreground"
                 )}
               >
-                {isCompleted ? (
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
-                ) : (
-                  step.number
-                )}
+                {isCompleted ? <Check className="h-3 w-3" strokeWidth={3} /> : step.number}
               </div>
               <span
                 className={cn(

@@ -3,6 +3,17 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
+import {
+  Check,
+  Copy,
+  Download,
+  FileText,
+  Share2,
+  Save,
+  FolderOpen,
+  ArrowLeft,
+  LayoutPanelTop,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -215,9 +226,7 @@ export function SummaryStep() {
             transition={{ type: "spring", duration: 0.5 }}
             className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
+            <Check className="h-6 w-6" strokeWidth={1.75} />
           </motion.div>
           <div>
             <h2 className="text-xl font-bold">Bill of Materials</h2>
@@ -238,30 +247,22 @@ export function SummaryStep() {
         <Button variant="outline" size="sm" onClick={handleCopyBom} className="gap-1.5">
           {copied ? (
             <>
-              <svg className="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-              </svg>
-              Copied!
+              <Check className="h-3.5 w-3.5 text-emerald-500" />
+              Copied
             </>
           ) : (
             <>
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
-              </svg>
+              <Copy className="h-3.5 w-3.5" />
               Copy
             </>
           )}
         </Button>
         <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-1.5">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-          </svg>
+          <Download className="h-3.5 w-3.5" />
           Excel
         </Button>
         <Button variant="outline" size="sm" onClick={handleExportPdf} className="gap-1.5">
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-          </svg>
+          <FileText className="h-3.5 w-3.5" />
           PDF
         </Button>
         <div className="ml-auto flex items-center gap-2">
@@ -272,21 +273,15 @@ export function SummaryStep() {
             className="gap-1.5"
             title="Share as text — copy a message someone else can paste back"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-            </svg>
+            <Share2 className="h-3.5 w-3.5" />
             Share
           </Button>
           <Button variant="outline" size="sm" onClick={() => setSaveLoadMode("save")} className="gap-1.5">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-            </svg>
+            <Save className="h-3.5 w-3.5" />
             Save
           </Button>
           <Button variant="outline" size="sm" onClick={() => setSaveLoadMode("load")} className="gap-1.5">
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-            </svg>
+            <FolderOpen className="h-3.5 w-3.5" />
             Open
           </Button>
         </div>
@@ -317,7 +312,9 @@ export function SummaryStep() {
               >
                 <td className="py-2 px-3 text-muted-foreground text-xs tabular-nums">{i + 1}</td>
                 <td className="py-2 px-3 whitespace-nowrap">
-                  <code className="text-[11px] font-mono text-primary/80">{line.articleNumber}</code>
+                  <code className="mlfb text-[12px] text-primary">
+                    {line.articleNumber}
+                  </code>
                 </td>
                 <td className="py-2 px-3 text-center font-medium tabular-nums">{line.quantity}</td>
                 <td className="py-2 px-3">
@@ -352,18 +349,14 @@ export function SummaryStep() {
 
       {/* Navigation */}
       <div className="flex items-center justify-between pt-2 border-t">
-        <Button variant="ghost" size="sm" onClick={() => setStep("review")}>
-          <svg className="mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
+        <Button variant="ghost" size="sm" onClick={() => setStep("review")} className="gap-1.5">
+          <ArrowLeft className="h-3.5 w-3.5" />
           Back to Review
         </Button>
         <div className="flex gap-2">
           <Link href="/configure/system">
             <Button variant="outline" size="sm" className="gap-1.5">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Z" />
-              </svg>
+              <LayoutPanelTop className="h-3.5 w-3.5" />
               View System Diagram
             </Button>
           </Link>

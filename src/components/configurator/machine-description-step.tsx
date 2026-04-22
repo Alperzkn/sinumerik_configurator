@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { ClipboardPaste, FolderOpen, Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useConfiguratorStore } from "@/store/configurator-store";
@@ -182,9 +183,7 @@ export function MachineDescriptionStep() {
             className="gap-1.5 text-xs h-8"
             title="Paste a configuration someone shared as text — optionally ask the AI to modify it"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
-            </svg>
+            <ClipboardPaste className="h-3.5 w-3.5" />
             Paste shared
           </Button>
           <Button
@@ -194,9 +193,7 @@ export function MachineDescriptionStep() {
             className="gap-1.5 text-xs h-8"
             title="Open a saved configuration"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-            </svg>
+            <FolderOpen className="h-3.5 w-3.5" />
             Open saved
           </Button>
         </div>
@@ -265,9 +262,7 @@ export function MachineDescriptionStep() {
                       animate={{ scale: 1 }}
                       className="absolute top-2 left-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center"
                     >
-                      <svg className="h-2.5 w-2.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
+                      <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
                     </motion.div>
                   )}
                   <span className="text-2xl mt-1">{template.icon}</span>
@@ -337,9 +332,7 @@ export function MachineDescriptionStep() {
             : mode === "template"
               ? "Continue to Configuration"
               : "Continue to AI Analysis"}
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
+          <ArrowRight className="h-3.5 w-3.5" />
         </Button>
         {!canProceed && (
           <span className="text-xs text-muted-foreground">
