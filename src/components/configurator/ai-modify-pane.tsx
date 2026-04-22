@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { modifyConfiguration } from "@/lib/ai/modify-engine";
 import type { UserSpecsInput } from "@/lib/sizing";
+import { toast } from "@/components/ui/toast";
 
 interface AiModifyPaneProps {
   onApplied?: () => void;
@@ -26,7 +27,7 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastMessage, setLastMessage] = useState<{ role: "user" | "assistant"; content: string } | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const handleSubmit = async (requestText: string) => {
     if (!configuration || !requestText.trim() || isProcessing) return;
@@ -56,18 +57,22 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
           role: "assistant",
           content: result.summary || "Configuration updated.",
         });
+        toast.success("Configuration updated", result.summary);
+        if (result.warnings && result.warnings.length > 0) {
+          toast.warning("Heads-up", result.warnings.join("\n"));
+        }
         onApplied?.();
       } else {
         setLastMessage({
           role: "assistant",
           content: result.summary || "I couldn't modify the configuration. Please try rephrasing.",
         });
+        toast.info("No change applied", result.summary);
       }
     } catch (err) {
-      setLastMessage({
-        role: "assistant",
-        content: `Error: ${err instanceof Error ? err.message : "Unknown error"}`,
-      });
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setLastMessage({ role: "assistant", content: `Error: ${msg}` });
+      toast.error("Modification failed", msg);
     }
 
     setIsProcessing(false);

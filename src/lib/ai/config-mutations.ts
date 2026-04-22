@@ -6,6 +6,7 @@ import {
   selectLineModule,
   getMatchingMcp,
 } from "@/lib/validation/drive-system-rules";
+import { selectCables } from "@/data/cables";
 
 interface SwapOpts {
   shaftHeight?: number;
@@ -31,15 +32,19 @@ export function applySwap(
     warnings: [...config.warnings],
   };
 
+  let regenerateCables = false;
+
   switch (category) {
     case "motor_feed":
       swapFeedMotor(updated, articleNumber, opts?.shaftHeight);
       autoSizeDrivesForMotors(updated);
+      regenerateCables = true; // shaft height may have changed → cable cross-section
       break;
 
     case "motor_spindle":
       swapSpindleMotor(updated, articleNumber, opts?.shaftHeight);
       autoSizeDrivesForMotors(updated);
+      regenerateCables = true;
       break;
 
     case "motor_module_feed":
@@ -58,10 +63,56 @@ export function applySwap(
 
     case "control_unit":
       swapControlUnit(updated, articleNumber);
+      regenerateCables = true; // S210 vs S120 routing differs
       break;
   }
 
+  if (regenerateCables) {
+    return regenerateCablesFor(updated);
+  }
   return updated;
+}
+
+/**
+ * Re-run selectCables for the current motor / drive / HMI set so that
+ * motor power-cable cross-section, encoder cable count, and OCC vs
+ * DRIVE-CLiQ topology stay in sync after a swap.
+ *
+ * Exported so other mutations (e.g. AI modify with userSpecsOverride)
+ * can request a refresh too.
+ */
+export function regenerateCablesFor(config: GeneratedConfiguration): GeneratedConfiguration {
+  const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
+  const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));
+  const feedAxes = feedMm ? config.driveQuantities[feedMm.id] || 0 : 0;
+  const spindleAxes = spindleMm ? config.driveQuantities[spindleMm.id] || 0 : 0;
+
+  const feedMotor = config.motors.find((m) => m.motorType === "feed_servo_sync");
+  const spindleMotor = config.motors.find(
+    (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
+  );
+
+  // Detect drive family from existing line module / motor module article numbers.
+  // S210 line modules use a different prefix; if absent, default to S120 booksize.
+  const lineModule = config.drives.find(
+    (d) =>
+      d.componentType === "line_module_active" ||
+      d.componentType === "line_module_smart" ||
+      d.componentType === "line_module_basic"
+  );
+  const driveFamily = lineModule?.driveFamily || feedMm?.driveFamily || "S120_booksize";
+
+  const cables = selectCables({
+    feedAxes,
+    spindleAxes,
+    controlUnitId: config.controlUnit.id,
+    hmiCategory: config.hmiComponents[0]?.category,
+    driveFamily,
+    feedMotorShaftHeight: feedMotor?.shaftHeight,
+    spindleMotorShaftHeight: spindleMotor?.shaftHeight,
+  });
+
+  return { ...config, cables };
 }
 
 function swapFeedMotor(config: GeneratedConfiguration, article: string, shaftHeight?: number) {

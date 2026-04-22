@@ -11,6 +11,7 @@ import {
   setHmiPanelSize,
   swapHmi,
   swapMcp,
+  regenerateCablesFor,
 } from "./config-mutations";
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
 import { selectLineModule } from "@/lib/validation/drive-system-rules";
@@ -388,6 +389,12 @@ function applyModifications(
       }
     }
   }
+
+  // Always refresh cables after a modify — motor swaps change shaft height
+  // (and so the cable cross-section), control unit swaps may change S120↔S210
+  // routing, and option/safety changes don't affect cables but the cost is
+  // negligible and a single source of truth is safer than per-branch logic.
+  updated = regenerateCablesFor(updated);
 
   return {
     updatedConfiguration: updated,

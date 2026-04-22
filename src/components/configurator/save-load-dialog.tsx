@@ -23,6 +23,7 @@ import {
   type SavedConfig,
 } from "@/lib/storage/saved-configs";
 import { useConfiguratorStore } from "@/store/configurator-store";
+import { toast } from "@/components/ui/toast";
 
 type Mode = "save" | "load";
 
@@ -78,6 +79,7 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
   const handleSave = () => {
     if (!configuration) {
       setError("There is no configuration to save yet.");
+      toast.error("Nothing to save", "Build or load a configuration first.");
       return;
     }
     try {
@@ -89,8 +91,11 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
       });
       setSaved(listSavedConfigs());
       setInfo(`Saved as "${result.name}".`);
+      toast.success("Configuration saved", result.name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save.");
+      const msg = e instanceof Error ? e.message : "Failed to save.";
+      setError(msg);
+      toast.error("Save failed", msg);
     }
   };
 
@@ -98,20 +103,25 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
     const cfg = loadConfig(id);
     if (!cfg) {
       setError("Saved configuration not found.");
+      toast.error("Load failed", "Saved configuration not found.");
       return;
     }
     loadSavedSnapshot(cfg.data);
+    toast.success("Configuration loaded", cfg.name);
     onClose();
   };
 
   const handleDelete = (id: string) => {
+    const target = saved.find((c) => c.id === id);
     deleteConfig(id);
     setSaved(listSavedConfigs());
     setInfo("Deleted.");
+    toast.info("Deleted", target?.name);
   };
 
   const handleExport = (cfg: SavedConfig) => {
     exportConfigAsJson(cfg);
+    toast.success("Exported", `${cfg.name}.json downloaded`);
   };
 
   const handleImport = async (file: File) => {
@@ -119,8 +129,11 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
       const result = await importConfigFromFile(file);
       setSaved(listSavedConfigs());
       setInfo(`Imported "${result.name}".`);
+      toast.success("Imported", result.name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Import failed.");
+      const msg = e instanceof Error ? e.message : "Import failed.";
+      setError(msg);
+      toast.error("Import failed", msg);
     }
   };
 
@@ -165,6 +178,8 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
               ref={fileInputRef}
               type="file"
               accept="application/json"
+              aria-label="Import configuration JSON"
+              title="Import configuration JSON"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];

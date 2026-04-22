@@ -23,6 +23,7 @@ import {
 } from "@/lib/ai/config-mutations";
 import { softwareOptions as catalogSoftwareOptions } from "@/data/software-options";
 import { technologyPackages as catalogTechPackages } from "@/data/technology-packages";
+import { toast } from "@/components/ui/toast";
 
 export function ConfigurationStep() {
   const { configuration, setStep, completeStep, setConfiguration, aiMessages } = useConfiguratorStore();
@@ -41,6 +42,7 @@ export function ConfigurationStep() {
     if (!configuration || !swapState) return;
     const updated = applySwap(configuration, swapState.category, articleNumber);
     setConfiguration(updated);
+    toast.success("Component swapped", `${swapState.category.replace(/_/g, " ")} → ${articleNumber}`);
     setSwapState(null);
   };
 
@@ -235,6 +237,7 @@ export function ConfigurationStep() {
                 quantity={configuration.optionQuantities[opt.id]}
                 onRemove={() => {
                   setConfiguration(removeSoftwareOption(configuration, opt.id));
+                  toast.info("Option removed", `${opt.orderCode} — ${opt.name}`);
                 }}
               />
             ))
@@ -522,8 +525,14 @@ export function ConfigurationStep() {
         configuration={configuration}
         catalogOptions={catalogSoftwareOptions}
         catalogPackages={catalogTechPackages}
-        onAddOption={(opt, qty) => setConfiguration(addSoftwareOption(configuration, opt, qty))}
-        onAddPackage={(pkg) => setConfiguration(addTechnologyPackage(configuration, pkg))}
+        onAddOption={(opt, qty) => {
+          setConfiguration(addSoftwareOption(configuration, opt, qty));
+          toast.success("Option added", `${opt.orderCode}${qty > 1 ? ` × ${qty}` : ""} — ${opt.name}`);
+        }}
+        onAddPackage={(pkg) => {
+          setConfiguration(addTechnologyPackage(configuration, pkg));
+          toast.success("Package added", `${pkg.orderCode} — ${pkg.name}`);
+        }}
       />
 
       {/* Save / Load dialog */}
