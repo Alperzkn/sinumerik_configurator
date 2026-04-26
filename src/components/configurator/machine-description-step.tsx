@@ -151,6 +151,7 @@ export function MachineDescriptionStep() {
     spindleMaxRpm: parseNumeric(s.spindleSpeed),
     movingMassKg: parseNumeric(s.movingMass),
     rapidTraverseMpm: parseNumeric(s.rapidTraverse),
+    axisTravel: s.axisTravel,
     machineSize: (s.machineSize || "") as UserSpecsInput["machineSize"],
     material: s.material,
     ioModule: s.ioModule,

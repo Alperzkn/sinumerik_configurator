@@ -291,11 +291,36 @@ export function selectCables(config: {
   const totalDriveAxes = config.feedAxes + config.spindleAxes;
   const isS210 = config.driveFamily === "S210";
 
-  // Map user-preferred length to a catalog length suffix. 10m is the default.
+  // Resolve user-preferred length. We pick a stocked variant from the
+  // catalog (5m or 10m) as the *base* MLFB, then if the user requested a
+  // different length, rewrite the cable's display fields so the BOM
+  // shows what they asked for. The base MLFB is documented in the
+  // description with the D21.4 length-suffix lookup hint.
   const rawLen = parseInt(config.cableLengthMeters || "10", 10);
   const resolvedLen = Number.isFinite(rawLen) && rawLen > 0 ? rawLen : 10;
-  // Catalog currently stocks 5m and 10m cuts; snap to the nearest available.
+  const userRequestedLen = resolvedLen;
   const catalogLen = resolvedLen <= 7 ? "5m" : "10m";
+
+  /**
+   * Stamp the user-requested length onto a catalog cable entry. When the
+   * user asks for, say, 25 m and the catalog only stocks 5 m / 10 m, we
+   * use the 10 m base MLFB but rewrite name + length + description to
+   * reflect the user's request — that's what they typed and that's what
+   * they want to see in the BOM. The MLFB suffix (-1AF0, -1BA0, …)
+   * encodes the actual length and is selected at order time per D21.4.
+   */
+  const applyUserLength = (cable: CableAccessory): CableAccessory => {
+    const stocked = cable.length === `${userRequestedLen}m`;
+    if (stocked || !cable.length) return cable;
+    return {
+      ...cable,
+      length: `${userRequestedLen} m`,
+      name: cable.name.replace(/\b\d+\s*m\b/, `${userRequestedLen} m`),
+      description:
+        `${cable.description} ` +
+        `User-specified length: ${userRequestedLen} m — confirm the matching MLFB suffix in catalog D21.4.`,
+    };
+  };
 
   if (isS210) {
     // S210 uses OCC (One Cable Connection) — one cable per axis.
@@ -306,11 +331,12 @@ export function selectCables(config: {
       ?? cablesCatalog.find((c) => c.id === `occ-cable-${shPart}-10m`)
       ?? cablesCatalog.find((c) => c.id === `occ-cable-${shPart}-5m`);
     if (occ) {
-      cables.push({ ...occ, quantity: config.feedAxes });
+      cables.push(applyUserLength({ ...occ, quantity: config.feedAxes }));
     }
   } else {
     // S120 booksize DRIVE-CLiQ topology:
     // NCU→LineModule (1) + LineModule→MM1 (1) + MM daisy-chain (N-1) = N+1
+    // (DRIVE-CLiQ cables are inside-cabinet runs — fixed 1m, not user-overridable.)
     const dcliqCount = calculateDriveCliqCables(config.feedAxes, config.spindleAxes);
     const dcliq = cablesCatalog.find((c) => c.id === "dcliq-1m")!;
     cables.push({ ...dcliq, quantity: dcliqCount });
@@ -322,7 +348,7 @@ export function selectCables(config: {
     const feedCable = cablesCatalog.find((c) => c.id === `motor-power-${feedCableSize}-${catalogLen}`)
       ?? cablesCatalog.find((c) => c.id === `motor-power-${feedCableSize}-10m`);
     if (feedCable) {
-      cables.push({ ...feedCable, quantity: config.feedAxes });
+      cables.push(applyUserLength({ ...feedCable, quantity: config.feedAxes }));
     }
 
     // Spindle motor power cable — sized by spindle shaft height (typically larger)
@@ -332,7 +358,7 @@ export function selectCables(config: {
       const spindleCable = cablesCatalog.find((c) => c.id === `motor-power-${spindleCableSize}-${catalogLen}`)
         ?? cablesCatalog.find((c) => c.id === `motor-power-${spindleCableSize}-10m`);
       if (spindleCable) {
-        cables.push({ ...spindleCable, quantity: config.spindleAxes });
+        cables.push(applyUserLength({ ...spindleCable, quantity: config.spindleAxes }));
       }
     }
 
@@ -343,7 +369,9 @@ export function selectCables(config: {
     const encoderCable = cablesCatalog.find((c) => c.id === `signal-cable-${catalogLen}`)
       ?? cablesCatalog.find((c) => c.id === "signal-cable-10m");
     if (encoderCable) {
-      cables.push({ ...encoderCable, quantity: config.feedAxes + config.spindleAxes });
+      cables.push(
+        applyUserLength({ ...encoderCable, quantity: config.feedAxes + config.spindleAxes })
+      );
     }
   }
 

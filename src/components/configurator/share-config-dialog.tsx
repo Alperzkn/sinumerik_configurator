@@ -146,8 +146,13 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
         spindleMaxRpm: parseNum(payload.machineSpecs.spindleSpeed),
         movingMassKg: parseNum(payload.machineSpecs.movingMass),
         rapidTraverseMpm: parseNum(payload.machineSpecs.rapidTraverse),
+        axisTravel: payload.machineSpecs.axisTravel,
         machineSize: payload.machineSpecs.machineSize as UserSpecsInput["machineSize"],
         material: payload.machineSpecs.material,
+        ioModule: payload.machineSpecs.ioModule,
+        handheldUnit: payload.machineSpecs.handheldUnit,
+        cableLengthMeters: payload.machineSpecs.cableLengthMeters,
+        safetyLevel: (payload.machineSpecs.safetyLevel || "") as UserSpecsInput["safetyLevel"],
       };
 
       const result = await modifyConfiguration(

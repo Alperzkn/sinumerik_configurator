@@ -14,6 +14,13 @@ export interface UserSpecsInput {
   movingMassKg?: number;
   /** User-entered rapid traverse in m/min (optional) */
   rapidTraverseMpm?: number;
+  /**
+   * Free-text axis travel string (e.g. "1500", "X1500×Y1200×Z800",
+   * "X 2000 Y 1500"). Used as a fallback hint for machine-size class
+   * when the explicit `machineSize` selector wasn't picked — the
+   * sizing engine extracts the largest dimension from the string.
+   */
+  axisTravel?: string;
   /** Machine size class used to derive defaults if numbers are missing */
   machineSize?: "small" | "medium" | "large" | "very_large" | "";
   /** Primary workpiece material — influences speed/power mix defaults */
@@ -99,17 +106,45 @@ export interface SizingInput {
   preferHighSpeedSpindle?: boolean;
 }
 
+/**
+ * Infer a machine-size class from a free-text axis-travel string. Pulls
+ * the largest numeric token (in mm) and bins it. Used only as a
+ * fallback when the user typed a travel value but didn't pick a size.
+ */
+function inferMachineSizeFromTravel(
+  axisTravel: string | undefined
+): "small" | "medium" | "large" | "very_large" | undefined {
+  if (!axisTravel) return undefined;
+  const matches = axisTravel.match(/(\d{2,5})/g);
+  if (!matches || matches.length === 0) return undefined;
+  const maxMm = Math.max(...matches.map((m) => parseInt(m, 10)));
+  if (!Number.isFinite(maxMm) || maxMm <= 0) return undefined;
+  if (maxMm >= 2000) return "very_large";
+  if (maxMm >= 1500) return "large";
+  if (maxMm >= 500) return "medium";
+  return "small";
+}
+
 export function sizeConfiguration(input: SizingInput): SizedSelection {
   const { userSpecs, template } = input;
   const assumptions: string[] = [];
 
-  // Pick defaults: machineSize > template > generic medium
-  const sizeKey = userSpecs.machineSize as
+  // Pick defaults: machineSize > axisTravel-inferred > template > generic medium
+  let sizeKey = userSpecs.machineSize as
     | "small"
     | "medium"
     | "large"
     | "very_large"
     | undefined;
+  if (!sizeKey) {
+    const inferred = inferMachineSizeFromTravel(userSpecs.axisTravel);
+    if (inferred) {
+      sizeKey = inferred;
+      assumptions.push(
+        `Machine size class inferred from axis travel (${userSpecs.axisTravel}) → ${inferred}.`
+      );
+    }
+  }
   const defaults =
     (sizeKey && DEFAULTS_BY_SIZE[sizeKey]) ??
     (template ? DEFAULTS_BY_TEMPLATE[template] : undefined) ??
@@ -162,10 +197,20 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
   // - Explicit signal from AI architecture
   // - Required rpm > 10000 (async 1PH8 tops out ~8000-9000 for most sizes)
   // - 5-axis mill template often implies HSC
+  // - Light / soft workpiece materials (aluminum, plastic, composite) are
+  //   typically machined at higher RPM, so bias toward a sync spindle.
+  const mat = (userSpecs.material || "").toLowerCase();
+  const lightMaterial = /alumin|plastic|composite|wood|brass|copper/.test(mat);
   const preferSync =
     input.preferHighSpeedSpindle ||
     spindleRpm > 10000 ||
-    template === "5axis_mill";
+    template === "5axis_mill" ||
+    lightMaterial;
+  if (lightMaterial && !derivedFromDefaults.spindleSpeed) {
+    assumptions.push(
+      `Material "${userSpecs.material}" is typically high-speed-machined — biased toward synchronous spindle.`
+    );
+  }
 
   // Skip spindle selection entirely for machines that don't have a traditional
   // rotary spindle (laser, robot, punching have external/linear actuators).

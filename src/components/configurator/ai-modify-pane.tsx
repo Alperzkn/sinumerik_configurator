@@ -46,8 +46,13 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
       spindleMaxRpm: parseNum(machineSpecs.spindleSpeed),
       movingMassKg: parseNum(machineSpecs.movingMass),
       rapidTraverseMpm: parseNum(machineSpecs.rapidTraverse),
+      axisTravel: machineSpecs.axisTravel,
       machineSize: machineSpecs.machineSize as UserSpecsInput["machineSize"],
       material: machineSpecs.material,
+      ioModule: machineSpecs.ioModule,
+      handheldUnit: machineSpecs.handheldUnit,
+      cableLengthMeters: machineSpecs.cableLengthMeters,
+      safetyLevel: (machineSpecs.safetyLevel || "") as UserSpecsInput["safetyLevel"],
     };
 
     try {

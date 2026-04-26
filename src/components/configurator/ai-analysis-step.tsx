@@ -25,6 +25,7 @@ function specsToSizingInput(specs: MachineSpecsState): UserSpecsInput {
     spindleMaxRpm: parseNumeric(specs.spindleSpeed),
     movingMassKg: parseNumeric(specs.movingMass),
     rapidTraverseMpm: parseNumeric(specs.rapidTraverse),
+    axisTravel: specs.axisTravel,
     machineSize: (specs.machineSize || "") as UserSpecsInput["machineSize"],
     material: specs.material,
     ioModule: specs.ioModule,
@@ -62,6 +63,24 @@ function buildInitialUserMessage(
       full: "Full safety with per-axis and kinematics (S60 + S61 + K options)",
     };
     specsLines.push(`- Required safety level: ${safetyLabels[specs.safetyLevel] || specs.safetyLevel}`);
+  }
+  if (specs.handheldUnit && specs.handheldUnit !== "" && specs.handheldUnit !== "none") {
+    const hhLabels: Record<string, string> = {
+      ht2: "SINUMERIK HT 2 (compact 4.6\" handwheel + e-stop)",
+      ht10: "SINUMERIK HT 10 (10\" touch handheld for setup-heavy operation)",
+    };
+    specsLines.push(`- Handheld terminal: ${hhLabels[specs.handheldUnit] || specs.handheldUnit} — included by the post-processor; do not need to select it yourself.`);
+  }
+  if (specs.ioModule && specs.ioModule !== "") {
+    const ioLabels: Record<string, string> = {
+      pp_72_48: "PP 72/48 D PN (default for NCU)",
+      et200sp: "ET 200SP (modular distributed I/O)",
+      none: "No machine I/O module",
+    };
+    specsLines.push(`- Machine I/O: ${ioLabels[specs.ioModule] || specs.ioModule} — applied deterministically post-AI.`);
+  }
+  if (specs.cableLengthMeters && specs.cableLengthMeters.trim()) {
+    specsLines.push(`- Preferred motor / encoder cable length: ${specs.cableLengthMeters} m`);
   }
 
   let msg = "";
