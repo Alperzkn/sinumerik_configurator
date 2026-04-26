@@ -187,7 +187,12 @@ export function AiAnalysisStep() {
     setIsFirstCall(false);
   }, [selectedTemplate, machineDescription, machineSpecs, addAiMessage, setAiProcessing, setConfiguration]);
 
-  // Initial analysis
+  // Initial analysis. The user already provided everything on the
+  // previous step — re-rendering the full prompt (with HARD CONSTRAINTS,
+  // IMPORTANT notes, etc.) as a chat bubble was prompt plumbing leaking
+  // into the UI. Send the prompt to the API but DON'T add it to the
+  // visible chat. The first visible message is the AI's reply (either a
+  // clarifying question or a configuration summary).
   const initiateAnalysis = useCallback(async () => {
     if (hasInitiated.current) return;
     hasInitiated.current = true;
@@ -214,16 +219,8 @@ export function AiAnalysisStep() {
       machineSpecs
     );
 
-    const userMsg: AiMessage = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: userContent,
-      timestamp: Date.now(),
-    };
-    addAiMessage(userMsg);
-
     await callAi([{ role: "user", content: userContent }]);
-  }, [machineDescription, selectedTemplate, machineSpecs, addAiMessage, callAi]);
+  }, [machineDescription, selectedTemplate, machineSpecs, callAi]);
 
   useEffect(() => {
     if (aiMessages.length === 0) {
