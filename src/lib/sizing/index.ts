@@ -25,6 +25,16 @@ export interface UserSpecsInput {
   /** Preferred motor/encoder cable length in meters (default 10) */
   cableLengthMeters?: string;
   /**
+   * Required safety level. When set, overrides whatever safety options
+   * the AI architecture (or template) defaulted to:
+   *   "basic"    → no extended safety (STO/SS1/SBC hardware only)
+   *   "extended" → S60 (F-PLC) + S61 (multi-axis monitoring)
+   *   "full"     → S60 + S61 + per-axis K codes covering the axis count
+   * Read in src/lib/ai/response-parser.ts (Safety section) where it
+   * deterministically replaces raw.safety.options.
+   */
+  safetyLevel?: "basic" | "extended" | "full" | "";
+  /**
    * Restrict feed motor selection to a specific family (substring match
    * against MotorSpecs.family, e.g. "1FT2", "1FK2", "1FK7", "1FT7").
    */

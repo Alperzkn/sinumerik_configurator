@@ -30,6 +30,7 @@ function specsToSizingInput(specs: MachineSpecsState): UserSpecsInput {
     ioModule: specs.ioModule,
     handheldUnit: specs.handheldUnit,
     cableLengthMeters: specs.cableLengthMeters,
+    safetyLevel: (specs.safetyLevel || "") as UserSpecsInput["safetyLevel"],
   };
 }
 

@@ -142,6 +142,7 @@ export function MachineDescriptionStep() {
     ioModule: s.ioModule,
     handheldUnit: s.handheldUnit,
     cableLengthMeters: s.cableLengthMeters,
+    safetyLevel: (s.safetyLevel || "") as UserSpecsInput["safetyLevel"],
   });
 
   const handleProceed = async () => {

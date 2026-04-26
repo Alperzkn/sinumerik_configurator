@@ -94,6 +94,27 @@ function findSafetyFunction(code: string): SafetyFunction | undefined {
 }
 
 /**
+ * Map the user-form safetyLevel to an explicit list of catalog order
+ * codes. Used to override architecture defaults so picking "Extended" or
+ * "Full" on the specs form actually shows up in the BOM, even on the
+ * deterministic template path that never sees the AI prompt.
+ */
+function deriveSafetyCodes(
+  level: "basic" | "extended" | "full" | string,
+  totalAxes: number
+): string[] {
+  if (level === "basic") return [];
+  if (level === "extended") return ["S60", "S61"];
+  if (level === "full") {
+    // K codes are per-axis monitoring. Cap at K09 (max in safety.ts).
+    const n = Math.max(1, Math.min(9, totalAxes || 6));
+    const kCodes = Array.from({ length: n }, (_, i) => `K0${i + 1}`);
+    return ["S60", "S61", ...kCodes];
+  }
+  return [];
+}
+
+/**
  * Build a GeneratedConfiguration from (AI architecture + user specs).
  *
  * The AI response specifies high-level architecture only. All motor /
@@ -380,13 +401,32 @@ export function parseAiResponse(
   }
 
   // ─── 10. Safety ───
+  // User-form safetyLevel (when set) deterministically OVERRIDES whatever
+  // the AI/template returned. Otherwise we honour the architecture's
+  // safety.options + any rerouted codes from step 4.
+  const userSafetyLevel = specs?.safetyLevel || "";
+  const totalAxesForSafety = raw.totalAxes ?? feedAxisCount + spindleCount;
+
   const safetyFunctions: SafetyFunction[] = [];
   const basicSafety = catalogData?.safetyFunctions.filter((sf) => sf.isBasicScope);
   if (basicSafety) safetyFunctions.push(...basicSafety);
-  const safetyCodes = new Set<string>([
-    ...(raw.safety?.options || []).map((c) => c.toUpperCase()),
-    ...reroutedSafetyCodes,
-  ]);
+
+  let safetyCodes: Set<string>;
+  if (userSafetyLevel) {
+    safetyCodes = new Set(
+      deriveSafetyCodes(userSafetyLevel, totalAxesForSafety)
+    );
+    notes.push(
+      `[User override] Safety level: ${userSafetyLevel}${
+        safetyCodes.size > 0 ? ` → ${Array.from(safetyCodes).join(", ")}` : " (basic only — STO/SS1/SBC hardware)"
+      }`
+    );
+  } else {
+    safetyCodes = new Set<string>([
+      ...(raw.safety?.options || []).map((c) => c.toUpperCase()),
+      ...reroutedSafetyCodes,
+    ]);
+  }
   for (const code of safetyCodes) {
     const sf = findSafetyFunction(code);
     if (sf && !sf.isBasicScope && !safetyFunctions.some((s) => s.id === sf.id)) {
