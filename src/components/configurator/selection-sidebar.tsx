@@ -166,8 +166,12 @@ export function SelectionSidebar() {
 
   return (
     <motion.aside
+      // Hidden on mobile — the wizard's stacked layout already shows
+      // every selected component as cards inline. Re-introducing the
+      // floating sidebar here would just steal screen real estate.
       className={cn(
-        "fixed right-0 top-0 z-40 h-screen border-l bg-card/95 backdrop-blur-sm flex flex-col",
+        "fixed right-0 top-0 z-40 h-screen border-l bg-card/95 backdrop-blur-sm",
+        "hidden md:flex flex-col",
         "transition-[width] duration-300 ease-in-out",
         collapsed ? "w-12" : "w-72"
       )}

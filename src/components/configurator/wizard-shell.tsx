@@ -33,11 +33,12 @@ export function WizardShell() {
     <div className="min-h-screen bg-background">
       <SelectionSidebar />
 
-      <div className="pr-12 transition-all duration-300">
+      {/* Reserve right gutter only at md+ — sidebar is hidden on mobile */}
+      <div className="md:pr-12 transition-all duration-300">
         {/* Header */}
         <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/70">
-          <div className="mx-auto max-w-6xl px-6">
-            <div className="flex items-center h-14 gap-6">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="flex items-center h-14 gap-3 sm:gap-6">
               {/* Logo — left aligned */}
               <Link href="/" className="shrink-0 flex items-center gap-2.5 group">
                 <div className="h-8 w-8 rounded-lg bg-linear-to-br from-primary to-primary/70 flex items-center justify-center shadow-sm shadow-primary/20 group-hover:shadow-primary/40 transition-shadow">
@@ -67,7 +68,7 @@ export function WizardShell() {
         </header>
 
         {/* Content */}
-        <main className="mx-auto max-w-6xl px-6 py-8">
+        <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
           <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
         </main>
       </div>

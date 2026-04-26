@@ -8,8 +8,8 @@ export default function HomePage() {
     <main className="flex-1 flex flex-col">
       {/* ── Masthead ──────────────────────────────────────────────── */}
       <header className="border-b">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex items-center h-14 gap-4">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="flex items-center h-14 gap-3 sm:gap-4">
             <Link
               href="/"
               className="flex items-center gap-2.5 group"
@@ -52,19 +52,19 @@ export default function HomePage() {
       </header>
 
       {/* ── Masthead strap — dateline tick rule ───────────────────── */}
-      <div className="mx-auto max-w-6xl px-6 w-full pt-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 w-full pt-6">
         <hr className="rule-tick" />
       </div>
 
       {/* ── Lede ──────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-6 w-full pt-8 pb-10">
-        <div className="grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-10 items-end">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 w-full pt-6 sm:pt-8 pb-8 sm:pb-10">
+        <div className="grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-8 lg:gap-10 items-end">
           <div>
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-5">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4 sm:mb-5">
               <span className="inline-block h-1 w-6 bg-primary" />
               <span>Catalog-driven configuration</span>
             </div>
-            <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl leading-[0.98] tracking-tight">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.98] tracking-tight">
               <span className="block font-light">Describe your</span>
               <span className="block font-semibold italic text-primary">
                 machine tool.
@@ -95,7 +95,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Three entry routes ─────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-6 w-full pb-14">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 w-full pb-12 sm:pb-14">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <RouteCard
             kind="01"
@@ -125,7 +125,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Live BOM sample (the product IS this table) ───────────── */}
-      <section className="mx-auto max-w-6xl px-6 w-full pb-16">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 w-full pb-12 sm:pb-16">
         <div className="flex items-baseline justify-between mb-4">
           <div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -143,7 +143,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Method note ───────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-6 w-full pb-20">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 w-full pb-16 sm:pb-20">
         <hr className="rule-tick" />
         <div className="grid sm:grid-cols-3 gap-x-10 gap-y-6 pt-8">
           <MethodNote
@@ -163,7 +163,7 @@ export default function HomePage() {
 
       {/* ── Footer ─────────────────────────────────────────────────── */}
       <footer className="mt-auto border-t">
-        <div className="mx-auto max-w-6xl px-6 py-6 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[11px] text-muted-foreground">
           <p>
             <span className="font-mono uppercase tracking-[0.15em]">
               NC63 · D21 · D31

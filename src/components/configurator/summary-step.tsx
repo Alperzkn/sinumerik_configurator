@@ -218,13 +218,13 @@ export function SummaryStep() {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="flex items-start gap-3 sm:gap-4">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0"
+            className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0"
           >
             <Check className="h-5 w-5" strokeWidth={1.75} />
           </motion.div>
@@ -232,7 +232,7 @@ export function SummaryStep() {
             <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
               Step 04 · Bill of materials
             </div>
-            <h2 className="text-2xl font-medium tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-medium tracking-tight">
               Complete — ready to order
             </h2>
             <p className="mt-1 text-sm text-muted-foreground max-w-xl">
@@ -240,15 +240,15 @@ export function SummaryStep() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 flex-wrap sm:shrink-0">
           <Badge variant="outline" className="tabular-nums">{bomLines.length} items</Badge>
           <Badge variant="outline" className="tabular-nums">{totalQty} qty</Badge>
           <Badge variant="outline">{configuration.controlUnit.id.replace("_", " ")}</Badge>
         </div>
       </div>
 
-      {/* Export actions */}
-      <div className="flex items-center gap-2">
+      {/* Export actions — wrap on mobile so 6 buttons don't overflow */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Button variant="outline" size="sm" onClick={handleCopyBom} className="gap-1.5">
           {copied ? (
             <>
@@ -270,7 +270,7 @@ export function SummaryStep() {
           <FileText className="h-3.5 w-3.5" />
           PDF
         </Button>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
@@ -294,9 +294,10 @@ export function SummaryStep() {
 
       <Separator />
 
-      {/* BOM Table */}
+      {/* BOM Table — horizontally scrollable on small screens */}
       <div className="rounded-lg border overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-160">
           <thead>
             <tr className="border-b bg-muted/40">
               <th className="text-left py-2.5 px-3 text-[11px] font-semibold text-muted-foreground w-8">#</th>
@@ -335,6 +336,7 @@ export function SummaryStep() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Notes */}

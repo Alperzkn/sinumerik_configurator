@@ -109,12 +109,12 @@ export function ConfigurationStep() {
     >
       {/* Header — split into title row + single status strip */}
       <div className="space-y-4">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
             <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
               Step 03 · Configure
             </div>
-            <h2 className="text-2xl font-medium tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-medium tracking-tight">
               Generated configuration
             </h2>
             <p className="mt-1 text-sm text-muted-foreground max-w-xl">
@@ -125,7 +125,7 @@ export function ConfigurationStep() {
             <Button
               size="sm"
               variant="outline"
-              className="h-8 text-xs gap-1.5"
+              className="h-8 text-xs gap-1.5 flex-1 sm:flex-none"
               onClick={() => setSaveLoadMode("save")}
               title="Save this configuration to your browser"
             >
@@ -135,7 +135,7 @@ export function ConfigurationStep() {
             <Button
               size="sm"
               variant="outline"
-              className="h-8 text-xs gap-1.5"
+              className="h-8 text-xs gap-1.5 flex-1 sm:flex-none"
               onClick={() => setSaveLoadMode("load")}
               title="Load a previously saved configuration"
             >
@@ -145,9 +145,9 @@ export function ConfigurationStep() {
           </div>
         </div>
 
-        {/* Status strip — single row, tick-marked, blueprint-style */}
+        {/* Status strip — 2-up on small screens, 4-up on sm+ */}
         <div className="rounded-md border bg-card/60 overflow-hidden">
-          <div className="grid grid-cols-4 divide-x divide-border">
+          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-border">
             <StatCell label="Control Unit" value={configuration.controlUnit.id.replace("_", " ")} mono />
             <StatCell label="Axes" value={String(configuration.totalAxes)} />
             <StatCell label="Channels" value={String(configuration.totalChannels)} />

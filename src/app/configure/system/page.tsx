@@ -33,11 +33,11 @@ export default function SystemPage() {
     <div className="min-h-screen bg-background">
       <SelectionSidebar />
 
-      <div className="pr-12 transition-all duration-300">
+      <div className="md:pr-12 transition-all duration-300">
         {/* Shared header matching wizard */}
         <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="flex items-center h-14 gap-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="flex items-center h-14 gap-3 sm:gap-8">
               <Link href="/" className="shrink-0 flex items-center gap-2">
                 <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
                   <span className="text-primary-foreground text-xs font-bold">S</span>
@@ -50,20 +50,21 @@ export default function SystemPage() {
 
               <div className="h-5 w-px bg-border" />
 
-              <div className="flex items-center gap-3 text-sm">
+              <div className="hidden sm:flex items-center gap-3 text-sm min-w-0">
                 <Link href="/configure" className="text-muted-foreground hover:text-foreground transition-colors">
                   Configuration
                 </Link>
                 <span className="text-muted-foreground/40">/</span>
-                <span className="text-foreground font-medium">System Diagram</span>
+                <span className="text-foreground font-medium truncate">System Diagram</span>
               </div>
 
               <div className="flex-1" />
 
-              <Link href="/configure">
+              <Link href="/configure" className="shrink-0">
                 <Button variant="ghost" size="sm" className="gap-1.5">
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to BOM
+                  <span className="hidden xs:inline sm:inline">Back to BOM</span>
+                  <span className="xs:hidden sm:hidden">Back</span>
                 </Button>
               </Link>
             </div>
@@ -71,7 +72,7 @@ export default function SystemPage() {
         </header>
 
         {/* Content */}
-        <main className="mx-auto max-w-7xl px-6 py-8">
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
           <div className="mb-6">
             <h1 className="text-xl font-bold">System Diagram</h1>
             <p className="mt-1 text-sm text-muted-foreground">

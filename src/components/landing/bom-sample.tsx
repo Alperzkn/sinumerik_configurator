@@ -127,11 +127,11 @@ export function LandingBomSample() {
   return (
     <div className="rounded-md border bg-card overflow-hidden">
       {/* Header strip — looks like a document header, not a pill */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/20">
-        <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] font-mono text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b bg-muted/20">
+        <div className="hidden sm:flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] font-mono text-muted-foreground">
           <span>Pos · MLFB · Qty · Description</span>
         </div>
-        <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.15em] text-muted-foreground">
+        <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.15em] text-muted-foreground sm:ml-auto">
           <span>
             <span className="text-foreground tabular-nums">{rows.length}</span> items
           </span>
@@ -142,7 +142,8 @@ export function LandingBomSample() {
         </div>
       </div>
 
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full text-sm min-w-160">
         <tbody>
           {rows.map((row, i) => (
             <tr
@@ -185,6 +186,7 @@ export function LandingBomSample() {
           ))}
         </tbody>
       </table>
+      </div>
 
       {/* Tick-marked footer — dimensional drawing vibe */}
       <div className="px-4 py-2 border-t bg-muted/10 flex items-center justify-between text-[10px] font-mono text-muted-foreground uppercase tracking-[0.15em]">

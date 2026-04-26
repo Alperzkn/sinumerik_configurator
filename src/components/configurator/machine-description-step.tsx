@@ -120,11 +120,25 @@ export function MachineDescriptionStep() {
   const [showShare, setShowShare] = useState(false);
 
   const hasTemplate = !!selectedTemplate && selectedTemplate !== "custom";
-  const hasCustom = machineDescription.trim().length > 10;
-  const canProceed = hasTemplate || hasCustom;
-  // Template flow uses deterministic build path; custom description goes
-  // through AI analysis.
-  const useTemplateFlow = hasTemplate;
+  const hasNotes = machineDescription.trim().length > 0;
+  const hasCustomDescription = machineDescription.trim().length > 10;
+  const canProceed = hasTemplate || hasCustomDescription;
+
+  // Whenever the user provides additional context (mechanical specs OR
+  // any free-text notes), route through the AI so it can refine the
+  // template architecture against their specs. Pure "template + nothing"
+  // stays on the deterministic fast path.
+  const hasSpecsFilled = Boolean(
+    machineSpecs.spindlePower.trim() ||
+      machineSpecs.spindleSpeed.trim() ||
+      machineSpecs.movingMass.trim() ||
+      machineSpecs.rapidTraverse.trim() ||
+      machineSpecs.axisTravel.trim() ||
+      machineSpecs.machineSize ||
+      machineSpecs.safetyLevel ||
+      machineSpecs.material.trim()
+  );
+  const useTemplateFlow = hasTemplate && !hasSpecsFilled && !hasNotes;
 
   const parseNumeric = (s: string | undefined) => {
     if (!s) return undefined;
@@ -169,7 +183,13 @@ export function MachineDescriptionStep() {
       }
     }
 
-    // Custom description or template build failure → fall back to AI flow.
+    // AI flow — either no template (custom only), or template + specs/notes.
+    // Wipe any stale aiMessages first so the AI re-analyses against the
+    // current specs instead of replaying an earlier conversation.
+    useConfiguratorStore.setState({
+      aiMessages: [],
+      isConfigurationReady: false,
+    });
     completeStep("description");
     setStep("analysis");
   };
@@ -186,17 +206,17 @@ export function MachineDescriptionStep() {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
             Step 01 · Input
           </div>
-          <h2 className="text-2xl font-medium tracking-tight">Describe your machine</h2>
+          <h2 className="text-xl sm:text-2xl font-medium tracking-tight">Describe your machine</h2>
           <p className="mt-1 text-sm text-muted-foreground max-w-xl">
             Pick a template for the fast path, or write freely and let the AI infer the architecture. Mechanical specs are optional at this stage.
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 sm:shrink-0">
           <Button
             size="sm"
             variant="outline"
@@ -344,29 +364,33 @@ export function MachineDescriptionStep() {
       </section>
 
       {/* Proceed */}
-      <div className="flex items-center gap-3 pt-2 border-t">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-2 border-t">
         <Button
           disabled={!canProceed || buildingTemplate}
           onClick={handleProceed}
-          className="gap-2 mt-2"
+          className="gap-2 mt-2 w-fit"
         >
           {buildingTemplate
             ? "Building configuration…"
             : useTemplateFlow
               ? "Build configuration"
-              : "Analyze with AI"}
+              : hasTemplate
+                ? "Refine with AI"
+                : "Analyze with AI"}
           <ArrowRight className="h-3.5 w-3.5" />
         </Button>
         {!canProceed && (
-          <span className="text-xs text-muted-foreground mt-2">
+          <span className="text-xs text-muted-foreground sm:mt-2">
             Select a template above <span className="text-muted-foreground/60">or</span> write a description of at least 10 characters.
           </span>
         )}
         {canProceed && (
-          <span className="text-xs text-muted-foreground mt-2">
+          <span className="text-xs text-muted-foreground sm:mt-2">
             {useTemplateFlow
               ? "Template path — BOM builds deterministically, no AI round-trip."
-              : "AI analysis — returns architecture, sizing engine fills in motors & drives."}
+              : hasTemplate
+                ? "AI will refine the template architecture against your specs / notes, then size motors & drives."
+                : "AI analysis — returns architecture, sizing engine fills in motors & drives."}
           </span>
         )}
       </div>
