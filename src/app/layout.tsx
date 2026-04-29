@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Serif, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toast";
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -78,6 +79,7 @@ export default function RootLayout({
         <ThemeProvider />
         {children}
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );

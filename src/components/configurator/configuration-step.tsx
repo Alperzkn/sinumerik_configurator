@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Save,
   FolderOpen,
@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Smartphone,
   Network,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import { SoftwareOptionDialog } from "./software-option-dialog";
 import { SaveLoadDialog } from "./save-load-dialog";
 import { AiModifyPane } from "./ai-modify-pane";
 import { HistoryPanel } from "./history-panel";
+import { DisclaimerDialog, hasAcknowledgedDisclaimer } from "./disclaimer-dialog";
 import {
   applySwap,
   addSoftwareOption,
@@ -58,6 +60,19 @@ export function ConfigurationStep() {
   } | null>(null);
   const [showAddOption, setShowAddOption] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<"save" | "load" | null>(null);
+
+  // Engineering-review disclaimer. Shown on first arrival at this step
+  // when a configuration has just been generated, unless the user has
+  // already acknowledged it on this device. A "Re-read" link below the
+  // header re-opens it in dismissible mode.
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [showDisclaimerDismissible, setShowDisclaimerDismissible] =
+    useState(false);
+  useEffect(() => {
+    if (configuration && !hasAcknowledgedDisclaimer()) {
+      setShowDisclaimer(true);
+    }
+  }, [configuration]);
 
   const openSwap = (category: SwapCategory, currentArticle?: string) => {
     setSwapState({ category, currentArticle });
@@ -120,6 +135,15 @@ export function ConfigurationStep() {
             <p className="mt-1 text-sm text-muted-foreground max-w-xl">
               Swap components, add/remove options, or ask the AI for a change. Re-sizing updates motors, drives, and cables automatically.
             </p>
+            <button
+              type="button"
+              onClick={() => setShowDisclaimerDismissible(true)}
+              className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-amber-500/90 hover:text-amber-500 transition-colors underline underline-offset-2 decoration-amber-500/40"
+              title="Re-read the engineering-review disclaimer"
+            >
+              <AlertTriangle className="h-3 w-3" strokeWidth={2} />
+              Engineering review required — read the disclaimer
+            </button>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <Button
@@ -585,6 +609,20 @@ export function ConfigurationStep() {
           onClose={() => setSaveLoadMode(null)}
         />
       )}
+
+      {/* Engineering-review disclaimer — gating on first BOM */}
+      <DisclaimerDialog
+        open={showDisclaimer}
+        onAcknowledge={() => setShowDisclaimer(false)}
+      />
+
+      {/* Same dialog re-opened from the "Re-read" link, dismissible */}
+      <DisclaimerDialog
+        open={showDisclaimerDismissible}
+        dismissible
+        onAcknowledge={() => setShowDisclaimerDismissible(false)}
+        onClose={() => setShowDisclaimerDismissible(false)}
+      />
     </motion.div>
   );
 }
