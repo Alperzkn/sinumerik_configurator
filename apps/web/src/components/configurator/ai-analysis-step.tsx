@@ -473,10 +473,12 @@ export function AiAnalysisStep() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Button>
-        {/* "View Configuration" only after the user confirms via the
-            interpretation card. Until then they're either waiting for AI
-            or reviewing what AI understood. */}
-        {isConfigurationReady && confirmed && (
+        {/* "View Configuration" once the config exists. The interpretation
+            card (above) gates first-time review by setting `pendingResponse`;
+            once the user has acknowledged it (or returns to this step from
+            elsewhere with no pending response), the forward button is
+            available so they don't get trapped. */}
+        {isConfigurationReady && !pendingResponse && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
             <Button onClick={handleViewConfig} className="gap-2">
               View Configuration
