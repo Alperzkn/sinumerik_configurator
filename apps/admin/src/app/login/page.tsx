@@ -1,0 +1,46 @@
+import { redirect } from "next/navigation";
+import { LockKeyhole } from "lucide-react";
+import { adminTokenConfigured, isAdminAuthed } from "@/lib/auth";
+import { LoginForm } from "./login-form";
+
+export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Admin login",
+  robots: { index: false, follow: false },
+};
+
+export default async function AdminLoginPage() {
+  if (await isAdminAuthed()) redirect("/");
+
+  const configured = adminTokenConfigured();
+
+  return (
+    <main className="min-h-screen flex items-center justify-center px-4 bg-background">
+      <div className="w-full max-w-sm rounded-xl border bg-card shadow-sm overflow-hidden">
+        <div className="px-6 py-5 border-b flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+            <LockKeyhole className="h-4 w-4 text-primary" strokeWidth={1.75} />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold">Telemetry admin</h1>
+            <p className="text-[11px] text-muted-foreground">
+              Restricted — owner only
+            </p>
+          </div>
+        </div>
+        <div className="px-6 py-5">
+          {configured ? (
+            <LoginForm />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              <code className="text-foreground">ADMIN_TOKEN</code> is not set on the
+              server. Add it to <code className="text-foreground">.env.local</code>{" "}
+              and restart the dev server.
+            </p>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

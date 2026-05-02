@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+/* Admin uses the same dark palette as the configurator but no theme
+ * toggle — admin work is mostly nighttime / focus-mode. */
+:root,
+.dark {
+  --background:           oklch(0.14 0.006 220);
+  --foreground:           oklch(0.96 0.004 95);
+  --card:                 oklch(0.175 0.008 220);
+  --card-foreground:      oklch(0.96 0.004 95);
+  --popover:              oklch(0.185 0.008 220);
+  --popover-foreground:   oklch(0.96 0.004 95);
+  --primary:              oklch(0.76 0.13 195);
+  --primary-foreground:   oklch(0.12 0.006 220);
+  --secondary:            oklch(0.23 0.008 220);
+  --secondary-foreground: oklch(0.96 0.004 95);
+  --muted:                oklch(0.22 0.007 220);
+  --muted-foreground:     oklch(0.66 0.008 95);
+  --accent:               oklch(0.28 0.08 195);
+  --accent-foreground:    oklch(0.92 0.08 195);
+  --destructive:          oklch(0.70 0.18 35);
+  --border:               oklch(0.28 0.008 220);
+  --input:                oklch(0.26 0.008 220);
+  --ring:                 oklch(0.76 0.13 195);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+    letter-spacing: -0.005em;
+  }
+}
