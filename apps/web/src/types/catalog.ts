@@ -169,6 +169,27 @@ export type MotorType =
   | "linear_sync"
   | "torque_sync";
 
+/**
+ * Per-axis MLFB resolution. When the user states per-axis preferences
+ * (e.g. "X axes have brakes, Y axes don't") we expand a single sized
+ * motor into N orderable MLFBs — one per axis — using the option-suffix
+ * builder in `lib/mlfb`.
+ *
+ * If `perAxisMlfbs` is non-empty, the BOM should render one row per
+ * axis with that axis's full MLFB. If empty/undefined, fall back to
+ * the legacy "1 motor × quantity N" display using `articleNumber`.
+ */
+export interface AxisMlfb {
+  /** User's axis label, exactly as they wrote it (X1, Y1, B, etc.) */
+  axis: string;
+  /** Full orderable MLFB for this axis, including suffix. */
+  mlfb: string;
+  /** True when this axis was configured with an integrated holding brake. */
+  brake?: boolean;
+  /** Encoder type code, when explicitly chosen. */
+  encoder?: string;
+}
+
 export interface Motor {
   id: string;
   family: MotorFamily;
@@ -188,6 +209,12 @@ export interface Motor {
   ratedCurrent?: string;
   maxSpeed?: string;
   maxTorque?: string;
+  /**
+   * Per-axis full MLFBs. Populated when the user provided axis names
+   * + brake preferences (via the AI's userPreferences). Each entry is
+   * an orderable article number for that specific axis.
+   */
+  perAxisMlfbs?: AxisMlfb[];
 }
 
 // --- Measuring Systems ---

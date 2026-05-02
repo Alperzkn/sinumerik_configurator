@@ -21,6 +21,7 @@ import {
   MOTOR_MODULE_SPECS,
 } from "@/lib/validation/drive-system-rules";
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
+import { resolveFeedAxisMlfbs } from "@/lib/mlfb/per-axis";
 
 let catalogData: {
   controlUnits: ControlUnit[];
@@ -321,10 +322,29 @@ export function parseAiResponse(
 
   if (sized.feed && feedAxisCount > 0) {
     const fs = sized.feed.specs;
+
+    // Per-axis MLFB expansion: when the AI captured axis names + brake
+    // preferences, resolve each axis to its own full MLFB. The BOM
+    // displays one row per axis. Falls back to legacy "qty N" when no
+    // axis-level info is available.
+    const axisNames = prefs?.axisNames ?? [];
+    const brakeAxes = prefs?.brakeAxes ?? [];
+    let perAxisMlfbs;
+    if (axisNames.length > 0) {
+      // Truncate / pad to the architecturally-determined feedAxisCount
+      // so we never produce more axes than the AI sized for.
+      const names = axisNames.slice(0, feedAxisCount);
+      perAxisMlfbs = resolveFeedAxisMlfbs({
+        baseArticle: sized.feed.article,
+        axisNames: names,
+        brakeAxes,
+      });
+    }
+
     const feedMotor: Motor = {
       id: `feed-${sized.feed.article}`,
       family: "SIMOTICS_S",
-      series: "1FT7",
+      series: fs.family.includes("1FT2") ? "1FT2" : fs.family.includes("1FK2") ? "1FK2" : fs.family.includes("1FK7") ? "1FK7" : "1FT7",
       name: `${fs.family} ${fs.variant}`,
       articleNumber: sized.feed.article,
       motorType: "feed_servo_sync",
@@ -338,6 +358,7 @@ export function parseAiResponse(
       ratedCurrent: fs.ratedCurrent,
       maxSpeed: fs.maxSpeed,
       maxTorque: fs.maxTorque,
+      perAxisMlfbs,
     };
     motors.push(feedMotor);
     motorQuantities[feedMotor.id] = feedAxisCount;
