@@ -86,6 +86,28 @@ export interface AiRawResponse {
   totalChannels?: number;
   notes?: string[];
   estimatedComplexity?: string;
+  /**
+   * Restatement of user-stated preferences so we can (a) honour them
+   * deterministically downstream (motor family preference flows into
+   * the sizing engine), and (b) show the user a "Here's what I
+   * understood" confirmation card before building the BOM.
+   *
+   * The AI MUST only populate fields the user actually mentioned. Empty
+   * fields mean "no preference stated".
+   */
+  userPreferences?: {
+    /** e.g. "1FK2", "1FK7", "1FT7", "1FT2" */
+    feedMotorFamily?: string;
+    /** e.g. "1PH8", "1PH3" */
+    spindleMotorFamily?: string;
+    cableLengthMeters?: number;
+    /** Axis labels exactly as the user named them (X1, Y1, Z1, B, etc.) */
+    axisNames?: string[];
+    /** Subset of axisNames that should have integrated holding brakes */
+    brakeAxes?: string[];
+    /** Free-text restatement of what the AI heard, for the confirmation card */
+    summaryForUser?: string;
+  };
 }
 
 export async function getAiRecommendation(
@@ -119,9 +141,9 @@ export async function getAiRecommendation(
   }
 
   const controller = new AbortController();
-  // Detailed configs at 8k max_tokens can take ~60-90s end-to-end.
-  // Match the route's maxDuration (120s) with a small buffer subtracted.
-  const timeout = setTimeout(() => controller.abort(), 110_000);
+  // Detailed configs at 16k max_tokens can take ~120-180s. Match the
+  // route's maxDuration (300s) with a small buffer subtracted.
+  const timeout = setTimeout(() => controller.abort(), 280_000);
 
   // Telemetry headers also carry a freshly-generated trace_row_id
   // (the future primary key of the ai_traces row) so the caller can

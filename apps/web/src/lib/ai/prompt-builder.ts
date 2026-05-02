@@ -117,6 +117,8 @@ Simple 2-3 axis standard milling/turning → export acceptable
 ## OUTPUT FORMAT
 Respond with a JSON object describing the ARCHITECTURE. Do NOT include motor, motor module, line module, interface module, or cable article numbers — those are sized automatically.
 
+**DO NOT echo the user's description back.** Do NOT include an \`originalRequest\`, \`request\`, \`description\`, or any field that restates the user's input verbatim. Wastes tokens and risks truncation. Use the \`userPreferences.summaryForUser\` field below for a *short* restatement only.
+
 {
   "controlUnit": { "id": "NCU_1740", "reason": "..." },
   "cncSoftware": { "variant": "full_scope", "swVersion": "6.25 SP1" },
@@ -136,9 +138,23 @@ Respond with a JSON object describing the ARCHITECTURE. Do NOT include motor, mo
   "safety": { "options": ["S60", "S61"], "reason": "..." },
   "totalAxes": 4,
   "totalChannels": 1,
+  "userPreferences": {
+    "feedMotorFamily": "1FK2",
+    "spindleMotorFamily": "1PH8",
+    "cableLengthMeters": 7,
+    "axisNames": ["X1", "Y1", "X2", "Y2"],
+    "brakeAxes": ["X1", "X2"],
+    "summaryForUser": "2-channel lathe, 4 feed axes, 1 main spindle, 1FK2 feed motors at 3 kW each, 1PH8 spindle at 11 kW, X-axes braked, 7 m cables, 15-inch HMI."
+  },
   "notes": ["..."],
   "estimatedComplexity": "standard"
 }
+
+### \`userPreferences\` rules (CRITICAL)
+- Only include fields the user *explicitly* mentioned. Do not invent.
+- \`axisNames\`: use the user's exact labels (X1, Y, A, B, C, etc.). DO NOT silently rename — if a user says "Y1, Y2" you keep "Y1, Y2" even if Z would be more conventional. If their naming truly doesn't make sense, set \`needsClarification: true\` and ask.
+- \`feedMotorFamily\` / \`spindleMotorFamily\`: must be one of the supported families. Allowed feed: 1FK2, 1FK7, 1FT2, 1FT7. Allowed spindle: 1PH8, 1PH3. The sizing engine uses this to filter motor selection.
+- \`summaryForUser\`: 1-2 short sentences in plain language for the confirmation UI. NO JSON, NO article numbers.
 
 ### Field meaning
 - "driveArchitecture.family": "S120_booksize" or "S210"
@@ -166,7 +182,10 @@ If the user provided a "MECHANICAL REQUIREMENTS" block OR a "Machine size class"
 - NEVER include line module article numbers (e.g. 6SL3130-...).
 - NEVER include cable or interface module article numbers.
 - Only produce the architectural decisions. The sizing engine handles all specific hardware article selection based on user specs.
-- Count total axes/spindles needed, subtract 3 (base scope), only add A-options for the remainder. orderCode: A01=1 extra, A02=2, A03=3, etc.`;
+- Count total axes/spindles needed, subtract 3 (base scope), only add A-options for the remainder. orderCode: A01=1 extra, A02=2, A03=3, etc.
+- DO NOT echo the user's description, prompt, or specs back as a JSON field. The frontend already has them. Token budget is precious.
+- DO NOT silently translate the user's words. If they say "Y1, Y2" on a lathe, do not rewrite to "Z1, Z2" — preserve their labels in \`userPreferences.axisNames\` or ask for clarification.
+- If the user states a motor family preference (1FK2, 1FK7, 1FT2, 1FT7, 1PH8, 1PH3), mirror it into \`userPreferences.feedMotorFamily\` / \`userPreferences.spindleMotorFamily\` so the sizing engine honours it.`;
 }
 
 export function buildUserMessage(

@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { extractJson } from "@/lib/ai/extract-json";
 import { logAiTrace, redact } from "@sinumerik/telemetry";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /**
  * Configuration modification endpoint.
@@ -58,9 +58,9 @@ export async function POST(request: Request) {
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
       // Modify responses are smaller than recommend (one change-set,
-      // not a whole config), but 1024 was tight. 4096 leaves room for
-      // resize cases that re-emit the drive section.
-      max_tokens: 4096,
+      // not a whole config). 8k is generous; even verbose resize
+      // change-sets that re-emit the drive section fit comfortably.
+      max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     });

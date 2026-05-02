@@ -7,8 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { ProcessingSteps, LoadingSpinner } from "@/components/shared/loading-spinner";
-import { getAiRecommendation, AiServiceError } from "@/lib/ai/recommendation-engine";
+import {
+  getAiRecommendation,
+  AiServiceError,
+  type AiRawResponse,
+} from "@/lib/ai/recommendation-engine";
 import { parseAiResponse, setCatalogData } from "@/lib/ai/response-parser";
+import { InterpretationCard } from "./interpretation-card";
 import type { UserSpecsInput } from "@/lib/sizing";
 import type { AiMessage, MachineType } from "@/types/catalog";
 import type { MachineSpecsState } from "@/store/configurator-store";
@@ -159,6 +164,12 @@ export function AiAnalysisStep() {
   const [waitingForAnswer, setWaitingForAnswer] = useState(false);
   const [isFirstCall, setIsFirstCall] = useState(true);
   const [statusText, setStatusText] = useState("");
+  // Latest AI response that produced a built configuration. The
+  // InterpretationCard reads from this and lets the user confirm or
+  // request a refinement before we show the BOM. Cleared when the user
+  // sends a refinement (we reuse it once the next response lands).
+  const [pendingResponse, setPendingResponse] = useState<AiRawResponse | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -216,6 +227,8 @@ export function AiAnalysisStep() {
 
         if (config) {
           setConfiguration(config);
+          setPendingResponse(response);
+          setConfirmed(false);
 
           const assistantMsg: AiMessage = {
             id: `ai-${Date.now()}`,
@@ -322,6 +335,38 @@ export function AiAnalysisStep() {
     setStep("configuration");
   };
 
+  /**
+   * User clicked "Looks right" on the interpretation card — confirm and
+   * proceed to the BOM. The configuration is already in the store; we
+   * just transition the wizard step.
+   */
+  const handleConfirmInterpretation = () => {
+    setConfirmed(true);
+    handleViewConfig();
+  };
+
+  /**
+   * User clicked "Something's off" and provided a correction. Append it
+   * to the conversation as a fresh user turn and re-run the AI loop.
+   * Clear the pending response so the card disappears while we wait.
+   */
+  const handleRefineInterpretation = async (correction: string) => {
+    setPendingResponse(null);
+    setConfirmed(false);
+    const refineMsg: AiMessage = {
+      id: `user-refine-${Date.now()}`,
+      role: "user",
+      content: correction,
+      timestamp: Date.now(),
+    };
+    addAiMessage(refineMsg);
+    const history = [...aiMessages, refineMsg].map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+    await callAi(history);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -380,6 +425,17 @@ export function AiAnalysisStep() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Interpretation card — shown after AI returns a config, before
+          we let the user transition to the BOM. */}
+      {pendingResponse && !confirmed && !isAiProcessing && (
+        <InterpretationCard
+          response={pendingResponse}
+          onConfirm={handleConfirmInterpretation}
+          onRefine={handleRefineInterpretation}
+          busy={isAiProcessing}
+        />
+      )}
+
       {/* Chat input */}
       {waitingForAnswer && !isAiProcessing && (
         <motion.div
@@ -417,7 +473,10 @@ export function AiAnalysisStep() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Button>
-        {isConfigurationReady && (
+        {/* "View Configuration" only after the user confirms via the
+            interpretation card. Until then they're either waiting for AI
+            or reviewing what AI understood. */}
+        {isConfigurationReady && confirmed && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
             <Button onClick={handleViewConfig} className="gap-2">
               View Configuration

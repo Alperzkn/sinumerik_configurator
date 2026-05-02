@@ -4,7 +4,10 @@ import { retrieveCatalogContext } from "@/lib/ai/catalog-retriever";
 import { extractJson } from "@/lib/ai/extract-json";
 import { logAiTrace, redact } from "@sinumerik/telemetry";
 
-export const maxDuration = 120;
+// Vercel Pro caps function duration at 300s. With max_tokens at 16k
+// and big system prompts, generation can run 90-180s; give plenty of
+// headroom so detailed user prompts don't get killed.
+export const maxDuration = 300;
 
 /**
  * AI architecture recommendation. Returns 5xx on any failure rather
@@ -82,10 +85,11 @@ export async function POST(request: Request) {
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      // Detailed configs need headroom — saw 6.3KB outputs (≈2k tokens)
-      // get cut off at 2048. 8192 is the model's hard ceiling for
-      // sonnet-4-6 anyway and gives us ~30KB of slack.
-      max_tokens: 8192,
+      // Detailed user prompts can produce 8-12k token configs. 16384
+      // gives ~60KB of output headroom and is well within sonnet-4-6's
+      // budget. The "DO NOT echo description" rule in the system prompt
+      // also keeps typical outputs around 4-6k.
+      max_tokens: 16384,
       system: fullSystemPrompt,
       messages,
     });

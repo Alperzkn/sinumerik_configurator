@@ -205,9 +205,25 @@ export function parseAiResponse(
   const family = arch?.family || "S120_booksize";
   const preferActiveLineModule = arch?.preferActiveLineModule ?? false;
 
+  // Honour AI-detected user preferences (motor family, cable length).
+  // These live on raw.userPreferences and are mirrored into UserSpecsInput
+  // so the sizing engine filters motor selection accordingly. We do NOT
+  // overwrite values the user explicitly typed in the form — those win.
+  const prefs = raw.userPreferences;
+  const sizingSpecs: UserSpecsInput = { ...(specs || {}) };
+  if (prefs?.feedMotorFamily && !sizingSpecs.feedMotorFamily) {
+    sizingSpecs.feedMotorFamily = prefs.feedMotorFamily;
+  }
+  if (prefs?.spindleMotorFamily && !sizingSpecs.spindleMotorFamily) {
+    sizingSpecs.spindleMotorFamily = prefs.spindleMotorFamily;
+  }
+  if (prefs?.cableLengthMeters && !sizingSpecs.cableLengthMeters) {
+    sizingSpecs.cableLengthMeters = String(prefs.cableLengthMeters);
+  }
+
   // Run deterministic sizing against user specs
   const sized = sizeConfiguration({
-    userSpecs: specs || {},
+    userSpecs: sizingSpecs,
     template: (template as never) ?? null,
     preferHighSpeedSpindle: arch?.highSpeedSpindle,
   });
