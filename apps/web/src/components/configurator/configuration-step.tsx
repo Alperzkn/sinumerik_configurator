@@ -26,6 +26,7 @@ import { Accordion } from "@/components/ui/accordion";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { SectionPanel } from "./section-panel";
 import { ComponentCard, type ComponentSpec } from "./component-card";
+import { PerAxisMlfbList } from "./per-axis-mlfb-list";
 import { CompatibilityWarnings } from "./compatibility-warning";
 import { ComponentSwapDialog, type SwapCategory } from "./component-swap-dialog";
 import { SoftwareOptionDialog } from "./software-option-dialog";
@@ -495,16 +496,19 @@ export function ConfigurationStep() {
                 ? () => openSwap("motor_spindle", motor.articleNumber)
                 : undefined;
 
+              const hasPerAxis = motor.perAxisMlfbs && motor.perAxisMlfbs.length > 0;
               return (
-                <ComponentCard
-                  key={motor.id}
-                  name={motor.name}
-                  articleNumber={motor.articleNumber}
-                  description={motor.description}
-                  quantity={configuration.motorQuantities[motor.id]}
-                  specs={specs.length > 0 ? specs : undefined}
-                  onSwap={onSwap}
-                />
+                <div key={motor.id}>
+                  <ComponentCard
+                    name={motor.name}
+                    articleNumber={hasPerAxis ? undefined : motor.articleNumber}
+                    description={motor.description}
+                    quantity={hasPerAxis ? undefined : configuration.motorQuantities[motor.id]}
+                    specs={specs.length > 0 ? specs : undefined}
+                    onSwap={onSwap}
+                  />
+                  {hasPerAxis && <PerAxisMlfbList items={motor.perAxisMlfbs!} />}
+                </div>
               );
             })}
           </SectionPanel>
