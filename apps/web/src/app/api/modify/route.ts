@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { extractJson } from "@/lib/ai/extract-json";
 import { logAiTrace, redact } from "@sinumerik/telemetry";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /**
  * Configuration modification endpoint.
@@ -57,7 +57,10 @@ export async function POST(request: Request) {
     const anthropic = new Anthropic({ apiKey });
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      // Modify responses are smaller than recommend (one change-set,
+      // not a whole config), but 1024 was tight. 4096 leaves room for
+      // resize cases that re-emit the drive section.
+      max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     });
@@ -65,6 +68,31 @@ export async function POST(request: Request) {
     const textContent = response.content.find((b) => b.type === "text");
     if (!textContent || textContent.type !== "text") {
       throw new Error("AI returned no text content");
+    }
+
+    if (response.stop_reason === "max_tokens") {
+      logModifyTrace({
+        enabled: telemetryEnabled,
+        sessionId,
+        traceId,
+        traceRowId,
+        model: "claude-sonnet-4-6",
+        systemPrompt,
+        userMessage,
+        rawResponse: { text: textContent.text },
+        latencyMs: Date.now() - startedAt,
+        inputTokens: response.usage?.input_tokens ?? null,
+        outputTokens: response.usage?.output_tokens ?? null,
+        error: `ai_response_truncated: stop_reason=max_tokens at ${response.usage?.output_tokens} tokens`,
+      });
+      return NextResponse.json(
+        {
+          error: "ai_response_truncated",
+          message:
+            "The AI response was cut off before it finished. Please retry with a simpler request.",
+        },
+        { status: 502 },
+      );
     }
 
     const text = textContent.text;

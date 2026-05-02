@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   },
   // Same anchor for the production output tracer (used for server bundles).
   outputFileTracingRoot: path.resolve(__dirname, "../.."),
+  // Workaround: under npm workspaces + Next 16.2.3, the default
+  // `generateBuildId` function is dropped during config merge and the
+  // build crashes with `TypeError: generate is not a function`.
+  // Returning `null` re-engages Next's nanoid fallback.
+  generateBuildId: () => null,
 };
 
 export default nextConfig;

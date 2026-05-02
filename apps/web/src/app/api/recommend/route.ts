@@ -4,7 +4,7 @@ import { retrieveCatalogContext } from "@/lib/ai/catalog-retriever";
 import { extractJson } from "@/lib/ai/extract-json";
 import { logAiTrace, redact } from "@sinumerik/telemetry";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /**
  * AI architecture recommendation. Returns 5xx on any failure rather
@@ -82,7 +82,10 @@ export async function POST(request: Request) {
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      // Detailed configs need headroom — saw 6.3KB outputs (≈2k tokens)
+      // get cut off at 2048. 8192 is the model's hard ceiling for
+      // sonnet-4-6 anyway and gives us ~30KB of slack.
+      max_tokens: 8192,
       system: fullSystemPrompt,
       messages,
     });
@@ -90,6 +93,36 @@ export async function POST(request: Request) {
     const textContent = response.content.find((b) => b.type === "text");
     if (!textContent || textContent.type !== "text") {
       throw new Error("AI returned no text content");
+    }
+
+    // Truncation = parse failure. If the model hit max_tokens, the JSON
+    // is incomplete by definition. Don't even try to parse — surface a
+    // distinct error so the user knows to retry / simplify the request.
+    if (response.stop_reason === "max_tokens") {
+      logTraceFireAndForget({
+        enabled: telemetryEnabled,
+        sessionId,
+        traceId,
+        traceRowId,
+        kind: "recommend",
+        model: "claude-sonnet-4-6",
+        systemPrompt: fullSystemPrompt,
+        userMessage,
+        conversationHistory,
+        rawResponse: { text: textContent.text },
+        latencyMs: Date.now() - startedAt,
+        inputTokens: response.usage?.input_tokens ?? null,
+        outputTokens: response.usage?.output_tokens ?? null,
+        error: `ai_response_truncated: stop_reason=max_tokens at ${response.usage?.output_tokens} tokens`,
+      });
+      return NextResponse.json(
+        {
+          error: "ai_response_truncated",
+          message:
+            "The AI response was cut off before it finished. Please retry or simplify your request.",
+        },
+        { status: 502 },
+      );
     }
 
     const text = textContent.text;

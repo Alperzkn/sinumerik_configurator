@@ -3,6 +3,10 @@
     "excalidraw": {
       "type": "http",
       "url": "https://mcp.excalidraw.com"
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=aanxswnumsmebtesvmdf&read_only=true"
     }
   }
 }

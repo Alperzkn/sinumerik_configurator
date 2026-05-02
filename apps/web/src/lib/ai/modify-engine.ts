@@ -105,13 +105,19 @@ export async function modifyConfiguration(
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    const code = (body?.error as string) ?? "ai_error";
+    const raw = (body?.error as string) ?? "ai_error";
     const msg = (body?.message as string) ?? response.statusText;
-    throw new AiServiceError(
-      code === "ai_unavailable" ? "ai_unavailable" : code === "ai_parse_failed" ? "ai_parse_failed" : "ai_error",
-      msg,
-      response.status,
-    );
+    const known = [
+      "ai_unavailable",
+      "ai_parse_failed",
+      "ai_response_truncated",
+      "ai_timeout",
+    ] as const;
+    type Known = (typeof known)[number];
+    const code: Known | "ai_error" = (known as readonly string[]).includes(raw)
+      ? (raw as Known)
+      : "ai_error";
+    throw new AiServiceError(code, msg, response.status);
   }
 
   const raw = (await response.json()) as Record<string, unknown>;

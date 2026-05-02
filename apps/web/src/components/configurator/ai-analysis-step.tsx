@@ -60,6 +60,12 @@ function buildAiErrorContent(error: unknown): string {
           "",
           "This is usually a transient hiccup. Click **Retry** to try again, or **Back** to adjust your description and re-run.",
         ].join("\n");
+      case "ai_response_truncated":
+        return [
+          "**The AI's answer was cut off mid-stream.**",
+          "",
+          "This usually means the response was too long for the token budget. Click **Retry** — and if it keeps happening, simplify your description or pick a more specific machine template.",
+        ].join("\n");
       case "ai_timeout":
         return [
           "**The AI took too long to respond.**",

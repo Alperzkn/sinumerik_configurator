@@ -9,7 +9,12 @@ import { telemetryHeaders } from "@/lib/telemetry/client";
  * `code` mirrors the JSON `error` field returned by the route handler.
  */
 export class AiServiceError extends Error {
-  code: "ai_unavailable" | "ai_parse_failed" | "ai_timeout" | "ai_error";
+  code:
+    | "ai_unavailable"
+    | "ai_parse_failed"
+    | "ai_response_truncated"
+    | "ai_timeout"
+    | "ai_error";
   status: number;
   constructor(
     code: AiServiceError["code"],
@@ -114,7 +119,9 @@ export async function getAiRecommendation(
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
+  // Detailed configs at 8k max_tokens can take ~60-90s end-to-end.
+  // Match the route's maxDuration (120s) with a small buffer subtracted.
+  const timeout = setTimeout(() => controller.abort(), 110_000);
 
   // Telemetry headers also carry a freshly-generated trace_row_id
   // (the future primary key of the ai_traces row) so the caller can
@@ -154,7 +161,7 @@ export async function getAiRecommendation(
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new AiServiceError(
         "ai_timeout",
-        "AI request timed out after 45 seconds. Please try again.",
+        "AI request timed out. Please try again.",
         504,
       );
     }

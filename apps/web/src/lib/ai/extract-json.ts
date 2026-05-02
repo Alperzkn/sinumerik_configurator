@@ -53,47 +53,49 @@ export function extractJson(text: string): unknown | null {
 }
 
 /**
- * Walk the string and return the first {…} substring whose braces
- * balance, accounting for braces inside JSON string literals (which
- * must NOT count). Returns null if no balanced block is found.
+ * Walk the string and return the substring spanning the FIRST `{` to
+ * its matching `}`, accounting for braces inside JSON string literals.
+ *
+ * If the first `{` never closes (typically: AI hit max_tokens and the
+ * response was truncated mid-stream), return `null` — DO NOT fall
+ * through to an inner balanced block. We saw this in production: the
+ * AI's outer config object was truncated, and the extractor returned a
+ * 382-byte `originalRequest` fragment as if it were the config. Better
+ * to fail loud and have the route surface "ai_response_truncated".
  */
 function findBalancedBlock(text: string): string | null {
-  let i = 0;
-  while (i < text.length) {
-    if (text[i] !== "{") {
-      i++;
+  // Find the start of the first object literal.
+  const firstBrace = text.indexOf("{");
+  if (firstBrace === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let j = firstBrace; j < text.length; j++) {
+    const ch = text[j];
+    if (inString) {
+      if (escape) {
+        escape = false;
+      } else if (ch === "\\") {
+        escape = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
       continue;
     }
-    const start = i;
-    let depth = 0;
-    let inString = false;
-    let escape = false;
-    for (let j = i; j < text.length; j++) {
-      const ch = text[j];
-      if (inString) {
-        if (escape) {
-          escape = false;
-        } else if (ch === "\\") {
-          escape = true;
-        } else if (ch === '"') {
-          inString = false;
-        }
-        continue;
-      }
-      if (ch === '"') {
-        inString = true;
-        continue;
-      }
-      if (ch === "{") depth++;
-      else if (ch === "}") {
-        depth--;
-        if (depth === 0) {
-          return text.slice(start, j + 1);
-        }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        return text.slice(firstBrace, j + 1);
       }
     }
-    // Unbalanced from this `{` — try the next one
-    i++;
   }
+  // Outer `{` never closed — most likely truncation. Caller should treat
+  // this as a parse failure rather than fall back to a fragment.
   return null;
 }
