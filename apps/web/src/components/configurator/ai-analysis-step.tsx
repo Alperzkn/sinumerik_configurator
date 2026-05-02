@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { ProcessingSteps, LoadingSpinner } from "@/components/shared/loading-spinner";
-import { getAiRecommendation } from "@/lib/ai/recommendation-engine";
+import { getAiRecommendation, AiServiceError } from "@/lib/ai/recommendation-engine";
 import { parseAiResponse, setCatalogData } from "@/lib/ai/response-parser";
 import type { UserSpecsInput } from "@/lib/sizing";
 import type { AiMessage, MachineType } from "@/types/catalog";
@@ -33,6 +33,45 @@ function specsToSizingInput(specs: MachineSpecsState): UserSpecsInput {
     cableLengthMeters: specs.cableLengthMeters,
     safetyLevel: (specs.safetyLevel || "") as UserSpecsInput["safetyLevel"],
   };
+}
+
+/**
+ * User-facing copy for AI failures. Branches on AiServiceError.code so
+ * we tell the user the right thing — "the server isn't configured" vs
+ * "the AI returned junk" vs "timeout — try again". The Back button
+ * (already in the step's footer) lets them pick a different template.
+ */
+function buildAiErrorContent(error: unknown): string {
+  if (error instanceof AiServiceError) {
+    switch (error.code) {
+      case "ai_unavailable":
+        return [
+          "**The AI service is unavailable.**",
+          "",
+          "This usually means the server doesn't have an Anthropic API key configured. The configuration could not be generated automatically.",
+          "",
+          "**What you can do:**",
+          "- Click **Back** below and pick a specific machine template — the configurator will build a sensible default without AI.",
+          "- Or contact the site owner to enable AI.",
+        ].join("\n");
+      case "ai_parse_failed":
+        return [
+          "**The AI replied but its answer wasn't valid JSON.**",
+          "",
+          "This is usually a transient hiccup. Click **Retry** to try again, or **Back** to adjust your description and re-run.",
+        ].join("\n");
+      case "ai_timeout":
+        return [
+          "**The AI took too long to respond.**",
+          "",
+          "Click **Retry** to try again, or **Back** to simplify your description.",
+        ].join("\n");
+      default:
+        return `**AI error:** ${error.message}\n\nClick **Retry** or go **Back** to adjust your description.`;
+    }
+  }
+  const message = error instanceof Error ? error.message : "Unknown error";
+  return `**Error:** ${message}\n\nYou can try again by clicking **Retry**, or go **Back** to adjust your description.`;
 }
 
 function buildInitialUserMessage(
@@ -191,11 +230,11 @@ export function AiAnalysisStep() {
       }
     } catch (error) {
       console.error("[AI] Error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const content = buildAiErrorContent(error);
       addAiMessage({
         id: `ai-error-${Date.now()}`,
         role: "assistant",
-        content: `Error: ${errorMessage}\n\nYou can try again by clicking the "Retry" button below, or go back to adjust your description.`,
+        content,
         timestamp: Date.now(),
       });
       setWaitingForAnswer(true); // Show retry option

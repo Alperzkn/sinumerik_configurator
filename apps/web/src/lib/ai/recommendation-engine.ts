@@ -2,6 +2,27 @@ import type { AiMessage, MachineType } from "@/types/catalog";
 import { buildSystemPrompt, buildUserMessage } from "./prompt-builder";
 import { telemetryHeaders } from "@/lib/telemetry/client";
 
+/**
+ * Typed error so the UI can branch — e.g., show a "Pick a template
+ * instead" CTA when the server replies 503/ai_unavailable.
+ *
+ * `code` mirrors the JSON `error` field returned by the route handler.
+ */
+export class AiServiceError extends Error {
+  code: "ai_unavailable" | "ai_parse_failed" | "ai_timeout" | "ai_error";
+  status: number;
+  constructor(
+    code: AiServiceError["code"],
+    message: string,
+    status: number,
+  ) {
+    super(message);
+    this.name = "AiServiceError";
+    this.code = code;
+    this.status = status;
+  }
+}
+
 export interface AiRecommendationRequest {
   description: string;
   template: MachineType | null;
@@ -116,7 +137,10 @@ export async function getAiRecommendation(
     clearTimeout(timeout);
 
     if (!response.ok) {
-      throw new Error(`AI recommendation failed: ${response.statusText}`);
+      const body = await response.json().catch(() => ({}));
+      const code = (body?.error as AiServiceError["code"]) ?? "ai_error";
+      const msg = (body?.message as string) ?? response.statusText;
+      throw new AiServiceError(code, msg, response.status);
     }
 
     const data = await response.json();
@@ -128,7 +152,11 @@ export async function getAiRecommendation(
   } catch (error) {
     clearTimeout(timeout);
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("AI request timed out after 45 seconds. Please try again.");
+      throw new AiServiceError(
+        "ai_timeout",
+        "AI request timed out after 45 seconds. Please try again.",
+        504,
+      );
     }
     throw error;
   }

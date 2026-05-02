@@ -24,6 +24,7 @@ import { cncSoftwareOptions as catalogCncSoftware } from "@/data/cnc-software";
 import { hmiComponents as catalogHmi } from "@/data/hmi-components";
 import { diffConfigurations } from "@/lib/history/diff";
 import { telemetryHeaders } from "@/lib/telemetry/client";
+import { AiServiceError } from "./recommendation-engine";
 
 export interface ModifyResult {
   updatedConfiguration?: GeneratedConfiguration;
@@ -103,7 +104,14 @@ export async function modifyConfiguration(
   });
 
   if (!response.ok) {
-    throw new Error(`Modification failed: ${response.statusText}`);
+    const body = await response.json().catch(() => ({}));
+    const code = (body?.error as string) ?? "ai_error";
+    const msg = (body?.message as string) ?? response.statusText;
+    throw new AiServiceError(
+      code === "ai_unavailable" ? "ai_unavailable" : code === "ai_parse_failed" ? "ai_parse_failed" : "ai_error",
+      msg,
+      response.status,
+    );
   }
 
   const raw = (await response.json()) as Record<string, unknown>;
