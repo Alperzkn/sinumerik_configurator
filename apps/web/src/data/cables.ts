@@ -1,5 +1,6 @@
 import type { CableAccessory } from "@/types/catalog";
 import { calculateDriveCliqCables, getMotorCableSize } from "@/lib/validation/drive-system-rules";
+import { buildCableMlfb } from "@/lib/mlfb/cables";
 
 export const cablesCatalog: CableAccessory[] = [
   // ─── DRIVE-CLiQ cables (between NCU/NX and drive components) ───
@@ -302,23 +303,26 @@ export function selectCables(config: {
   const catalogLen = resolvedLen <= 7 ? "5m" : "10m";
 
   /**
-   * Stamp the user-requested length onto a catalog cable entry. When the
-   * user asks for, say, 25 m and the catalog only stocks 5 m / 10 m, we
-   * use the 10 m base MLFB but rewrite name + length + description to
-   * reflect the user's request — that's what they typed and that's what
-   * they want to see in the BOM. The MLFB suffix (-1AF0, -1BA0, …)
-   * encodes the actual length and is selected at order time per D21.4.
+   * Stamp the user-requested length onto a catalog cable entry —
+   * including swapping the MLFB length-code suffix to match the actual
+   * length. Per D21.4: 5m=-1AF0, 7m=-1AH0, 10m=-1BA0, 15m=-1BC0, etc.
+   * Non-standard lengths round UP to the next stocked catalog length.
    */
   const applyUserLength = (cable: CableAccessory): CableAccessory => {
-    const stocked = cable.length === `${userRequestedLen}m`;
-    if (stocked || !cable.length) return cable;
+    if (!cable.length) return cable;
+    const { mlfb, actualMeters } = buildCableMlfb(
+      cable.articleNumber,
+      userRequestedLen,
+    );
     return {
       ...cable,
-      length: `${userRequestedLen} m`,
-      name: cable.name.replace(/\b\d+\s*m\b/, `${userRequestedLen} m`),
+      articleNumber: mlfb,
+      length: `${actualMeters} m`,
+      name: cable.name.replace(/\b\d+\s*m\b/, `${actualMeters} m`),
       description:
-        `${cable.description} ` +
-        `User-specified length: ${userRequestedLen} m — confirm the matching MLFB suffix in catalog D21.4.`,
+        actualMeters === userRequestedLen
+          ? `${cable.description.replace(/User-specified.*$/i, "").trim()} (length code suffix: ${mlfb.split("-").pop()})`
+          : `${cable.description.replace(/User-specified.*$/i, "").trim()} User asked ${userRequestedLen} m → rounded up to ${actualMeters} m (next stocked length).`,
     };
   };
 
