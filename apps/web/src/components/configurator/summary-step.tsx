@@ -205,6 +205,79 @@ export function SummaryStep() {
       XLSX.utils.book_append_sheet(wb, ws3, "Notes");
     }
 
+    // Configuration Rationale sheet — architecture decisions in one
+    // place, so a Siemens partner can audit every choice without
+    // going back to the conversation.
+    const rationaleData: Array<{ Field: string; Value: string }> = [
+      { Field: "ARCHITECTURE", Value: "" },
+      { Field: "Control Unit", Value: `${configuration.controlUnit.name} (${configuration.controlUnit.articleNumber ?? "—"})` },
+      {
+        Field: "CNC Software",
+        Value: `${configuration.softwareVariant === "export" ? "Export" : "Full Scope"} · SW ${configuration.cncSoftware.swVersion} (${configuration.cncSoftware.articleNumber ?? "—"})`,
+      },
+      { Field: "Total Axes", Value: String(configuration.totalAxes) },
+      { Field: "Total Channels", Value: String(configuration.totalChannels) },
+      { Field: "Complexity", Value: configuration.estimatedComplexity },
+    ];
+    if (configuration.technologyPackages.length > 0) {
+      rationaleData.push({ Field: "Technology Packages", Value: configuration.technologyPackages.map((p) => p.id).join(", ") });
+    }
+    if (configuration.safetyFunctions.length > 0) {
+      rationaleData.push({
+        Field: "Safety",
+        Value: configuration.safetyFunctions
+          .filter((s) => !s.isBasicScope)
+          .map((s) => s.orderCode)
+          .join(", ") || "Basic only (STO/SS1/SBC)",
+      });
+    }
+    rationaleData.push({ Field: "", Value: "" });
+    rationaleData.push({ Field: "WARNINGS", Value: configuration.warnings.length > 0 ? `${configuration.warnings.length} warning(s) — see Warnings sheet` : "None" });
+    rationaleData.push({ Field: "", Value: "" });
+    rationaleData.push({ Field: "Generated", Value: new Date().toISOString() });
+    rationaleData.push({ Field: "Catalog sources", Value: "NC63 / D21 / D31 / D32 — Siemens 2026 scope" });
+    rationaleData.push({ Field: "Disclaimer", Value: "Verify every MLFB with your Siemens partner before procurement." });
+
+    const wsR = XLSX.utils.json_to_sheet(rationaleData);
+    wsR["!cols"] = [{ wch: 24 }, { wch: 70 }];
+    XLSX.utils.book_append_sheet(wb, wsR, "Rationale");
+
+    // Per-axis MLFB sheet — when AI captured axis names + brakes, list
+    // every axis with its full orderable MLFB and a decoder for each
+    // suffix character.
+    const perAxisRows: Array<Record<string, string>> = [];
+    for (const motor of configuration.motors) {
+      if (!motor.perAxisMlfbs || motor.perAxisMlfbs.length === 0) continue;
+      for (const a of motor.perAxisMlfbs) {
+        perAxisRows.push({
+          Motor: motor.name,
+          Axis: a.axis,
+          "Full MLFB": a.mlfb,
+          Brake: a.brake ? "yes" : "no",
+          "Suffix decoder": (a.decoded ?? [])
+            .map((d) => `${d.label}: ${d.choiceLabel} (${d.code})`)
+            .join(" · "),
+        });
+      }
+    }
+    if (perAxisRows.length > 0) {
+      const wsA = XLSX.utils.json_to_sheet(perAxisRows);
+      wsA["!cols"] = [{ wch: 32 }, { wch: 6 }, { wch: 24 }, { wch: 6 }, { wch: 80 }];
+      XLSX.utils.book_append_sheet(wb, wsA, "Per-axis MLFB");
+    }
+
+    // Warnings sheet
+    if (configuration.warnings.length > 0) {
+      const warningsData = configuration.warnings.map((w, i) => ({
+        "#": i + 1,
+        Severity: w.severity,
+        Message: w.message,
+      }));
+      const wsW = XLSX.utils.json_to_sheet(warningsData);
+      wsW["!cols"] = [{ wch: 4 }, { wch: 10 }, { wch: 90 }];
+      XLSX.utils.book_append_sheet(wb, wsW, "Warnings");
+    }
+
     XLSX.writeFile(wb, `SINUMERIK_ONE_BOM_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 

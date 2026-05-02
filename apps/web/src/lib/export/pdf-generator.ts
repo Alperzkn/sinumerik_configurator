@@ -8,7 +8,7 @@ export function generatePdf(
 ) {
   const doc = new jsPDF();
 
-  // Title
+  // ── Title ──────────────────────────────────────────────────────────
   doc.setFontSize(20);
   doc.setTextColor(0, 153, 153);
   doc.text("SINUMERIK ONE", 14, 22);
@@ -16,7 +16,7 @@ export function generatePdf(
   doc.setTextColor(100, 100, 100);
   doc.text("Configuration - Bill of Materials", 14, 30);
 
-  // Summary
+  // ── Summary ────────────────────────────────────────────────────────
   doc.setFontSize(10);
   doc.setTextColor(60, 60, 60);
   const y = 40;
@@ -34,7 +34,7 @@ export function generatePdf(
   );
   doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, y + 18);
 
-  // BOM Table
+  // ── BOM Table ──────────────────────────────────────────────────────
   const tableData = bomLines.map((line, i) => [
     (i + 1).toString(),
     line.articleNumber,
@@ -63,7 +63,7 @@ export function generatePdf(
     },
   });
 
-  // Notes
+  // ── Notes ──────────────────────────────────────────────────────────
   if (config.notes.length > 0) {
     const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } })
       .lastAutoTable.finalY;
@@ -75,7 +75,12 @@ export function generatePdf(
     });
   }
 
-  // Footer
+  // ── Configuration Rationale (new page) ─────────────────────────────
+  // Per-axis MLFB breakdown + every component's reasoning so the user
+  // (and their Siemens partner) can audit every decision.
+  appendRationale(doc, config);
+
+  // ── Footer (final page) ────────────────────────────────────────────
   const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
@@ -86,4 +91,147 @@ export function generatePdf(
   );
 
   doc.save("sinumerik-one-configuration.pdf");
+}
+
+/**
+ * Append a "Configuration Rationale" page that documents WHY each
+ * choice was made and what every MLFB suffix means. This is the
+ * verify-with-Siemens output: a partner can read it row-by-row and
+ * confirm the configuration without going back to the conversation.
+ */
+function appendRationale(doc: jsPDF, config: GeneratedConfiguration) {
+  doc.addPage();
+  let cursor = 20;
+
+  doc.setFontSize(16);
+  doc.setTextColor(0, 153, 153);
+  doc.text("Configuration Rationale", 14, cursor);
+  cursor += 8;
+
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text(
+    "Why each component was selected, with per-axis MLFB suffix decoding so you can verify every order code.",
+    14,
+    cursor,
+    { maxWidth: 180 },
+  );
+  cursor += 10;
+
+  // Architecture decisions table
+  const archRows: string[][] = [
+    [
+      "Control Unit",
+      `${config.controlUnit.name}`,
+      config.controlUnit.articleNumber || "—",
+    ],
+    [
+      "CNC Software",
+      `${config.softwareVariant === "export" ? "Export" : "Full Scope"} · SW ${config.cncSoftware.swVersion}`,
+      config.cncSoftware.articleNumber || "—",
+    ],
+    ["Total Axes", String(config.totalAxes), ""],
+    ["Channels", String(config.totalChannels), ""],
+    ["Complexity", config.estimatedComplexity, ""],
+  ];
+
+  autoTable(doc, {
+    startY: cursor,
+    head: [["Architecture", "Choice", "Article No."]],
+    body: archRows,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 153, 153], textColor: [255, 255, 255], fontStyle: "bold" },
+    columnStyles: {
+      0: { cellWidth: 38, fontStyle: "bold" },
+      1: { cellWidth: "auto" },
+      2: { cellWidth: 42, font: "courier" },
+    },
+  });
+  cursor = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+
+  // Per-axis MLFB breakdown — only when motors carry per-axis data
+  for (const motor of config.motors) {
+    if (!motor.perAxisMlfbs || motor.perAxisMlfbs.length === 0) continue;
+    if (cursor > 240) {
+      doc.addPage();
+      cursor = 20;
+    }
+
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Per-axis MLFB · ${motor.name}`, 14, cursor);
+    cursor += 5;
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text(
+      "Each axis carries its own orderable MLFB. The suffix encodes the axis's specific options (encoder, brake, shaft form).",
+      14,
+      cursor,
+      { maxWidth: 180 },
+    );
+    cursor += 6;
+
+    const axisRows = motor.perAxisMlfbs.map((a) => [
+      a.axis,
+      a.mlfb,
+      a.brake ? "yes" : "no",
+      (a.decoded ?? [])
+        .map((d) => `${d.label}: ${d.choiceLabel} (${d.code})`)
+        .join(" · "),
+    ]);
+
+    autoTable(doc, {
+      startY: cursor,
+      head: [["Axis", "Full MLFB", "Brake", "Suffix decoder"]],
+      body: axisRows,
+      styles: { fontSize: 7.5, cellPadding: 2 },
+      headStyles: { fillColor: [0, 153, 153], textColor: [255, 255, 255], fontStyle: "bold" },
+      columnStyles: {
+        0: { cellWidth: 14, fontStyle: "bold" },
+        1: { cellWidth: 42, font: "courier" },
+        2: { cellWidth: 14, halign: "center" },
+        3: { cellWidth: "auto" },
+      },
+    });
+    cursor = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+  }
+
+  // Warnings (if any)
+  if (config.warnings.length > 0) {
+    if (cursor > 240) {
+      doc.addPage();
+      cursor = 20;
+    }
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Warnings", 14, cursor);
+    cursor += 6;
+    autoTable(doc, {
+      startY: cursor,
+      head: [["Severity", "Message"]],
+      body: config.warnings.map((w) => [w.severity, w.message]),
+      styles: { fontSize: 7.5, cellPadding: 2 },
+      headStyles: { fillColor: [220, 100, 0], textColor: [255, 255, 255], fontStyle: "bold" },
+      columnStyles: {
+        0: { cellWidth: 22, halign: "center" },
+        1: { cellWidth: "auto" },
+      },
+    });
+    cursor = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+  }
+
+  // Disclaimer
+  if (cursor > 250) {
+    doc.addPage();
+    cursor = 20;
+  }
+  doc.setFontSize(7);
+  doc.setTextColor(150, 150, 150);
+  doc.text(
+    "This rationale is generated from the AI-assisted configurator. Verify every MLFB with your Siemens partner before procurement. " +
+      "Article numbers, options, and bundle contents change between catalog releases (NC63, D21.4, D31, D32).",
+    14,
+    cursor,
+    { maxWidth: 180 },
+  );
 }

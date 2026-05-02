@@ -1,4 +1,4 @@
-import { FAMILY_MODELS, buildMlfb } from "./index";
+import { FAMILY_MODELS, buildMlfb, explainMlfb } from "./index";
 import { ft7SelectionsFor } from "./families/ft7";
 import { ft2SelectionsFor } from "./families/ft2";
 import { fk2SelectionsFor } from "./families/fk2";
@@ -99,6 +99,11 @@ export function resolveFeedAxisMlfbs(input: ResolvePerAxisInput): AxisMlfb[] {
       default:
         return { axis, mlfb: baseArticle, brake };
     }
-    return { axis, mlfb: buildMlfb(model, base, selections), brake };
+    const decoded = explainMlfb(model, selections).map((row) => ({
+      label: row.label,
+      code: row.code,
+      choiceLabel: row.choiceLabel,
+    }));
+    return { axis, mlfb: buildMlfb(model, base, selections), brake, decoded };
   });
 }

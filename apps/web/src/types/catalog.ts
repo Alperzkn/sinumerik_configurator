@@ -188,6 +188,12 @@ export interface AxisMlfb {
   brake?: boolean;
   /** Encoder type code, when explicitly chosen. */
   encoder?: string;
+  /**
+   * Per-slot decoder produced by `explainMlfb()`. Lets the BOM render a
+   * "what does each suffix character mean" tooltip without re-parsing the
+   * MLFB at display time. Only set when a family option model exists.
+   */
+  decoded?: Array<{ label: string; code: string; choiceLabel: string }>;
 }
 
 export interface Motor {
