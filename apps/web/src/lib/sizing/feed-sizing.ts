@@ -65,6 +65,29 @@ function estimateMinTorque(req: FeedRequirement): number {
  */
 export function selectFeedMotor(req: FeedRequirement): FeedSelection {
   const warnings: string[] = [];
+
+  // Defensive: if upstream forgot to fill defaults, fail soft instead of
+  // emitting `undefined kg` / `NaN Nm` warnings. Pick a mid-range placeholder
+  // and let the caller surface a single "missing inputs" banner.
+  if (
+    !Number.isFinite(req.movingMassKg) || req.movingMassKg <= 0 ||
+    !Number.isFinite(req.rapidTraverseMpm) || req.rapidTraverseMpm <= 0
+  ) {
+    const allFeed = Object.entries(MOTOR_SPECS).filter(
+      ([, s]) => s.kind === "feed_servo"
+    );
+    allFeed.sort(([, a], [, b]) => parseNum(a.ratedTorque) - parseNum(b.ratedTorque));
+    const [article, specs] = allFeed[Math.floor(allFeed.length / 2)] ?? allFeed[0];
+    return {
+      article,
+      specs,
+      torqueMargin: 1,
+      meetsRequirements: false,
+      reason: "Mid-range placeholder — moving mass / rapid traverse not provided.",
+      warnings: [],
+    };
+  }
+
   const minTorque = estimateMinTorque(req);
   const isHeavyDuty = req.movingMassKg >= 1500;
 

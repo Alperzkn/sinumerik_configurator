@@ -157,40 +157,33 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
     rapidTraverse: false,
   };
 
+  // Apply defaults silently — we'll consolidate into one banner at the end
+  // rather than spamming four "assumed X based on machine class" notes.
+  const isMissing = (n: number | undefined): n is undefined =>
+    n === undefined || !Number.isFinite(n) || n <= 0;
+
   let spindleKw = userSpecs.spindlePowerKw;
-  if (spindleKw === undefined || spindleKw <= 0) {
+  if (isMissing(spindleKw)) {
     spindleKw = defaults.spindleKw;
     derivedFromDefaults.spindlePower = true;
-    assumptions.push(
-      `Spindle power not provided — assumed ${spindleKw} kW based on machine class.`
-    );
   }
 
   let spindleRpm = userSpecs.spindleMaxRpm;
-  if (spindleRpm === undefined || spindleRpm <= 0) {
+  if (isMissing(spindleRpm)) {
     spindleRpm = defaults.spindleRpm;
     derivedFromDefaults.spindleSpeed = true;
-    assumptions.push(
-      `Spindle max speed not provided — assumed ${spindleRpm} rpm based on machine class.`
-    );
   }
 
   let massKg = userSpecs.movingMassKg;
-  if (massKg === undefined || massKg <= 0) {
+  if (isMissing(massKg)) {
     massKg = defaults.massKg;
     derivedFromDefaults.movingMass = true;
-    assumptions.push(
-      `Moving mass per axis not provided — assumed ${massKg} kg based on machine class.`
-    );
   }
 
   let rapidMpm = userSpecs.rapidTraverseMpm;
-  if (rapidMpm === undefined || rapidMpm <= 0) {
+  if (isMissing(rapidMpm)) {
     rapidMpm = defaults.rapidMpm;
     derivedFromDefaults.rapidTraverse = true;
-    assumptions.push(
-      `Rapid traverse not provided — assumed ${rapidMpm} m/min based on machine class.`
-    );
   }
 
   // Determine if we should prefer sync spindle (high-speed / high-precision):
@@ -232,6 +225,26 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
     axisKind: userSpecs.machineSize === "very_large" ? "gantry" : "horizontal",
     familyHint: userSpecs.feedMotorFamily,
   });
+
+  // When ANY mechanical input was a default, the per-motor warnings
+  // produced by select* are noise — they're comparing the catalog
+  // against a placeholder, not the user's actual machine. Drop them and
+  // emit ONE actionable banner that points the user back to the form.
+  const missingFields: string[] = [];
+  if (derivedFromDefaults.spindlePower) missingFields.push("spindle power (kW)");
+  if (derivedFromDefaults.spindleSpeed) missingFields.push("spindle max RPM");
+  if (derivedFromDefaults.movingMass) missingFields.push("moving mass (kg)");
+  if (derivedFromDefaults.rapidTraverse) missingFields.push("rapid traverse (m/min)");
+
+  if (missingFields.length > 0) {
+    if (feed) feed.warnings = [];
+    if (spindle) spindle.warnings = [];
+    assumptions.push(
+      `Selected mid-range default motors. Fill in ${missingFields.join(
+        " · ",
+      )} on the previous step to size for your actual machine.`,
+    );
+  }
 
   return {
     spindle,

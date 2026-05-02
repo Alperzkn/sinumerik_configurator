@@ -59,6 +59,27 @@ export function selectSpindleMotor(req: SpindleRequirement): SpindleSelection {
     ([, s]) => s.kind === "spindle_async" || s.kind === "spindle_sync"
   );
 
+  // Defensive: missing inputs → pick a mid-range placeholder, no warnings.
+  // Caller (sizing/index.ts) shows one consolidated "fill in specs" banner.
+  if (
+    !Number.isFinite(req.requiredPowerKw) || req.requiredPowerKw <= 0 ||
+    !Number.isFinite(req.requiredMaxRpm) || req.requiredMaxRpm <= 0
+  ) {
+    const sorted = [...allSpindles].sort(
+      ([, a], [, b]) => parseKw(a.ratedPower) - parseKw(b.ratedPower)
+    );
+    const [article, specs] = sorted[Math.floor(sorted.length / 2)] ?? sorted[0];
+    return {
+      article,
+      specs,
+      powerMargin: 1,
+      speedMargin: 1,
+      meetsRequirements: false,
+      reason: "Mid-range placeholder — spindle power / max RPM not provided.",
+      warnings: [],
+    };
+  }
+
   const fullyQualified = allSpindles.filter(([, s]) => {
     const p = parseKw(s.ratedPower);
     const maxRpm = parseRpm(s.maxSpeed);
