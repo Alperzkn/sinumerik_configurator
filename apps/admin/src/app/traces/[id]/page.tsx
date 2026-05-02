@@ -4,6 +4,7 @@ import { ArrowLeft, ThumbsDown, ThumbsUp } from "lucide-react";
 import { getAiTrace } from "@sinumerik/telemetry";
 import { requireAdmin } from "@/lib/auth";
 import { formatDateTime, formatDuration } from "@/lib/format";
+import { JsonView } from "@/components/ui/json-view";
 
 export const dynamic = "force-dynamic";
 
@@ -35,25 +36,25 @@ export default async function TraceDetailPage({
   const redacted = trace.redacted as boolean | null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
         {sessionId && (
           <Link
             href={`/sessions/${sessionId}`}
-            className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground mb-2"
+            className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-3"
           >
-            <ArrowLeft className="h-3 w-3" />
+            <ArrowLeft className="h-3.5 w-3.5" />
             Session timeline
           </Link>
         )}
-        <h1 className="text-base font-semibold">
+        <h1 className="text-[20px] font-semibold leading-tight">
           AI trace
-          <span className="ml-2 text-[11px] uppercase tracking-wider text-muted-foreground font-normal">
+          <span className="ml-2.5 text-[12px] tracking-wide text-muted-foreground font-medium align-middle">
             {kind}
           </span>
         </h1>
-        <div className="flex flex-wrap items-center gap-3 text-[12px] text-muted-foreground mt-1">
-          <span className="font-mono">{id}</span>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-muted-foreground mt-2">
+          <span className="font-mono break-all">{id}</span>
           <span>{formatDateTime(trace.created_at as string)}</span>
           {model && <span>{model}</span>}
           {latencyMs != null && <span>{formatDuration(latencyMs)}</span>}
@@ -63,19 +64,19 @@ export default async function TraceDetailPage({
             </span>
           )}
           {rating === 1 && (
-            <span className="inline-flex items-center gap-1 text-emerald-500">
-              <ThumbsUp className="h-3 w-3" />
+            <span className="inline-flex items-center gap-1 text-emerald-400">
+              <ThumbsUp className="h-3.5 w-3.5" />
               Helpful
             </span>
           )}
           {rating === -1 && (
-            <span className="inline-flex items-center gap-1 text-rose-500">
-              <ThumbsDown className="h-3 w-3" />
+            <span className="inline-flex items-center gap-1 text-rose-400">
+              <ThumbsDown className="h-3.5 w-3.5" />
               Wrong
             </span>
           )}
           {redacted && (
-            <span className="inline-flex items-center rounded bg-amber-500/15 text-amber-500 px-1.5 py-0.5 text-[10px]">
+            <span className="inline-flex items-center rounded bg-amber-500/15 text-amber-300 px-2 py-0.5 text-[11px] font-medium">
               redacted
             </span>
           )}
@@ -84,7 +85,7 @@ export default async function TraceDetailPage({
 
       {error && (
         <Section title="Error">
-          <pre className="whitespace-pre-wrap text-[12px] text-rose-500">
+          <pre className="whitespace-pre-wrap text-[13px] leading-relaxed text-rose-300">
             {error}
           </pre>
         </Section>
@@ -92,13 +93,13 @@ export default async function TraceDetailPage({
 
       {feedbackComment && (
         <Section title="User feedback">
-          <p className="text-[13px]">{feedbackComment}</p>
+          <p className="text-[14px] leading-relaxed">{feedbackComment}</p>
         </Section>
       )}
 
       {userMessage && (
         <Section title="User prompt">
-          <pre className="whitespace-pre-wrap text-[12px] leading-relaxed">
+          <pre className="whitespace-pre-wrap text-[13.5px] leading-relaxed">
             {userMessage}
           </pre>
         </Section>
@@ -106,7 +107,7 @@ export default async function TraceDetailPage({
 
       {systemPrompt && (
         <Section title="System prompt" collapsed>
-          <pre className="whitespace-pre-wrap text-[11px] text-muted-foreground leading-relaxed">
+          <pre className="whitespace-pre-wrap text-[12.5px] text-muted-foreground leading-relaxed">
             {systemPrompt}
           </pre>
         </Section>
@@ -114,19 +115,19 @@ export default async function TraceDetailPage({
 
       {conversation !== null && conversation !== undefined && (
         <Section title="Conversation" collapsed>
-          <JsonBlock value={conversation} />
+          <JsonView value={conversation} collapsed={1} />
         </Section>
       )}
 
       {parsedResponse !== null && parsedResponse !== undefined && (
         <Section title="Parsed response">
-          <JsonBlock value={parsedResponse} />
+          <JsonView value={parsedResponse} />
         </Section>
       )}
 
       {rawResponse !== null && rawResponse !== undefined && (
         <Section title="Raw response" collapsed>
-          <JsonBlock value={rawResponse} />
+          <JsonView value={rawResponse} collapsed={1} />
         </Section>
       )}
     </div>
@@ -147,24 +148,11 @@ function Section({
       className="rounded-lg border bg-card overflow-hidden"
       open={!collapsed}
     >
-      <summary className="px-3 py-2 border-b cursor-pointer text-[11px] uppercase tracking-wider text-muted-foreground select-none hover:bg-muted/30">
+      <summary className="px-4 py-2.5 border-b cursor-pointer text-[12.5px] font-medium text-muted-foreground select-none hover:bg-muted/30 hover:text-foreground transition-colors">
         {title}
       </summary>
-      <div className="px-3 py-3">{children}</div>
+      <div className="px-4 py-3.5">{children}</div>
     </details>
   );
 }
 
-function JsonBlock({ value }: { value: unknown }) {
-  let text: string;
-  try {
-    text = JSON.stringify(value, null, 2);
-  } catch {
-    text = String(value);
-  }
-  return (
-    <pre className="text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap break-words">
-      {text}
-    </pre>
-  );
-}

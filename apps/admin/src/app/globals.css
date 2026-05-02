@@ -44,7 +44,7 @@
   --secondary:            oklch(0.23 0.008 220);
   --secondary-foreground: oklch(0.96 0.004 95);
   --muted:                oklch(0.22 0.007 220);
-  --muted-foreground:     oklch(0.66 0.008 95);
+  --muted-foreground:     oklch(0.74 0.008 95);
   --accent:               oklch(0.28 0.08 195);
   --accent-foreground:    oklch(0.92 0.08 195);
   --destructive:          oklch(0.70 0.18 35);
@@ -60,10 +60,14 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-size: 14px;
+    line-height: 1.55;
   }
   html {
     @apply font-sans;
     color-scheme: dark;
-    letter-spacing: -0.005em;
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.012em;
   }
 }

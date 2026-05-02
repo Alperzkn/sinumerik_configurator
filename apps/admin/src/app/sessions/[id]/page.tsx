@@ -28,24 +28,26 @@ export default async function SessionDetailPage({
   if (timeline.length === 0) notFound();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground mb-2"
+          className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-3"
         >
-          <ArrowLeft className="h-3 w-3" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           Sessions
         </Link>
-        <h1 className="text-base font-semibold font-mono">{id}</h1>
-        <p className="text-[12px] text-muted-foreground">
+        <h1 className="text-[18px] font-semibold font-mono break-all leading-snug">
+          {id}
+        </h1>
+        <p className="text-[13px] text-muted-foreground mt-1.5">
           {timeline.length} events &middot; {formatDateTime(timeline[0].created_at)}
           {timeline.length > 1 &&
             ` → ${formatDateTime(timeline[timeline.length - 1].created_at)}`}
         </p>
       </div>
 
-      <ol className="space-y-2">
+      <ol className="space-y-3">
         {timeline.map((entry) => (
           <li key={`${entry.source}-${entry.id}`}>
             <TimelineEntry entry={entry} />
@@ -87,50 +89,54 @@ function AiTraceCard({
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b text-[11px]">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2 py-0.5 font-medium">
-            <MessageSquare className="h-3 w-3" />
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b text-[12.5px] flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 text-primary px-2.5 py-0.5 font-medium">
+            <MessageSquare className="h-3.5 w-3.5" />
             AI / {kind}
           </span>
           <span className="text-muted-foreground tabular-nums">
             {formatDateTime(entry.created_at)}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground tabular-nums">
+        <div className="flex items-center gap-3 text-muted-foreground tabular-nums">
           {latencyMs != null && <span>{formatDuration(latencyMs)}</span>}
           {(inputTokens != null || outputTokens != null) && (
             <span>
               {inputTokens ?? 0} in / {outputTokens ?? 0} out
             </span>
           )}
-          {rating === 1 && <ThumbsUp className="h-3 w-3 text-emerald-500" />}
-          {rating === -1 && <ThumbsDown className="h-3 w-3 text-rose-500" />}
+          {rating === 1 && <ThumbsUp className="h-3.5 w-3.5 text-emerald-400" />}
+          {rating === -1 && <ThumbsDown className="h-3.5 w-3.5 text-rose-400" />}
         </div>
       </div>
       {userMessage && (
-        <div className="px-3 py-2 border-b">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+        <div className="px-4 py-3 border-b">
+          <div className="text-[11px] font-medium text-muted-foreground mb-1">
             User said
           </div>
-          <div className="text-[13px] whitespace-pre-wrap">{userMessage}</div>
+          <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
+            {userMessage}
+          </div>
         </div>
       )}
       {error && (
-        <div className="px-3 py-2 border-b bg-rose-500/5">
-          <div className="text-[10px] uppercase tracking-wider text-rose-500/80 mb-0.5">
+        <div className="px-4 py-3 border-b bg-rose-500/5">
+          <div className="text-[11px] font-medium text-rose-300/90 mb-1">
             Error
           </div>
-          <div className="text-[12px] text-rose-500 whitespace-pre-wrap">{error}</div>
+          <div className="text-[13px] leading-relaxed text-rose-300 whitespace-pre-wrap">
+            {error}
+          </div>
         </div>
       )}
-      <div className="px-3 py-2 flex justify-end">
+      <div className="px-4 py-2 flex justify-end">
         <Link
           href={`/traces/${entry.id}`}
-          className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"
         >
           Open trace
-          <ChevronRight className="h-3 w-3" />
+          <ChevronRight className="h-3.5 w-3.5" />
         </Link>
       </div>
     </div>
@@ -153,10 +159,10 @@ function ConfigurationCard({
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b text-[11px]">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-500 px-2 py-0.5 font-medium">
-            <Cog className="h-3 w-3" />
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b text-[12.5px] flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 text-emerald-300 px-2.5 py-0.5 font-medium">
+            <Cog className="h-3.5 w-3.5" />
             Configuration
           </span>
           <span className="text-muted-foreground tabular-nums">
@@ -164,27 +170,29 @@ function ConfigurationCard({
           </span>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
-          {rating === 1 && <ThumbsUp className="h-3 w-3 text-emerald-500" />}
-          {rating === -1 && <ThumbsDown className="h-3 w-3 text-rose-500" />}
+          {rating === 1 && <ThumbsUp className="h-3.5 w-3.5 text-emerald-400" />}
+          {rating === -1 && <ThumbsDown className="h-3.5 w-3.5 text-rose-400" />}
         </div>
       </div>
       {description && (
-        <div className="px-3 py-2 border-b text-[13px]">{description}</div>
+        <div className="px-4 py-3 border-b text-[14px] leading-relaxed">
+          {description}
+        </div>
       )}
-      <div className="px-3 py-2 grid grid-cols-3 gap-3 text-[12px]">
+      <div className="px-4 py-3 grid grid-cols-3 gap-4 text-[13px]">
         <Field label="NCU" value={ncu} />
         <Field label="CNC software" value={cnc} />
         <Field label="Axes" value={totalAxes != null ? String(totalAxes) : null} />
       </div>
       {items.length > 0 && (
-        <div className="px-3 py-2 border-t text-[11px] text-muted-foreground">
+        <div className="px-4 py-2.5 border-t text-[12.5px] text-muted-foreground">
           {items.length} BOM items &middot; {items.slice(0, 6).map((i) => i.mlfb).join(" · ")}
           {items.length > 6 && ` …`}
         </div>
       )}
       {feedbackComment && (
-        <div className="px-3 py-2 border-t bg-muted/40 text-[12px]">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
+        <div className="px-4 py-3 border-t bg-muted/40 text-[13px] leading-relaxed">
+          <div className="text-[11px] font-medium text-muted-foreground mb-1">
             Comment
           </div>
           {feedbackComment}
@@ -208,13 +216,13 @@ function UserActionCard({
     .join(" · ") : null;
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card/40 px-3 py-2 text-[12px]">
-      <MousePointerClick className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+    <div className="flex items-center gap-3 rounded-lg border bg-card/40 px-4 py-2.5 text-[13px]">
+      <MousePointerClick className="h-4 w-4 text-muted-foreground shrink-0" />
       <span className="font-medium">{kind}</span>
       {summary && (
         <span className="text-muted-foreground truncate">{summary}</span>
       )}
-      <span className="ml-auto text-[11px] text-muted-foreground tabular-nums shrink-0">
+      <span className="ml-auto text-[12.5px] text-muted-foreground tabular-nums shrink-0">
         {formatDateTime(entry.created_at)}
       </span>
     </div>
@@ -224,10 +232,10 @@ function UserActionCard({
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+      <div className="text-[11px] font-medium text-muted-foreground">
         {label}
       </div>
-      <div className="text-[12px]">{value ?? "—"}</div>
+      <div className="text-[13.5px] mt-0.5">{value ?? "—"}</div>
     </div>
   );
 }

@@ -34,11 +34,11 @@ export default async function SessionsPage({
   const filtersActive = sp.thumbsDown === "1" || sp.modify === "1";
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-lg font-semibold">Sessions</h1>
-          <p className="text-[12px] text-muted-foreground">
+          <h1 className="text-2xl font-semibold">Sessions</h1>
+          <p className="text-[13px] text-muted-foreground mt-1">
             Each row is one user&apos;s journey from prompt → BOM. Click in to
             see the full timeline.
           </p>
@@ -47,13 +47,13 @@ export default async function SessionsPage({
           <FilterToggle
             active={sp.modify === "1"}
             label="Used modify"
-            icon={<Wrench className="h-3 w-3" />}
+            icon={<Wrench className="h-3.5 w-3.5" />}
             href={buildHref(sp, { modify: sp.modify === "1" ? undefined : "1" })}
           />
           <FilterToggle
             active={sp.thumbsDown === "1"}
             label="Thumbs down"
-            icon={<MessageSquareWarning className="h-3 w-3" />}
+            icon={<MessageSquareWarning className="h-3.5 w-3.5" />}
             href={buildHref(sp, {
               thumbsDown: sp.thumbsDown === "1" ? undefined : "1",
             })}
@@ -62,24 +62,24 @@ export default async function SessionsPage({
       </div>
 
       {sessions.length === 0 ? (
-        <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border bg-card p-10 text-center text-[14px] text-muted-foreground">
           {filtersActive
             ? "No sessions match these filters."
             : "No sessions logged yet. Make sure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set on the web app and the migration has run."}
         </div>
       ) : (
         <div className="rounded-lg border bg-card overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-[14px]">
             <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b">
-                <th className="text-left px-3 py-2 font-medium">Session</th>
-                <th className="text-left px-3 py-2 font-medium">Started</th>
-                <th className="text-right px-3 py-2 font-medium">AI calls</th>
-                <th className="text-right px-3 py-2 font-medium">Latency</th>
-                <th className="text-right px-3 py-2 font-medium">Tokens (out)</th>
-                <th className="text-right px-3 py-2 font-medium">Feedback</th>
-                <th className="text-right px-3 py-2 font-medium">Errors</th>
-                <th className="w-8"></th>
+              <tr className="text-[12px] text-muted-foreground border-b">
+                <th className="text-left px-4 py-3 font-medium">Session</th>
+                <th className="text-left px-4 py-3 font-medium">Started</th>
+                <th className="text-right px-4 py-3 font-medium">AI calls</th>
+                <th className="text-right px-4 py-3 font-medium">Latency</th>
+                <th className="text-right px-4 py-3 font-medium">Tokens (out)</th>
+                <th className="text-right px-4 py-3 font-medium">Feedback</th>
+                <th className="text-right px-4 py-3 font-medium">Errors</th>
+                <th className="w-10"></th>
               </tr>
             </thead>
             <tbody>
@@ -88,7 +88,7 @@ export default async function SessionsPage({
                   key={s.session_id}
                   className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
                 >
-                  <td className="px-3 py-2 font-mono text-[12px]">
+                  <td className="px-4 py-3 font-mono text-[13px]">
                     <Link
                       href={`/sessions/${s.session_id}`}
                       className="hover:text-primary"
@@ -96,44 +96,44 @@ export default async function SessionsPage({
                       {shortId(s.session_id, 12)}
                     </Link>
                   </td>
-                  <td className="px-3 py-2 text-[12px] text-muted-foreground">
+                  <td className="px-4 py-3 text-[13px] text-muted-foreground">
                     {formatDateTime(s.started_at)}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  <td className="px-4 py-3 text-right tabular-nums">
                     {s.recommend_calls + s.modify_calls}
                     {s.modify_calls > 0 && (
-                      <span className="text-[10px] text-muted-foreground ml-1">
+                      <span className="text-[12px] text-muted-foreground ml-1.5">
                         ({s.modify_calls} mod)
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                     {formatDuration(s.total_latency_ms)}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                     {formatTokens(s.total_output_tokens)}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  <td className="px-4 py-3 text-right tabular-nums">
                     {s.thumbs_up > 0 && (
-                      <span className="text-emerald-500 mr-1.5">
+                      <span className="text-emerald-400 mr-1.5">
                         +{s.thumbs_up}
                       </span>
                     )}
                     {s.thumbs_down > 0 && (
-                      <span className="text-rose-500">−{s.thumbs_down}</span>
+                      <span className="text-rose-400">−{s.thumbs_down}</span>
                     )}
                     {s.thumbs_up + s.thumbs_down === 0 && (
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  <td className="px-4 py-3 text-right tabular-nums">
                     {s.errors > 0 ? (
-                      <span className="text-rose-500">{s.errors}</span>
+                      <span className="text-rose-400">{s.errors}</span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">
+                  <td className="px-3 py-3 text-muted-foreground">
                     <Link
                       href={`/sessions/${s.session_id}`}
                       className="hover:text-foreground"
@@ -149,7 +149,7 @@ export default async function SessionsPage({
         </div>
       )}
 
-      <div className="flex items-center justify-between text-[12px] text-muted-foreground">
+      <div className="flex items-center justify-between text-[13px] text-muted-foreground">
         <div>
           Page {pageNum}
           {sessions.length === PAGE_SIZE && " — more available"}
@@ -191,7 +191,7 @@ function FilterToggle({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] transition-colors ${
         active
           ? "border-primary/40 bg-primary/10 text-primary"
           : "border-border hover:bg-muted/50"

@@ -47,19 +47,19 @@ export default async function RootLayout({
         {authed ? (
           <div className="min-h-screen flex flex-col">
             <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-              <div className="mx-auto max-w-6xl px-4 h-12 flex items-center justify-between">
-                <div className="flex items-center gap-4">
+              <div className="mx-auto max-w-6xl px-5 h-14 flex items-center justify-between">
+                <div className="flex items-center gap-5">
                   <Link
                     href="/"
-                    className="flex items-center gap-2 font-semibold text-sm"
+                    className="flex items-center gap-2 font-semibold text-[15px]"
                   >
                     <Activity
-                      className="h-4 w-4 text-primary"
+                      className="h-[18px] w-[18px] text-primary"
                       strokeWidth={2}
                     />
                     Telemetry
                   </Link>
-                  <nav className="flex items-center gap-3 text-[12px] text-muted-foreground">
+                  <nav className="flex items-center gap-4 text-[13px] text-muted-foreground">
                     <Link
                       href="/"
                       className="hover:text-foreground transition-colors"
@@ -71,7 +71,7 @@ export default async function RootLayout({
                 <SignOutButton />
               </div>
             </header>
-            <main className="flex-1 mx-auto max-w-6xl w-full px-4 py-6">
+            <main className="flex-1 mx-auto max-w-6xl w-full px-5 py-7">
               {children}
             </main>
           </div>
