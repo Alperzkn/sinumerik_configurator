@@ -69,6 +69,25 @@ export function InterpretationCard({
       value: prefs?.spindleMotorFamily ?? null,
     },
     {
+      label: "Feed power",
+      value: prefs?.feedPowerKw ? `${prefs.feedPowerKw} kW per axis` : null,
+    },
+    {
+      label: "Spindle power / RPM",
+      value:
+        prefs?.spindlePowerKw || prefs?.spindleMaxRpm
+          ? `${prefs?.spindlePowerKw ? `${prefs.spindlePowerKw} kW` : "—"} / ${prefs?.spindleMaxRpm ? `${prefs.spindleMaxRpm} rpm` : "—"}`
+          : null,
+    },
+    {
+      label: "Moving mass",
+      value: prefs?.movingMassKg ? `${prefs.movingMassKg} kg per axis` : null,
+    },
+    {
+      label: "Rapid traverse",
+      value: prefs?.rapidTraverseMpm ? `${prefs.rapidTraverseMpm} m/min` : null,
+    },
+    {
       label: "Cable length",
       value: prefs?.cableLengthMeters ? `${prefs.cableLengthMeters} m` : null,
     },

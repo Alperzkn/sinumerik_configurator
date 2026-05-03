@@ -144,6 +144,11 @@ Respond with a JSON object describing the ARCHITECTURE. Do NOT include motor, mo
     "cableLengthMeters": 7,
     "axisNames": ["X1", "Y1", "X2", "Y2"],
     "brakeAxes": ["X1", "X2"],
+    "feedPowerKw": 3,
+    "spindlePowerKw": 11,
+    "spindleMaxRpm": 8000,
+    "movingMassKg": 200,
+    "rapidTraverseMpm": 30,
     "summaryForUser": "2-channel lathe, 4 feed axes, 1 main spindle, 1FK2 feed motors at 3 kW each, 1PH8 spindle at 11 kW, X-axes braked, 7 m cables, 15-inch HMI."
   },
   "notes": ["..."],
@@ -154,6 +159,7 @@ Respond with a JSON object describing the ARCHITECTURE. Do NOT include motor, mo
 - Only include fields the user *explicitly* mentioned. Do not invent.
 - \`axisNames\`: use the user's exact labels (X1, Y, A, B, C, etc.). DO NOT silently rename — if a user says "Y1, Y2" you keep "Y1, Y2" even if Z would be more conventional. If their naming truly doesn't make sense, set \`needsClarification: true\` and ask.
 - \`feedMotorFamily\` / \`spindleMotorFamily\`: must be one of the supported families. Allowed feed: 1FK2, 1FK7, 1FT2, 1FT7. Allowed spindle: 1PH8, 1PH3. The sizing engine uses this to filter motor selection.
+- \`feedPowerKw\`, \`spindlePowerKw\`, \`spindleMaxRpm\`, \`movingMassKg\`, \`rapidTraverseMpm\`: numeric values the user typed in free-text (e.g. "3 kW motors", "11 kW spindle", "8000 rpm", "500 kg per axis", "40 m/min rapid"). These flow directly into the sizing engine and override the machine-class defaults — without them the configurator picks generic mid-range motors. Always populate these when the user gave a number.
 - \`summaryForUser\`: 1-2 short sentences in plain language for the confirmation UI. NO JSON, NO article numbers.
 
 ### Field meaning

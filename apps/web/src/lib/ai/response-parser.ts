@@ -221,6 +221,29 @@ export function parseAiResponse(
   if (prefs?.cableLengthMeters && !sizingSpecs.cableLengthMeters) {
     sizingSpecs.cableLengthMeters = String(prefs.cableLengthMeters);
   }
+  // Power / speed / mass / rapid mentioned in free-text take precedence
+  // over the machine-size-class defaults the sizing engine would
+  // otherwise apply. The form's values still win when present (the form
+  // is more deliberate than free-text extraction).
+  if (prefs?.spindlePowerKw && !sizingSpecs.spindlePowerKw) {
+    sizingSpecs.spindlePowerKw = prefs.spindlePowerKw;
+  }
+  if (prefs?.spindleMaxRpm && !sizingSpecs.spindleMaxRpm) {
+    sizingSpecs.spindleMaxRpm = prefs.spindleMaxRpm;
+  }
+  if (prefs?.movingMassKg && !sizingSpecs.movingMassKg) {
+    sizingSpecs.movingMassKg = prefs.movingMassKg;
+  }
+  if (prefs?.rapidTraverseMpm && !sizingSpecs.rapidTraverseMpm) {
+    sizingSpecs.rapidTraverseMpm = prefs.rapidTraverseMpm;
+  }
+  // feedPowerKw doesn't have a direct sizing-engine slot — but a
+  // declared feed power gives the engine a reasonable mass derivation:
+  // 1 kW ≈ 100 kg moving mass for typical machine-tool ball-screw axes.
+  // Only apply when the user didn't give us a real mass.
+  if (prefs?.feedPowerKw && !sizingSpecs.movingMassKg && !prefs.movingMassKg) {
+    sizingSpecs.movingMassKg = prefs.feedPowerKw * 100;
+  }
 
   // Run deterministic sizing against user specs
   const sized = sizeConfiguration({

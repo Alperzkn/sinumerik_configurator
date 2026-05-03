@@ -29,6 +29,15 @@ export function PerAxisMlfbList({ items }: { items: AxisMlfb[] }) {
 
 function AxisRow({ item }: { item: AxisMlfb }) {
   const [open, setOpen] = useState(false);
+
+  // Split the MLFB at the LAST hyphen so the suffix segment can be
+  // highlighted (the only part that varies between axes with different
+  // brake / encoder choices). Makes "1FT2206-2BA0" vs "1FT2206-2AA0"
+  // visually obvious at a glance.
+  const lastDash = item.mlfb.lastIndexOf("-");
+  const base = lastDash > 0 ? item.mlfb.slice(0, lastDash) : item.mlfb;
+  const suffix = lastDash > 0 ? item.mlfb.slice(lastDash) : "";
+
   return (
     <div className="relative">
       <div className="flex items-center justify-between gap-2 text-[12px]">
@@ -36,7 +45,16 @@ function AxisRow({ item }: { item: AxisMlfb }) {
           {item.axis}
         </span>
         <code className="font-mono text-[12px] flex-1 truncate" title={item.mlfb}>
-          {item.mlfb}
+          <span className="text-muted-foreground">{base}</span>
+          <span
+            className={
+              item.brake
+                ? "text-amber-500 font-semibold"
+                : "text-foreground font-semibold"
+            }
+          >
+            {suffix}
+          </span>
         </code>
         {item.brake && (
           <span

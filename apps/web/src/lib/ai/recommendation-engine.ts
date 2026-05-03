@@ -105,6 +105,24 @@ export interface AiRawResponse {
     axisNames?: string[];
     /** Subset of axisNames that should have integrated holding brakes */
     brakeAxes?: string[];
+
+    /**
+     * Mechanical specs the user mentioned in free-text (e.g. "3 kW
+     * motors", "11 kW spindle", "8000 rpm"). The parser mirrors these
+     * into sizingSpecs so they take precedence over machine-size class
+     * defaults — a user who typed "3 kW motors" should NOT get a 5 kW
+     * motor sized from the medium-machine default.
+     */
+    feedPowerKw?: number;
+    /** kW the user wants on the spindle (e.g. "11 kW spindle") */
+    spindlePowerKw?: number;
+    /** rpm the user wants the spindle to reach (e.g. "8000 rpm spindle") */
+    spindleMaxRpm?: number;
+    /** kg per axis (when the user gave a moving mass) */
+    movingMassKg?: number;
+    /** m/min rapid traverse the user wants */
+    rapidTraverseMpm?: number;
+
     /** Free-text restatement of what the AI heard, for the confirmation card */
     summaryForUser?: string;
   };
