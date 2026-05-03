@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Loader2, Pencil, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Loader2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import type { AiRawResponse } from "@/lib/ai/recommendation-engine";
 
 interface InterpretationCardProps {
@@ -16,15 +17,14 @@ interface InterpretationCardProps {
 }
 
 /**
- * "Here's what I understood" — a confirmation panel shown between the
- * AI analysis step and the BOM. Two paths:
- *  1. Looks right → confirm and move on.
- *  2. Something's off → user types what to change, we re-run AI with
- *     the correction appended to the conversation.
+ * Engineering-instrument interpretation panel — reads like the data
+ * plate on a CNC: a tracked title rule, a spec grid with tick-mark
+ * left edges, axis chips that mirror the per-axis schematic style.
  *
- * Catches misinterpretations (renamed axes, wrong motor family, missed
- * preferences) BEFORE the BOM is built — much cheaper than fixing
- * after-the-fact via the modify pane.
+ * Two paths:
+ *   1. Looks right → confirm and move on.
+ *   2. Something's off → user types what to change, we re-run AI with
+ *      the correction appended to the conversation.
  */
 export function InterpretationCard({
   response,
@@ -36,47 +36,45 @@ export function InterpretationCard({
   const [correction, setCorrection] = useState("");
   const prefs = response.userPreferences;
 
-  const facts: Array<{ label: string; value: string | null }> = [
+  // Highlighted "metrics" — rendered prominently in display font (Plex
+  // Serif) at the top of the card, so the engineer's eye lands on the
+  // counts first. The remaining facts are tabulated in the spec grid
+  // below.
+  const metrics: Array<{ label: string; value: string | null; unit?: string }> = [
     {
-      label: "Control unit",
-      value: response.controlUnit?.id ?? null,
+      label: "Axes",
+      value: response.totalAxes != null ? String(response.totalAxes) : null,
     },
+    {
+      label: "Channels",
+      value: response.totalChannels != null ? String(response.totalChannels) : null,
+    },
+    {
+      label: "Complexity",
+      value: response.estimatedComplexity ?? null,
+    },
+  ];
+
+  const facts: Array<{ label: string; value: string | null }> = [
+    { label: "Control unit", value: response.controlUnit?.id ?? null },
     {
       label: "CNC software",
       value: response.cncSoftware?.variant
         ? response.cncSoftware.variant.replace("_", " ")
         : null,
     },
-    {
-      label: "Total axes / channels",
-      value:
-        response.totalAxes != null
-          ? `${response.totalAxes} axes, ${response.totalChannels ?? 1} channel${
-              (response.totalChannels ?? 1) > 1 ? "s" : ""
-            }`
-          : null,
-    },
-    {
-      label: "Drive family",
-      value: response.driveArchitecture?.family ?? null,
-    },
-    {
-      label: "Feed motor family",
-      value: prefs?.feedMotorFamily ?? null,
-    },
-    {
-      label: "Spindle motor family",
-      value: prefs?.spindleMotorFamily ?? null,
-    },
+    { label: "Drive family", value: response.driveArchitecture?.family ?? null },
+    { label: "Feed motor family", value: prefs?.feedMotorFamily ?? null },
+    { label: "Spindle family", value: prefs?.spindleMotorFamily ?? null },
     {
       label: "Feed power",
       value: prefs?.feedPowerKw ? `${prefs.feedPowerKw} kW per axis` : null,
     },
     {
-      label: "Spindle power / RPM",
+      label: "Spindle",
       value:
         prefs?.spindlePowerKw || prefs?.spindleMaxRpm
-          ? `${prefs?.spindlePowerKw ? `${prefs.spindlePowerKw} kW` : "—"} / ${prefs?.spindleMaxRpm ? `${prefs.spindleMaxRpm} rpm` : "—"}`
+          ? `${prefs?.spindlePowerKw ? `${prefs.spindlePowerKw} kW` : "—"} · ${prefs?.spindleMaxRpm ? `${prefs.spindleMaxRpm} rpm` : "—"}`
           : null,
     },
     {
@@ -101,8 +99,8 @@ export function InterpretationCard({
     {
       label: "HMI",
       value: response.hmi
-        ? `${response.hmi.type}${
-            response.hmi.panelSizeInch ? `, ${response.hmi.panelSizeInch}"` : ""
+        ? `${response.hmi.type.replace("_", " ")}${
+            response.hmi.panelSizeInch ? ` · ${response.hmi.panelSizeInch}″` : ""
           }`
         : null,
     },
@@ -110,13 +108,13 @@ export function InterpretationCard({
       label: "Tech packages",
       value:
         response.technologyPackages && response.technologyPackages.length > 0
-          ? response.technologyPackages.map((p) => p.id).join(", ")
+          ? response.technologyPackages.map((p) => p.id).join(" · ")
           : "None",
     },
   ];
 
-  const axes = prefs?.axisNames;
-  const brakes = prefs?.brakeAxes;
+  const axes = prefs?.axisNames ?? [];
+  const brakes = prefs?.brakeAxes ?? [];
 
   const handleSendRefine = async () => {
     if (!correction.trim() || busy) return;
@@ -129,58 +127,80 @@ export function InterpretationCard({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-primary/30 bg-linear-to-br from-primary/5 via-card to-card overflow-hidden shadow-sm"
+      className="rounded-md border bg-card overflow-hidden"
     >
-      <div className="px-4 py-3 border-b border-primary/15 flex items-center gap-2.5">
-        <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
-          <Sparkles className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
+      {/* Top accent rule — single petrol hairline above a tracked title. */}
+      <div className="h-px bg-primary/60" />
+
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-baseline gap-3">
+          <span className="label-spec">Interpretation · A1</span>
+          <span className="flex-1 h-px bg-border/40" />
+          <span className="text-[10px] tabular-nums text-muted-foreground">
+            review before BOM
+          </span>
         </div>
-        <div>
-          <div className="text-sm font-semibold">Here&apos;s what I understood</div>
-          <div className="text-[11px] text-muted-foreground">
-            Review before I build the bill of materials.
-          </div>
-        </div>
+        <h3 className="mt-2.5 text-[17px] font-medium tracking-tight leading-tight">
+          Here&apos;s what I understood
+        </h3>
+        {prefs?.summaryForUser && (
+          <p className="mt-1.5 text-[13px] text-muted-foreground leading-relaxed max-w-2xl">
+            {prefs.summaryForUser}
+          </p>
+        )}
       </div>
 
-      {prefs?.summaryForUser && (
-        <div className="px-4 py-3 border-b border-border/40 bg-muted/30">
-          <p className="text-[13px] leading-relaxed">{prefs.summaryForUser}</p>
-        </div>
-      )}
+      {/* Hero metrics — display font, large, restrained. */}
+      <div className="px-5 pb-3 grid grid-cols-3 gap-px bg-border/40 rounded-sm overflow-hidden mx-5">
+        {metrics.map((m) => (
+          <div key={m.label} className="bg-card px-4 py-3">
+            <div className="label-spec">{m.label}</div>
+            <div className="font-display text-[24px] leading-none mt-1.5 tabular-nums">
+              {m.value ?? "—"}
+            </div>
+          </div>
+        ))}
+      </div>
 
-      <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5">
+      {/* Spec grid — each row gets a tick-mark left edge. */}
+      <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 border-t border-border/40">
         {facts
           .filter((f) => f.value !== null)
           .map((f) => (
-            <div key={f.label}>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                {f.label}
-              </div>
-              <div className="text-[12.5px] font-medium">{f.value}</div>
+            <div key={f.label} className="spec-row">
+              <div className="label-spec">{f.label}</div>
+              <div className="text-[13px] mt-0.5">{f.value}</div>
             </div>
           ))}
       </div>
 
-      {axes && axes.length > 0 && (
-        <div className="px-4 py-3 border-t border-border/40">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
-            Axes (your labels)
+      {/* Axes — schematic chip strip echoing the per-axis MLFB rail. */}
+      {axes.length > 0 && (
+        <div className="px-5 py-3 border-t border-border/40">
+          <div className="flex items-baseline gap-3 mb-2">
+            <span className="label-spec">Axes — your labels</span>
+            <span className="flex-1 h-px bg-border/40" />
           </div>
           <div className="flex flex-wrap gap-1.5">
             {axes.map((ax) => {
-              const hasBrake = brakes?.includes(ax);
+              const hasBrake = brakes.includes(ax);
               return (
                 <span
                   key={ax}
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-mono border ${
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 py-1 text-[11.5px] font-display tabular-nums tracking-tight border",
                     hasBrake
-                      ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                      : "bg-muted/50 border-border"
-                  }`}
+                      ? "border-amber-500/45 text-amber-500 bg-amber-500/5"
+                      : "border-border/70 text-foreground bg-muted/30",
+                  )}
+                  title={hasBrake ? "Holding brake" : undefined}
                 >
                   {ax}
-                  {hasBrake && <span className="text-[9px]">brake</span>}
+                  {hasBrake && (
+                    <span className="text-[8.5px] uppercase tracking-[0.18em] opacity-80">
+                      brk
+                    </span>
+                  )}
                 </span>
               );
             })}
@@ -188,14 +208,15 @@ export function InterpretationCard({
         </div>
       )}
 
+      {/* Action footer */}
       {!refining ? (
-        <div className="px-4 py-3 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 bg-muted/20">
+        <div className="px-5 py-3 border-t border-border/40 flex flex-wrap items-center justify-between gap-3 bg-muted/20">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setRefining(true)}
             disabled={busy}
-            className="gap-1.5"
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
           >
             <Pencil className="h-3 w-3" />
             Something&apos;s off
@@ -207,9 +228,10 @@ export function InterpretationCard({
           </Button>
         </div>
       ) : (
-        <div className="px-4 py-3 border-t border-border/40 space-y-2 bg-muted/20">
-          <div className="text-[11px] text-muted-foreground">
-            Tell me what to change. I&apos;ll rerun with this correction.
+        <div className="px-5 py-4 border-t border-border/40 space-y-2.5 bg-muted/20">
+          <div className="flex items-baseline gap-3">
+            <span className="label-spec">Correction</span>
+            <span className="flex-1 h-px bg-border/40" />
           </div>
           <Textarea
             value={correction}
@@ -234,6 +256,7 @@ export function InterpretationCard({
                 setCorrection("");
               }}
               disabled={busy}
+              className="text-muted-foreground"
             >
               Cancel
             </Button>

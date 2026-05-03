@@ -1,24 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Info } from "lucide-react";
+import { ChevronDown, Lock } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { AxisMlfb } from "@/types/catalog";
 
 /**
- * Renders per-axis full MLFBs as a sub-list under a motor row.
- * Each axis shows: user's axis label · full MLFB · brake badge · info
- * button that pops a decoder showing what each suffix character means.
+ * Per-axis MLFB list rendered as a vertical schematic — a thin rail
+ * with a tick at each axis position, axis labels in IBM Plex Serif
+ * (display font), MLFB in JetBrains Mono with the suffix segment
+ * underlined and amber-tinted when a brake is included. The decoder
+ * panel renders as a left-accent callout, like an annotation on a
+ * technical drawing.
  */
 export function PerAxisMlfbList({ items }: { items: AxisMlfb[] }) {
   if (!items || items.length === 0) return null;
+
   return (
-    <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-        Per-axis orderable MLFB
+    <div className="mt-3 pt-3 border-t border-border/40">
+      <div className="flex items-baseline gap-3 mb-2.5">
+        <span className="label-spec">Per-axis orderable MLFB</span>
+        <span className="flex-1 h-px bg-border/40" />
+        <span className="text-[10px] tabular-nums text-muted-foreground">
+          {items.length} {items.length === 1 ? "axis" : "axes"}
+        </span>
       </div>
-      <ul className="space-y-1">
+      <ul className="schema-rail space-y-2">
         {items.map((item) => (
-          <li key={item.axis}>
+          <li
+            key={item.axis}
+            data-brake={item.brake ? "true" : "false"}
+            className="py-0.5"
+          >
             <AxisRow item={item} />
           </li>
         ))}
@@ -29,68 +42,85 @@ export function PerAxisMlfbList({ items }: { items: AxisMlfb[] }) {
 
 function AxisRow({ item }: { item: AxisMlfb }) {
   const [open, setOpen] = useState(false);
-
-  // Split the MLFB at the LAST hyphen so the suffix segment can be
-  // highlighted (the only part that varies between axes with different
-  // brake / encoder choices). Makes "1FT2206-2BA0" vs "1FT2206-2AA0"
-  // visually obvious at a glance.
   const lastDash = item.mlfb.lastIndexOf("-");
   const base = lastDash > 0 ? item.mlfb.slice(0, lastDash) : item.mlfb;
   const suffix = lastDash > 0 ? item.mlfb.slice(lastDash) : "";
+  const hasDecoder = !!item.decoded && item.decoded.length > 0;
 
   return (
-    <div className="relative">
-      <div className="flex items-center justify-between gap-2 text-[12px]">
-        <span className="font-mono font-semibold text-muted-foreground w-12 shrink-0">
+    <div>
+      <button
+        type="button"
+        onClick={() => hasDecoder && setOpen((o) => !o)}
+        disabled={!hasDecoder}
+        aria-expanded={open ? "true" : "false"}
+        className={cn(
+          "w-full flex items-center gap-3 text-left",
+          hasDecoder && "cursor-pointer group",
+        )}
+      >
+        <span
+          className={cn(
+            "font-display text-[14px] tabular-nums tracking-tight w-10 shrink-0 leading-none",
+            item.brake ? "text-amber-500" : "text-foreground",
+          )}
+        >
           {item.axis}
         </span>
-        <code className="font-mono text-[12px] flex-1 truncate" title={item.mlfb}>
+
+        <code className="mlfb text-[12.5px] flex-1 truncate leading-none">
           <span className="text-muted-foreground">{base}</span>
           <span
-            className={
+            className={cn(
+              "font-semibold",
               item.brake
-                ? "text-amber-500 font-semibold"
-                : "text-foreground font-semibold"
-            }
+                ? "text-amber-500 underline decoration-amber-500/40 decoration-1 underline-offset-[3px]"
+                : "text-foreground underline decoration-foreground/30 decoration-1 underline-offset-[3px]",
+            )}
           >
             {suffix}
           </span>
         </code>
+
         {item.brake && (
-          <span
-            className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-600 px-1.5 py-0.5 text-[10px] shrink-0"
-            title="Holding brake included (suffix code reflects this)"
-          >
-            <Lock className="h-2.5 w-2.5" strokeWidth={2.5} />
-            brake
-          </span>
+          <Lock
+            className="h-3 w-3 text-amber-500 shrink-0"
+            strokeWidth={2.25}
+            aria-label="Holding brake"
+          />
         )}
-        {item.decoded && item.decoded.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            aria-expanded={open ? "true" : "false"}
-            aria-label={open ? "Hide MLFB decoder" : "Decode this MLFB"}
-            className="inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0"
-          >
-            <Info className="h-3 w-3" strokeWidth={2} />
-          </button>
+
+        {hasDecoder && (
+          <ChevronDown
+            className={cn(
+              "h-3 w-3 text-muted-foreground transition-transform shrink-0 group-hover:text-foreground",
+              open && "rotate-180",
+            )}
+            strokeWidth={2}
+          />
         )}
-      </div>
-      {open && item.decoded && (
-        <div className="mt-1.5 ml-12 rounded-md border border-border/60 bg-muted/30 p-2 text-[11px] space-y-1">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+      </button>
+
+      {open && hasDecoder && (
+        <div className="callout-strip mt-2 ml-2 text-[11px] space-y-1.5">
+          <div className="label-spec text-[9px] mb-1.5">
             Suffix breakdown
           </div>
-          {item.decoded.map((d, i) => (
-            <div key={i} className="flex items-baseline gap-2">
-              <code className="font-mono font-semibold text-foreground w-6 shrink-0">
-                {d.code}
-              </code>
-              <span className="text-muted-foreground shrink-0">{d.label}:</span>
-              <span className="text-foreground">{d.choiceLabel}</span>
-            </div>
-          ))}
+          <ul className="space-y-1">
+            {item.decoded!.map((d, i) => (
+              <li key={i} className="flex items-baseline gap-2.5">
+                <code className="mlfb text-[11px] font-semibold text-foreground w-5 shrink-0 tabular-nums">
+                  {d.code}
+                </code>
+                <span className="text-muted-foreground shrink-0 text-[10px] uppercase tracking-wider">
+                  {d.label}
+                </span>
+                <span className="text-foreground/85 ml-auto text-right">
+                  {d.choiceLabel}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

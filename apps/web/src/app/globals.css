@@ -192,4 +192,88 @@
   }
   .rule-tick::before { left: 0; }
   .rule-tick::after { right: 0; }
+
+  /* Engineering-instrument utilities ────────────────────────────────
+     Used by configuration-step sub-components to keep a consistent
+     "technical drawing" feel: tracked tiny-caps labels, schematic
+     rails, callout strips. */
+
+  /* Tracked tiny-caps label, e.g. "PER-AXIS ORDERABLE MLFB". */
+  .label-spec {
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: oklch(from var(--foreground) l c h / 0.55);
+    font-weight: 500;
+  }
+
+  /* Vertical schematic rail — a thin line with a dot at each child
+     <li>. Used for per-axis lists so they read like wiring diagrams. */
+  .schema-rail {
+    position: relative;
+    padding-left: 14px;
+  }
+  .schema-rail::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: oklch(from var(--foreground) l c h / 0.18);
+  }
+  .schema-rail > li {
+    position: relative;
+  }
+  .schema-rail > li::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 9px;
+    height: 1px;
+    background: oklch(from var(--foreground) l c h / 0.35);
+  }
+  .schema-rail > li::after {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 1px;
+    background: oklch(from var(--foreground) l c h / 0.4);
+  }
+  .schema-rail > li[data-brake="true"]::after {
+    background: oklch(0.78 0.15 75);  /* safety amber */
+    box-shadow: 0 0 0 2px oklch(0.78 0.15 75 / 0.18);
+  }
+
+  /* Spec-plate row — a key/value pair with a tick mark on the
+     left. Used in the interpretation card and rationale exports. */
+  .spec-row {
+    position: relative;
+    padding-left: 12px;
+  }
+  .spec-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 6px;
+    height: 1px;
+    background: oklch(from var(--primary) l c h / 0.5);
+  }
+
+  /* Callout strip — a panel with a left accent bar, like a technical-
+     drawing leader / annotation. */
+  .callout-strip {
+    position: relative;
+    border-left: 2px solid oklch(from var(--primary) l c h / 0.5);
+    background: oklch(from var(--muted) l c h / 0.4);
+    padding: 8px 10px;
+  }
 }
