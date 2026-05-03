@@ -472,6 +472,10 @@ export function parseAiResponse(
   }
 
   // ─── 11. Cables — auto-select ───
+  // Use `sizingSpecs.cableLengthMeters` (not `specs?.cableLengthMeters`)
+  // so we pick up the AI-extracted length from userPreferences when the
+  // user typed it in the description rather than filling the form. The
+  // earlier merge step mirrors prefs.cableLengthMeters into sizingSpecs.
   let cables: CableAccessory[] = [];
   if (catalogData?.selectCables) {
     cables = catalogData.selectCables({
@@ -482,7 +486,7 @@ export function parseAiResponse(
       driveFamily: family,
       feedMotorShaftHeight: sized.feed?.specs.shaftHeight,
       spindleMotorShaftHeight: sized.spindle?.specs.shaftHeight,
-      cableLengthMeters: specs?.cableLengthMeters,
+      cableLengthMeters: sizingSpecs.cableLengthMeters,
     });
   }
 
