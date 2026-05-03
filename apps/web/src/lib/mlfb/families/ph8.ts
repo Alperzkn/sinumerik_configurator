@@ -26,6 +26,11 @@ import type { MotorOptionModel } from "../types";
 export const ph8: MotorOptionModel = {
   family: "1PH8",
   variant: "SINAMICS S120 spindle",
+  // MOTOR_SPECS for 1PH8 already stores the full ordering MLFB
+  // (e.g. "1PH8133-1FF10-0LA1"). The resolver detects this and skips
+  // the suffix template — completeness "verified" means the article in
+  // the BOM matches the published catalog entry exactly.
+  completeness: "verified",
   suffixTemplate: "-{encoder}{mounting}{interface}{spec}",
   slots: [
     {

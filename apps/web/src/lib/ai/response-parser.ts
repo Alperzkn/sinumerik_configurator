@@ -364,19 +364,20 @@ export function parseAiResponse(
       });
     }
 
-    // Always emit the FULL default MLFB on the BOM line — even when no
-    // per-axis brake info was captured. The catalog trunks like
-    // "1FT2206-4AF" / "1FK2103-2AG" are too short to be orderable on
-    // their own; the family option model fills in the encoder / flange
-    // / suffix defaults so the BOM shows a real Siemens article.
-    const feedFullMlfb = resolveFullMotorMlfb(sized.feed.article);
+    // Resolve a complete-as-we-can-honestly-emit MLFB for the BOM line.
+    // For verified families (1FT7) the catalog stores the full article;
+    // for trunk-only families (1FT2 / 1FK2 / 1FK7) we emit the trunk
+    // and the BOM badges it "partner completes suffix" — better than
+    // shipping a speculative suffix.
+    const feedResolved = resolveFullMotorMlfb(sized.feed.article);
 
     const feedMotor: Motor = {
       id: `feed-${sized.feed.article}`,
       family: "SIMOTICS_S",
       series: fs.family.includes("1FT2") ? "1FT2" : fs.family.includes("1FK2") ? "1FK2" : fs.family.includes("1FK7") ? "1FK7" : "1FT7",
       name: `${fs.family} ${fs.variant}`,
-      articleNumber: feedFullMlfb,
+      articleNumber: feedResolved.mlfb,
+      mlfbCompleteness: feedResolved.completeness,
       motorType: "feed_servo_sync",
       connectionType: "2_cable",
       compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
@@ -403,13 +404,14 @@ export function parseAiResponse(
     // 1PH8 entries in MOTOR_SPECS already carry the full MLFB; the
     // resolver is a no-op for them. Run it for consistency / future-
     // proofing if 1PH3 / 1FE1 / 1FE2 spindles get added.
-    const spindleFullMlfb = resolveFullMotorMlfb(sized.spindle.article);
+    const spindleResolved = resolveFullMotorMlfb(sized.spindle.article);
     const spindleMotor: Motor = {
       id: `spindle-${sized.spindle.article}`,
       family: "SIMOTICS_M",
       series: "1PH8",
       name: `${ss.family} ${ss.variant}`,
-      articleNumber: spindleFullMlfb,
+      articleNumber: spindleResolved.mlfb,
+      mlfbCompleteness: spindleResolved.completeness,
       motorType: ss.kind === "spindle_sync" ? "main_spindle_sync" : "main_spindle_async",
       connectionType: "standard",
       compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },

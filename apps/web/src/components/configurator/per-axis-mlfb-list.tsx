@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Lock } from "lucide-react";
+import { ChevronDown, Lock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AxisMlfb } from "@/types/catalog";
 
@@ -16,6 +16,8 @@ import type { AxisMlfb } from "@/types/catalog";
 export function PerAxisMlfbList({ items }: { items: AxisMlfb[] }) {
   if (!items || items.length === 0) return null;
 
+  const trunkOnly = items.some((i) => i.completeness === "trunk-only");
+
   return (
     <div className="mt-3 pt-3 border-t border-border/40">
       <div className="flex items-baseline gap-3 mb-2.5">
@@ -25,6 +27,17 @@ export function PerAxisMlfbList({ items }: { items: AxisMlfb[] }) {
           {items.length} {items.length === 1 ? "axis" : "axes"}
         </span>
       </div>
+      {trunkOnly && (
+        <div className="callout-strip mb-2 text-[11px] flex items-start gap-2 text-muted-foreground">
+          <AlertCircle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" strokeWidth={2} />
+          <span>
+            <span className="text-foreground font-medium">Trunk-only article.</span>{" "}
+            The catalog suffix (encoder · brake · shaft · IP) is order-time
+            configuration — your Siemens partner completes the final 4–5
+            characters from this trunk. Brake state per axis is shown below.
+          </span>
+        </div>
+      )}
       <ul className="schema-rail space-y-2">
         {items.map((item) => (
           <li

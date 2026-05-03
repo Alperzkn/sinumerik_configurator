@@ -53,13 +53,20 @@ export function getFamilyCode(article: string): string | null {
  * Returns the original article unchanged when the family has no
  * registered option model.
  */
-export function resolveFullMotorMlfb(article: string): string {
+export function resolveFullMotorMlfb(article: string): {
+  mlfb: string;
+  completeness: "verified" | "partial" | "trunk-only";
+} {
   const base = getBaseMlfb(article);
-  // If a suffix was stripped, the article was already complete — keep it.
-  if (base !== article) return article;
+  // If a suffix was stripped, the article was already complete.
+  if (base !== article) return { mlfb: article, completeness: "verified" };
   const familyCode = getFamilyCode(article);
   const model = familyCode ? FAMILY_MODELS[familyCode] : null;
-  if (!model) return article;
+  if (!model) return { mlfb: article, completeness: "trunk-only" };
+  // Trunk-only families: emit just the trunk, no speculative suffix.
+  if (model.completeness === "trunk-only") {
+    return { mlfb: article, completeness: "trunk-only" };
+  }
   // Default-no-brake selections per family. Spindle / built-in / linear
   // / torque families don't have a brake concept, so we just pass {} —
   // the model's defaults pick up cleanly.
@@ -94,9 +101,9 @@ export function resolveFullMotorMlfb(article: string): string {
       selections = fw6SelectionsFor({});
       break;
     default:
-      return article;
+      return { mlfb: article, completeness: "trunk-only" };
   }
-  return buildMlfb(model, base, selections);
+  return { mlfb: buildMlfb(model, base, selections), completeness: model.completeness };
 }
 
 interface ResolvePerAxisInput {
@@ -172,11 +179,20 @@ export function resolveFeedAxisMlfbs(input: ResolvePerAxisInput): AxisMlfb[] {
       default:
         return { axis, mlfb: baseArticle, brake };
     }
-    const decoded = explainMlfb(model, selections).map((row) => ({
-      label: row.label,
-      code: row.code,
-      choiceLabel: row.choiceLabel,
-    }));
-    return { axis, mlfb: buildMlfb(model, base, selections), brake, decoded };
+    const decoded =
+      model.completeness === "trunk-only"
+        ? undefined
+        : explainMlfb(model, selections).map((row) => ({
+            label: row.label,
+            code: row.code,
+            choiceLabel: row.choiceLabel,
+          }));
+    return {
+      axis,
+      mlfb: buildMlfb(model, base, selections),
+      brake,
+      decoded,
+      completeness: model.completeness,
+    };
   });
 }

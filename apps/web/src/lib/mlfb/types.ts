@@ -74,6 +74,26 @@ export type SlotSelections = Record<string, string>;
  * `{…}`) are preserved verbatim. This lets each family encode its
  * idiosyncratic separators and constants.
  */
+/**
+ * Honest signal of how completely the model's output matches the
+ * Siemens catalog's official ordering MLFB.
+ *
+ * - "verified"    All slot codes and positions confirmed against the
+ *                 D21.4 / D32 / NC63 ordering tables for this family.
+ *                 Output is directly orderable.
+ * - "partial"     Brake / encoder slot codes verified, but full
+ *                 position encoding (interfix, terminal, vibration
+ *                 grade) not exhaustively cross-checked. Output looks
+ *                 right but may need 1–2 character corrections by
+ *                 the Siemens partner before procurement.
+ * - "trunk-only"  We only have the catalog trunk (e.g. "1FT2206-4AF").
+ *                 The 4–6 character suffix that encodes encoder /
+ *                 brake / shaft / IP is NOT emitted at all. The
+ *                 partner picks it during order entry from customer
+ *                 preferences.
+ */
+export type MlfbCompleteness = "verified" | "partial" | "trunk-only";
+
 export interface MotorOptionModel {
   /** Family identifier — used by the builder to dispatch on family. */
   family: string;
@@ -83,4 +103,10 @@ export interface MotorOptionModel {
   suffixTemplate: string;
   /** All slots referenced in the template. */
   slots: OptionSlot[];
+  /**
+   * How fully this model matches the Siemens catalog's official
+   * ordering layout. Drives a UI badge on the BOM line so users (and
+   * their Siemens partner) know which suffix characters are speculative.
+   */
+  completeness: MlfbCompleteness;
 }

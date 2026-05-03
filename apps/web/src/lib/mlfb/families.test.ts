@@ -28,49 +28,25 @@ const t = (name: string, fn: () => void) => {
 
 console.log("MLFB families");
 
-t("1FT2 default brake-off — full MLFB with interfix", () => {
-  // The "21-" interfix is now part of the suffix template, so passing
-  // the catalog trunk "1FT2104-4AF" (as MOTOR_SPECS stores it) yields
-  // the full orderable article.
-  const sel = ft2SelectionsFor({ brake: false });
-  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF", sel);
-  assert.equal(mlfb, "1FT2104-4AF21-2AA0");
+t("1FT2 trunk-only: builder returns just the trunk, no fake suffix", () => {
+  // Honest mode: 1FT2 ordering layout not exhaustively cross-checked.
+  // The builder skips the suffix template and returns the verified trunk;
+  // the BOM line shows a "partner completes suffix" badge.
+  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF", ft2SelectionsFor());
+  assert.equal(mlfb, "1FT2104-4AF");
+  assert.equal(ft2DriveCliq.completeness, "trunk-only");
 });
 
-t("1FT2 with brake → code B in full MLFB", () => {
-  const sel = ft2SelectionsFor({ brake: true });
-  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF", sel);
-  assert.equal(mlfb, "1FT2104-4AF21-2BA0");
+t("1FK2 trunk-only", () => {
+  const mlfb = buildMlfb(fk2, "1FK2103-2AG", fk2SelectionsFor());
+  assert.equal(mlfb, "1FK2103-2AG");
+  assert.equal(fk2.completeness, "trunk-only");
 });
 
-t("1FK2 OCC no brake — full MLFB with interfix", () => {
-  const sel = fk2SelectionsFor({ brake: false, connection: "OCC" });
-  const mlfb = buildMlfb(fk2, "1FK2103-2AG", sel);
-  assert.equal(mlfb, "1FK2103-2AG31-1AA0");
-});
-
-t("1FK2 OCC with brake", () => {
-  const sel = fk2SelectionsFor({ brake: true, connection: "OCC" });
-  const mlfb = buildMlfb(fk2, "1FK2103-2AG", sel);
-  assert.equal(mlfb, "1FK2103-2AG31-2AA0");
-});
-
-t("1FK2 PROFINET RJ45 with brake", () => {
-  const sel = fk2SelectionsFor({ brake: true, connection: "RJ45" });
-  const mlfb = buildMlfb(fk2, "1FK2103-2AG", sel);
-  assert.equal(mlfb, "1FK2103-2AG31-4AA0");
-});
-
-t("1FK7 default brake-off", () => {
-  const sel = fk7SelectionsFor({ brake: false });
-  const mlfb = buildMlfb(fk7Compact, "1FK7042-5AF71", sel);
-  assert.equal(mlfb, "1FK7042-5AF71-1AA1");
-});
-
-t("1FK7 with brake", () => {
-  const sel = fk7SelectionsFor({ brake: true });
-  const mlfb = buildMlfb(fk7Compact, "1FK7042-5AF71", sel);
-  assert.equal(mlfb, "1FK7042-5AF71-1BA1");
+t("1FK7 trunk-only", () => {
+  const mlfb = buildMlfb(fk7Compact, "1FK7042-5AF71", fk7SelectionsFor());
+  assert.equal(mlfb, "1FK7042-5AF71");
+  assert.equal(fk7Compact.completeness, "trunk-only");
 });
 
 t("1PH8 default (incremental encoder, air cooling)", () => {
@@ -91,34 +67,28 @@ t("1PH8 water cooling", () => {
   assert.equal(mlfb, "1PH8133-1FF10-0WA1");
 });
 
-t("1PH3 default", () => {
-  const sel = ph3SelectionsFor({});
-  const mlfb = buildMlfb(ph3, "1PH3105-1AF40", sel);
-  assert.equal(mlfb, "1PH3105-1AF40-0LA1");
+t("1PH3 trunk-only: returns just the trunk", () => {
+  const mlfb = buildMlfb(ph3, "1PH3105-1AF40", ph3SelectionsFor({}));
+  assert.equal(mlfb, "1PH3105-1AF40");
+  assert.equal(ph3.completeness, "trunk-only");
 });
 
-t("1FE1 default (water + incremental)", () => {
-  const sel = fe1SelectionsFor({});
-  const mlfb = buildMlfb(fe1, "1FE1051-4HC10", sel);
-  assert.equal(mlfb, "1FE1051-4HC10-W10");
+t("1FE1 trunk-only", () => {
+  const mlfb = buildMlfb(fe1, "1FE1051-4HC10", fe1SelectionsFor({}));
+  assert.equal(mlfb, "1FE1051-4HC10");
+  assert.equal(fe1.completeness, "trunk-only");
 });
 
-t("1FN3 default (water + standard thermal)", () => {
-  const sel = fn3SelectionsFor({});
-  const mlfb = buildMlfb(fn3, "1FN3450-4WC00", sel);
-  assert.equal(mlfb, "1FN3450-4WC00-WC0-0AA1");
+t("1FN3 trunk-only", () => {
+  const mlfb = buildMlfb(fn3, "1FN3450-4WC00", fn3SelectionsFor({}));
+  assert.equal(mlfb, "1FN3450-4WC00");
+  assert.equal(fn3.completeness, "trunk-only");
 });
 
-t("1FW6 built-in default (water-cooled)", () => {
-  const sel = fw6SelectionsFor({ form: "built-in" });
-  const mlfb = buildMlfb(fw6, "1FW6230-8WC07", sel);
-  assert.equal(mlfb, "1FW6230-8WC07-WC0-1JA0");
-});
-
-t("1FW6 complete air-cooled", () => {
-  const sel = fw6SelectionsFor({ form: "complete", cooling: "air" });
-  const mlfb = buildMlfb(fw6, "1FW6090-8RB07", sel);
-  assert.equal(mlfb, "1FW6090-8RB07-RC0-1JA0");
+t("1FW6 trunk-only", () => {
+  const mlfb = buildMlfb(fw6, "1FW6230-8WC07", fw6SelectionsFor({}));
+  assert.equal(mlfb, "1FW6230-8WC07");
+  assert.equal(fw6.completeness, "trunk-only");
 });
 
 t("FAMILY_MODELS registry has all 10 families", () => {

@@ -27,6 +27,7 @@ import type { MotorOptionModel } from "../types";
 export const ft7CompactDriveCliq: MotorOptionModel = {
   family: "1FT7",
   variant: "Compact (DRIVE-CLiQ)",
+  completeness: "verified",
   // Format: -{1}{shaft_brake}{terminal}{spec}
   // The leading "1" identifies the DRIVE-CLiQ Compact suffix family.
   suffixTemplate: "-1{shaft_brake}{terminal}{spec}",

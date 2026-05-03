@@ -25,62 +25,22 @@ import type { MotorOptionModel } from "../types";
 export const fk2: MotorOptionModel = {
   family: "1FK2",
   variant: "S210 (OCC / PROFINET)",
-  // "31-" inserts the encoder interfix (AM24DQI absolute multi-turn
-  // DRIVE-CLiQ on the OCC bus + standard signal) BEFORE the suffix dash.
-  suffixTemplate: "31-{conn_brake}{shaft}{vibration}0",
-  slots: [
-    {
-      id: "conn_brake",
-      label: "Connection technology / holding brake",
-      defaultCode: "1",
-      choices: [
-        { code: "1", label: "OCC (One-Cable Connection), without holding brake" },
-        { code: "2", label: "OCC (One-Cable Connection), with holding brake" },
-        { code: "3", label: "PROFINET RJ45, without holding brake" },
-        { code: "4", label: "PROFINET RJ45, with holding brake" },
-      ],
-    },
-    {
-      id: "shaft",
-      label: "Shaft form",
-      defaultCode: "A",
-      choices: [
-        { code: "A", label: "Feather key + keyway (default)" },
-        { code: "B", label: "Plain shaft" },
-      ],
-    },
-    {
-      id: "vibration",
-      label: "Vibration grade",
-      defaultCode: "A",
-      choices: [
-        { code: "A", label: "Grade A, IP65 (standard)" },
-        { code: "B", label: "Grade R (reduced vibration)" },
-      ],
-    },
-  ],
+  // 1FK2 ordering structure (D32 catalog) involves connection-style
+  // (OCC vs PROFINET) and brake codes interleaved with encoder /
+  // shaft codes. The exact positional layout in the suffix segment
+  // hasn't been cross-referenced against a sized motor's full ordering
+  // article. Marking trunk-only until verified — better to ship a
+  // recognisable trunk than a speculative suffix.
+  completeness: "trunk-only",
+  suffixTemplate: "",
+  slots: [],
 };
 
-export function fk2SelectionsFor({
-  brake,
-  connection = "OCC",
-  shaftKind = "feather",
-}: {
-  brake: boolean;
+/** No-op for trunk-only families. */
+export function fk2SelectionsFor(_args?: {
+  brake?: boolean;
   connection?: "OCC" | "RJ45";
   shaftKind?: "feather" | "plain";
 }): Record<string, string> {
-  const conn_brake =
-    connection === "OCC"
-      ? brake
-        ? "2"
-        : "1"
-      : brake
-        ? "4"
-        : "3";
-  return {
-    conn_brake,
-    shaft: shaftKind === "plain" ? "B" : "A",
-    vibration: "A",
-  };
+  return {};
 }

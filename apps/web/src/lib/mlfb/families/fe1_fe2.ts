@@ -20,6 +20,7 @@ import type { MotorOptionModel } from "../types";
 export const fe1: MotorOptionModel = {
   family: "1FE1",
   variant: "Built-in motor spindle",
+  completeness: "trunk-only",
   suffixTemplate: "-{cooling}{encoder}{spec}",
   slots: [
     {
@@ -53,6 +54,7 @@ export const fe2: MotorOptionModel = {
   ...fe1,
   family: "1FE2",
   variant: "Built-in motor spindle (newer generation)",
+  completeness: "trunk-only",
 };
 
 export function fe1SelectionsFor({

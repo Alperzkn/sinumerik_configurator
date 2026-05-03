@@ -194,6 +194,13 @@ export interface AxisMlfb {
    * MLFB at display time. Only set when a family option model exists.
    */
   decoded?: Array<{ label: string; code: string; choiceLabel: string }>;
+  /**
+   * Honesty flag: "verified" means the MLFB matches the catalog ordering
+   * tables exactly; "trunk-only" means only the catalog trunk is shown
+   * and the suffix (encoder / brake / shaft / IP) must be specified by
+   * the Siemens partner during order entry.
+   */
+  completeness?: "verified" | "partial" | "trunk-only";
 }
 
 export interface Motor {
@@ -221,6 +228,12 @@ export interface Motor {
    * an orderable article number for that specific axis.
    */
   perAxisMlfbs?: AxisMlfb[];
+  /**
+   * Honest signal of how completely `articleNumber` matches the
+   * Siemens catalog's official ordering MLFB. "verified" = directly
+   * orderable; "trunk-only" = trunk shown, partner picks the suffix.
+   */
+  mlfbCompleteness?: "verified" | "partial" | "trunk-only";
 }
 
 // --- Measuring Systems ---

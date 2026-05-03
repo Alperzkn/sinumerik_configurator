@@ -22,6 +22,7 @@ import type { MotorOptionModel } from "../types";
 export const fw6: MotorOptionModel = {
   family: "1FW6",
   variant: "Torque motor",
+  completeness: "trunk-only",
   suffixTemplate: "-{form_cooling}{thermal}{spec}-1JA0",
   slots: [
     {

@@ -21,6 +21,7 @@ import type { MotorOptionModel } from "../types";
 export const fn3: MotorOptionModel = {
   family: "1FN3",
   variant: "Linear motor primary section",
+  completeness: "trunk-only",
   suffixTemplate: "-{cooling}{thermal}{spec}-0AA1",
   slots: [
     {

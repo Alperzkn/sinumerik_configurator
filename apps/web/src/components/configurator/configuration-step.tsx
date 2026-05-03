@@ -497,6 +497,7 @@ export function ConfigurationStep() {
                 : undefined;
 
               const hasPerAxis = motor.perAxisMlfbs && motor.perAxisMlfbs.length > 0;
+              const trunkOnly = motor.mlfbCompleteness === "trunk-only";
               return (
                 <div key={motor.id}>
                   <ComponentCard
@@ -507,6 +508,14 @@ export function ConfigurationStep() {
                     specs={specs.length > 0 ? specs : undefined}
                     onSwap={onSwap}
                   />
+                  {!hasPerAxis && trunkOnly && (
+                    <div className="callout-strip mt-2 text-[11px] text-muted-foreground">
+                      <span className="text-amber-500 font-medium">⚠ Trunk-only article.</span>{" "}
+                      Encoder, brake, shaft, and IP-class characters are
+                      assigned at order time by your Siemens partner from
+                      this verified trunk.
+                    </div>
+                  )}
                   {hasPerAxis && <PerAxisMlfbList items={motor.perAxisMlfbs!} />}
                 </div>
               );

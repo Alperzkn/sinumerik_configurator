@@ -24,68 +24,31 @@ import type { MotorOptionModel } from "../types";
 export const ft2DriveCliq: MotorOptionModel = {
   family: "1FT2",
   variant: "DRIVE-CLiQ",
-  // "21-" inserts the encoder/flange interfix (Classic flange + AM24DQI
-  // multi-turn DRIVE-CLiQ absolute encoder) BEFORE the second hyphen,
-  // then the 4-char suffix follows. Final shape: "<base>21-2BA0".
-  suffixTemplate: "21-2{shaft_brake}{terminal}{spec}",
-  slots: [
-    {
-      id: "shaft_brake",
-      label: "Shaft form / accuracy / holding brake",
-      defaultCode: "A",
-      choices: [
-        { code: "A", label: "Feather key + keyway, tolerance N, without holding brake" },
-        { code: "B", label: "Feather key + keyway, tolerance N, with holding brake" },
-        { code: "D", label: "Feather key + keyway, tolerance R, without holding brake" },
-        { code: "E", label: "Feather key + keyway, tolerance R, with holding brake" },
-        { code: "G", label: "Plain shaft, tolerance N, without holding brake" },
-        { code: "H", label: "Plain shaft, tolerance N, with holding brake" },
-      ],
-    },
-    {
-      id: "terminal",
-      label: "Terminal box / cable entry",
-      defaultCode: "A",
-      choices: [
-        { code: "A", label: "Rotatable connector (default)" },
-        { code: "B", label: "Top, transverse from right" },
-        { code: "C", label: "Top, transverse from left" },
-      ],
-    },
-    {
-      id: "spec",
-      label: "Vibration grade / degree of protection",
-      defaultCode: "0",
-      choices: [
-        { code: "0", label: "Grade A, IP65 (standard)" },
-        { code: "1", label: "Grade R, IP65 (reduced vibration)" },
-      ],
-    },
-  ],
+  // 1FT2 ordering option codes per D21.4 page 8.1/57:
+  //   • Holding brake:   0 = without, 1 = with
+  //   • Degree of IP:    0 = IP64, 1 = IP65, 2 = IP67
+  //   • Shaft end:       0 = plain, 1 = feather key
+  //   • Encoder:         S = AS22DQC, M = AM22DQC, B = AS26DQC, C = AM26DQC
+  // The catalog ordering article shape is `1FT2XXX-YYY██-■■■B0` for
+  // Compact frames or `■■-■■B0` for High Dynamic — the codes above
+  // are confirmed but their *positional layout* across the suffix isn't
+  // exhaustively cross-referenced. Until that's done, we don't emit a
+  // speculative suffix; the BOM shows the verified trunk and tags the
+  // line "trunk-only — partner completes suffix".
+  completeness: "trunk-only",
+  suffixTemplate: "",
+  slots: [],
 };
 
-export function ft2SelectionsFor({
-  brake,
-  shaftKind = "feather",
-  tolerance = "N",
-}: {
-  brake: boolean;
+/**
+ * No-op for trunk-only families. Kept for API compatibility with the
+ * per-axis resolver dispatch table; returns an empty selections map
+ * because the suffix template is empty.
+ */
+export function ft2SelectionsFor(_args?: {
+  brake?: boolean;
   shaftKind?: "feather" | "plain";
   tolerance?: "N" | "R";
 }): Record<string, string> {
-  const map: Record<string, string> = {
-    "feather|N|false": "A",
-    "feather|N|true": "B",
-    "feather|R|false": "D",
-    "feather|R|true": "E",
-    "plain|N|false": "G",
-    "plain|N|true": "H",
-    "plain|R|false": "D",
-    "plain|R|true": "E",
-  };
-  return {
-    shaft_brake: map[`${shaftKind}|${tolerance}|${brake}`] ?? "A",
-    terminal: "A",
-    spec: "0",
-  };
+  return {};
 }

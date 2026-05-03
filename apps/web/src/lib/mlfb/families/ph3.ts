@@ -16,6 +16,7 @@ import type { MotorOptionModel } from "../types";
 export const ph3: MotorOptionModel = {
   family: "1PH3",
   variant: "Compact spindle",
+  completeness: "trunk-only",
   suffixTemplate: "-{encoder}{mounting}{interface}{spec}",
   slots: [
     {

@@ -20,6 +20,12 @@ export function buildMlfb(
   baseMlfb: string,
   selections: SlotSelections = {},
 ): string {
+  // Honest mode: when the family hasn't been verified against the
+  // catalog ordering tables end-to-end, return ONLY the catalog trunk
+  // and let the UI surface a "partner completes suffix" badge. Better
+  // than emitting plausible-looking but speculative characters.
+  if (model.completeness === "trunk-only") return baseMlfb;
+
   const suffix = model.suffixTemplate.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, slotId: string) => {
     const slot = model.slots.find((s) => s.id === slotId);
     if (!slot) {
