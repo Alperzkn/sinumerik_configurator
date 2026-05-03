@@ -39,6 +39,66 @@ export function getFamilyCode(article: string): string | null {
   return m ? m[1] : null;
 }
 
+/**
+ * Build a full default MLFB (no brake, factory-default encoder/flange)
+ * for a given sized motor article. Used for the BOM line itself —
+ * `Motor.articleNumber` should be a complete orderable code regardless
+ * of whether per-axis info was captured.
+ *
+ * If the article ALREADY carries a 4-char suffix (e.g. 1FT7 stored as
+ * "1FT7034-5AK71-1DA1" or 1PH8 as "1PH8133-1FF10-0LA1"), it's returned
+ * unchanged — those families' MOTOR_SPECS entries are already complete
+ * and may encode a specific catalog variant we should preserve.
+ *
+ * Returns the original article unchanged when the family has no
+ * registered option model.
+ */
+export function resolveFullMotorMlfb(article: string): string {
+  const base = getBaseMlfb(article);
+  // If a suffix was stripped, the article was already complete — keep it.
+  if (base !== article) return article;
+  const familyCode = getFamilyCode(article);
+  const model = familyCode ? FAMILY_MODELS[familyCode] : null;
+  if (!model) return article;
+  // Default-no-brake selections per family. Spindle / built-in / linear
+  // / torque families don't have a brake concept, so we just pass {} —
+  // the model's defaults pick up cleanly.
+  let selections: Record<string, string>;
+  switch (familyCode) {
+    case "1FT7":
+      selections = ft7SelectionsFor({ brake: false });
+      break;
+    case "1FT2":
+      selections = ft2SelectionsFor({ brake: false });
+      break;
+    case "1FK2":
+      selections = fk2SelectionsFor({ brake: false, connection: "OCC" });
+      break;
+    case "1FK7":
+      selections = fk7SelectionsFor({ brake: false });
+      break;
+    case "1PH8":
+      selections = ph8SelectionsFor({});
+      break;
+    case "1PH3":
+      selections = ph3SelectionsFor({});
+      break;
+    case "1FE1":
+    case "1FE2":
+      selections = fe1SelectionsFor({});
+      break;
+    case "1FN3":
+      selections = fn3SelectionsFor({});
+      break;
+    case "1FW6":
+      selections = fw6SelectionsFor({});
+      break;
+    default:
+      return article;
+  }
+  return buildMlfb(model, base, selections);
+}
+
 interface ResolvePerAxisInput {
   /** Article number from the sizing engine (may include or omit suffix). */
   baseArticle: string;

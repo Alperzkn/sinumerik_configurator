@@ -3,7 +3,12 @@
  *   npx tsx apps/web/src/lib/mlfb/per-axis.test.ts
  */
 import assert from "node:assert/strict";
-import { getBaseMlfb, getFamilyCode, resolveFeedAxisMlfbs } from "./per-axis";
+import {
+  getBaseMlfb,
+  getFamilyCode,
+  resolveFeedAxisMlfbs,
+  resolveFullMotorMlfb,
+} from "./per-axis";
 
 let pass = 0;
 const t = (name: string, fn: () => void) => {
@@ -102,6 +107,38 @@ t("1FK2 OCC per-axis with brakes — full MLFB", () => {
   assert.equal(result[1].mlfb, "1FK2103-2AG31-2AA0");
   assert.equal(result[2].mlfb, "1FK2103-2AG31-1AA0");
   assert.equal(result[3].mlfb, "1FK2103-2AG31-1AA0");
+});
+
+// ── resolveFullMotorMlfb ────────────────────────────────────────────
+
+t("fills in missing suffix for 1FT2 trunk", () => {
+  // BOM line was showing "1FT2206-4AF" (incomplete) — must come back
+  // with the default-no-brake suffix so the article is orderable.
+  assert.equal(resolveFullMotorMlfb("1FT2206-4AF"), "1FT2206-4AF21-2AA0");
+});
+
+t("fills in missing suffix for 1FK2 trunk", () => {
+  assert.equal(resolveFullMotorMlfb("1FK2103-2AG"), "1FK2103-2AG31-1AA0");
+});
+
+t("preserves already-complete 1FT7 catalog MLFB", () => {
+  // 1FT7 entries store the full ordering code — don't overwrite with
+  // the model's default. The catalog variant may differ from default.
+  assert.equal(
+    resolveFullMotorMlfb("1FT7034-5AK71-1DA1"),
+    "1FT7034-5AK71-1DA1",
+  );
+});
+
+t("preserves already-complete 1PH8 spindle MLFB", () => {
+  assert.equal(
+    resolveFullMotorMlfb("1PH8133-1FF10-0LA1"),
+    "1PH8133-1FF10-0LA1",
+  );
+});
+
+t("returns unchanged when family has no model", () => {
+  assert.equal(resolveFullMotorMlfb("9XYZ123"), "9XYZ123");
 });
 
 t("decoded entries are populated for tooltip", () => {
