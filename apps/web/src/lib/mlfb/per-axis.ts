@@ -10,13 +10,26 @@ import { fn3SelectionsFor } from "./families/fn3";
 import { fw6SelectionsFor } from "./families/fw6";
 import type { AxisMlfb } from "@/types/catalog";
 
-/** Strip a trailing suffix group (the segment after the last hyphen). */
+/**
+ * Strip a true configurable suffix segment from the end of an article
+ * number. Suffixes are exactly 4 characters in the shape
+ * `<digit><letters><digit>` (e.g. `1DA1`, `0LA1`, `2AB0`).
+ *
+ * Many MOTOR_SPECS entries store only the catalog *base* with no
+ * suffix attached (e.g. `1FT2206-4AF`, `1FK2103-2AG`) — the trailing
+ * 3-char segment is the speed/torque-code part of the base and must
+ * NOT be stripped, otherwise the resulting MLFB is too short to be
+ * orderable.
+ */
 export function getBaseMlfb(article: string): string {
   const idx = article.lastIndexOf("-");
   if (idx < 0) return article;
-  // If the last segment looks like a suffix (3-5 alphanumeric chars), strip it.
   const last = article.slice(idx + 1);
-  if (/^[A-Z0-9]{3,5}$/.test(last)) return article.slice(0, idx);
+  // Only 4-char segments matching the canonical suffix shape get
+  // stripped. Catalog bases like "4AF" / "2AG" (3 chars) stay intact.
+  if (last.length === 4 && /^[0-9][A-Z]+[0-9]$/.test(last)) {
+    return article.slice(0, idx);
+  }
   return article;
 }
 
