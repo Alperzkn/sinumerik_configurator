@@ -28,33 +28,36 @@ const t = (name: string, fn: () => void) => {
 
 console.log("MLFB families");
 
-t("1FT2 default brake-off", () => {
+t("1FT2 default brake-off — full MLFB with interfix", () => {
+  // The "21-" interfix is now part of the suffix template, so passing
+  // the catalog trunk "1FT2104-4AF" (as MOTOR_SPECS stores it) yields
+  // the full orderable article.
   const sel = ft2SelectionsFor({ brake: false });
-  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF21", sel);
+  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF", sel);
   assert.equal(mlfb, "1FT2104-4AF21-2AA0");
 });
 
-t("1FT2 with brake → code B", () => {
+t("1FT2 with brake → code B in full MLFB", () => {
   const sel = ft2SelectionsFor({ brake: true });
-  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF21", sel);
+  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF", sel);
   assert.equal(mlfb, "1FT2104-4AF21-2BA0");
 });
 
-t("1FK2 OCC no brake", () => {
+t("1FK2 OCC no brake — full MLFB with interfix", () => {
   const sel = fk2SelectionsFor({ brake: false, connection: "OCC" });
-  const mlfb = buildMlfb(fk2, "1FK2103-2AG31", sel);
+  const mlfb = buildMlfb(fk2, "1FK2103-2AG", sel);
   assert.equal(mlfb, "1FK2103-2AG31-1AA0");
 });
 
 t("1FK2 OCC with brake", () => {
   const sel = fk2SelectionsFor({ brake: true, connection: "OCC" });
-  const mlfb = buildMlfb(fk2, "1FK2103-2AG31", sel);
+  const mlfb = buildMlfb(fk2, "1FK2103-2AG", sel);
   assert.equal(mlfb, "1FK2103-2AG31-2AA0");
 });
 
 t("1FK2 PROFINET RJ45 with brake", () => {
   const sel = fk2SelectionsFor({ brake: true, connection: "RJ45" });
-  const mlfb = buildMlfb(fk2, "1FK2103-2AG31", sel);
+  const mlfb = buildMlfb(fk2, "1FK2103-2AG", sel);
   assert.equal(mlfb, "1FK2103-2AG31-4AA0");
 });
 

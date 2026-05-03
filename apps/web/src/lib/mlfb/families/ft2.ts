@@ -3,28 +3,31 @@ import type { MotorOptionModel } from "../types";
 /**
  * 1FT2 SIMOTICS S — High-Dynamic / Compact servo motor.
  *
- * Source: D21.4 ordering tables. The 1FT2 suffix layout is broadly
- * similar to 1FT7 — encoder, flange, shaft+brake, vibration grade —
- * but the codes differ. We model the user-facing slots (encoder type
- * and the combined shaft/brake position) and default the rest.
+ * Source: D21.4 ordering tables.
  *
  *   1FT2104-4AF21-2AB0
- *   └─────┘ └─── ┘ └──┘
- *    base   speed  suffix
+ *   └────┘ └─┘└┘ └───┘
+ *    base  spd flange interfix=21    suffix=-2AB0
  *
- * Suffix slot layout (from D21.4 ordering tables):
- *   pos 1: encoder + flange combo (1=DRIVE-CLiQ classic, 0=DRIVE-CLiQ recessed,
- *          4=non-DQ classic, 5=non-DQ recessed, plus encoder letter)
- *   pos 2: shaft + tolerance + brake (A/B/D/E/G/H — same scheme as 1FT7)
+ *   MOTOR_SPECS stores the trunk through the speed code (e.g. "1FT2104-4AF")
+ *   so the builder must (a) attach the 2-char encoder/flange interfix
+ *   "21" — DRIVE-CLiQ multi-turn absolute encoder (AM24DQI) on a Classic
+ *   flange, the most common production default — and (b) attach the
+ *   4-char user-configurable suffix.
+ *
+ * Suffix slot layout (suffix only, after the second "-"):
+ *   pos 1: leading code (2 = DRIVE-CLiQ Compact)
+ *   pos 2: shaft + tolerance + brake (A/B/D/E/G/H)
  *   pos 3: terminal box / cable entry direction
- *   pos 4: vibration grade / IP class (1=Grade A IP65 standard)
+ *   pos 4: vibration grade (0 = Grade A IP65 standard, 1 = Grade R)
  */
 export const ft2DriveCliq: MotorOptionModel = {
   family: "1FT2",
   variant: "DRIVE-CLiQ",
-  // Format: -2{shaft_brake}{terminal}{spec}
-  // The leading "2" identifies the standard DRIVE-CLiQ + Multi-turn variant.
-  suffixTemplate: "-2{shaft_brake}{terminal}{spec}",
+  // "21-" inserts the encoder/flange interfix (Classic flange + AM24DQI
+  // multi-turn DRIVE-CLiQ absolute encoder) BEFORE the second hyphen,
+  // then the 4-char suffix follows. Final shape: "<base>21-2BA0".
+  suffixTemplate: "21-2{shaft_brake}{terminal}{spec}",
   slots: [
     {
       id: "shaft_brake",

@@ -73,9 +73,9 @@ t("detects 1PH8 family", () => {
 
 // ── resolveFeedAxisMlfbs ────────────────────────────────────────────
 
-t("preserves 1FT2 base in per-axis MLFB (regression)", () => {
-  // Before the fix the MLFB came back as "1FT2206-2BA0" (missing -4AF).
-  // After the fix it is "1FT2206-4AF-2BA0" (preserves the catalog base).
+t("1FT2 per-axis MLFB has the full encoder/flange interfix", () => {
+  // Catalog trunk "1FT2206-4AF" + interfix "21" + suffix "-2BA0/2AA0"
+  // produces the full orderable Siemens article.
   const result = resolveFeedAxisMlfbs({
     baseArticle: "1FT2206-4AF",
     axisNames: ["X1", "Y1"],
@@ -83,14 +83,14 @@ t("preserves 1FT2 base in per-axis MLFB (regression)", () => {
   });
   assert.equal(result.length, 2);
   assert.equal(result[0].axis, "X1");
-  assert.equal(result[0].mlfb, "1FT2206-4AF-2BA0");
+  assert.equal(result[0].mlfb, "1FT2206-4AF21-2BA0");
   assert.equal(result[0].brake, true);
   assert.equal(result[1].axis, "Y1");
-  assert.equal(result[1].mlfb, "1FT2206-4AF-2AA0");
+  assert.equal(result[1].mlfb, "1FT2206-4AF21-2AA0");
   assert.equal(result[1].brake, false);
 });
 
-t("1FK2 OCC per-axis with brakes", () => {
+t("1FK2 OCC per-axis with brakes — full MLFB", () => {
   const result = resolveFeedAxisMlfbs({
     baseArticle: "1FK2103-2AG",
     axisNames: ["X1", "X2", "Y1", "Y2"],
@@ -98,10 +98,10 @@ t("1FK2 OCC per-axis with brakes", () => {
     connection: "OCC",
   });
   assert.equal(result.length, 4);
-  assert.equal(result[0].mlfb, "1FK2103-2AG-2AA0");
-  assert.equal(result[1].mlfb, "1FK2103-2AG-2AA0");
-  assert.equal(result[2].mlfb, "1FK2103-2AG-1AA0");
-  assert.equal(result[3].mlfb, "1FK2103-2AG-1AA0");
+  assert.equal(result[0].mlfb, "1FK2103-2AG31-2AA0");
+  assert.equal(result[1].mlfb, "1FK2103-2AG31-2AA0");
+  assert.equal(result[2].mlfb, "1FK2103-2AG31-1AA0");
+  assert.equal(result[3].mlfb, "1FK2103-2AG31-1AA0");
 });
 
 t("decoded entries are populated for tooltip", () => {

@@ -4,27 +4,30 @@ import type { MotorOptionModel } from "../types";
  * 1FK2 SIMOTICS S — compact servo for SINAMICS S210 with One-Cable
  * Connection (OCC) or PROFINET (RJ45).
  *
- * Source: D32 catalog (motion-control-drives D32 2026-02). The 1FK2
- * MLFB has the form `1FK2XXX-YAY-X1A0` where the last group encodes
- * the connection variant + brake.
+ * Source: D32 catalog (motion-control-drives D32 2026-02). MOTOR_SPECS
+ * stores the trunk (e.g. "1FK2103-2AG"); the builder appends the
+ * 2-char encoder interfix "31" and the 4-char user-configurable
+ * suffix. Final shape:
  *
  *   1FK2103-2AG31-1AA0    OCC, no brake
- *   1FK2103-2AG31-2BA0    OCC, with brake
+ *   1FK2103-2AG31-2AA0    OCC, with brake
  *   1FK2103-2AG31-3AA0    PROFINET RJ45, no brake
- *   1FK2103-2AG31-4BA0    PROFINET RJ45, with brake
+ *   1FK2103-2AG31-4AA0    PROFINET RJ45, with brake
  *
- * Slots:
+ * Slots (4-char suffix after the interfix):
  *   pos 1: connection + brake combo
  *      1 = OCC, no brake          2 = OCC, with brake
  *      3 = RJ45, no brake         4 = RJ45, with brake
- *   pos 2: shaft (A=feather, B=plain) for sizes that support it
- *   pos 3: vibration / IP class (A = standard)
- *   pos 4: spec / version (0 = standard)
+ *   pos 2: shaft form (A=feather, B=plain)
+ *   pos 3: vibration grade (A = standard, B = reduced)
+ *   pos 4: spec (fixed 0)
  */
 export const fk2: MotorOptionModel = {
   family: "1FK2",
   variant: "S210 (OCC / PROFINET)",
-  suffixTemplate: "-{conn_brake}{shaft}{vibration}0",
+  // "31-" inserts the encoder interfix (AM24DQI absolute multi-turn
+  // DRIVE-CLiQ on the OCC bus + standard signal) BEFORE the suffix dash.
+  suffixTemplate: "31-{conn_brake}{shaft}{vibration}0",
   slots: [
     {
       id: "conn_brake",

@@ -5,18 +5,23 @@ import type { MotorOptionModel } from "../types";
  *
  * Source: NC63 catalog and legacy D21.4 entries. 1FK7 is the
  * predecessor of 1FT2 / 1FK2 but is still extensively used in active
- * SINUMERIK installations. The MLFB encodes encoder, brake, and shaft
- * tolerance the same way as 1FT7.
+ * SINUMERIK installations.
  *
  *   1FK7042-5AF71-1DA1
- *   └─────┘ └────┘ └──┘
- *    base   speed   suffix (encoder + shaft/brake + terminal + spec)
+ *   └────┘ └───┘└─┘ └──┘
+ *    base  spd flange  suffix
+ *                 (constant 7)
  *
- * Slot layout matches 1FT7: shaft_brake / terminal / spec.
+ * If MOTOR_SPECS stores the full trunk through the flange digit
+ * (e.g. "1FK7042-5AF71"), getBaseMlfb leaves it intact and the suffix
+ * template appends "-1DA1"-style. If MOTOR_SPECS stores only the
+ * shorter trunk (e.g. "1FK7042-5AF7"), the builder still produces a
+ * recognisable MLFB the partner can complete.
  */
 export const fk7Compact: MotorOptionModel = {
   family: "1FK7",
   variant: "Compact (DRIVE-CLiQ)",
+  // Same shape as 1FT7: 4-char suffix beginning with the constant "1".
   suffixTemplate: "-1{shaft_brake}{terminal}{spec}",
   slots: [
     {
