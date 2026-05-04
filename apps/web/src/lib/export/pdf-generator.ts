@@ -82,22 +82,28 @@ export function generatePdf(
     },
   });
 
-  // ── Notes (wrapping fixed) ─────────────────────────────────────────
-  // Long notes were previously truncated at the right margin because
-  // doc.text was called without a maxWidth and stepped a fixed 5mm
-  // per item. Now each note wraps into multiple lines and the cursor
-  // advances by the actual line count.
+  // ── Notes (wrapping + page-break safe) ─────────────────────────────
+  // Notes used to be truncated horizontally (no maxWidth) and could also
+  // overflow the bottom of the page when the BOM table itself ran long.
+  // Each note now wraps via splitTextToSize, advances the cursor by the
+  // actual line count, and pushes a fresh page when the next note would
+  // run past the bottom margin.
   if (config.notes.length > 0) {
     const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } })
       .lastAutoTable.finalY;
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
-    doc.text("Notes:", LEFT, finalY + 10);
-    let noteY = finalY + 16;
+    let noteY = ensureSpace(doc, finalY + 10, 12);
+    doc.text("Notes:", LEFT, noteY);
+    noteY += 6;
     for (const note of config.notes) {
       const wrapped = doc.splitTextToSize(`- ${note}`, TEXT_WIDTH - 4);
+      const blockH = wrapped.length * LINE_H + 1.5;
+      noteY = ensureSpace(doc, noteY, blockH);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
       doc.text(wrapped, LEFT + 2, noteY);
-      noteY += wrapped.length * LINE_H + 1.5;
+      noteY += blockH;
     }
   }
 
