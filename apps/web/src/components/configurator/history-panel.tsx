@@ -199,7 +199,7 @@ export function HistoryPanel() {
   const history = useConfiguratorStore((s) => s.history);
   const revertToHistoryEntry = useConfiguratorStore((s) => s.revertToHistoryEntry);
   const clearHistory = useConfiguratorStore((s) => s.clearHistory);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const reversed = [...history].reverse();
   const count = history.length;

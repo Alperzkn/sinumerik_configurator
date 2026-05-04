@@ -19,6 +19,8 @@ import {
   Smartphone,
   Network,
   AlertTriangle,
+  ChevronsDownUp,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +72,9 @@ export function ConfigurationStep() {
   } | null>(null);
   const [showAddOption, setShowAddOption] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<"save" | "load" | null>(null);
+  // Controlled accordion — starts fully collapsed. Users either click a
+  // single section header or use the Expand-all toggle below.
+  const [openSections, setOpenSections] = useState<string[]>([]);
 
   // Engineering-review disclaimer. Shown on first arrival at this step
   // when a configuration has just been generated, unless the user has
@@ -215,6 +220,29 @@ export function ConfigurationStep() {
     complex: "bg-red-500/15 text-red-400 border-red-500/20",
   };
 
+  // Section keys that are actually rendered for this configuration.
+  // Mirror the conditional checks below — keep these in sync if a new
+  // section is added.
+  const operatorHmi = configuration.hmiComponents.filter(
+    (h) => h.category !== "io_module" && h.category !== "handheld_terminal",
+  );
+  const ioModulesList = configuration.hmiComponents.filter((h) => h.category === "io_module");
+  const handheldList = configuration.hmiComponents.filter((h) => h.category === "handheld_terminal");
+  const availableSections: string[] = [
+    "control-unit",
+    "cnc-software",
+    ...(configuration.technologyPackages.length > 0 ? ["tech-packages"] : []),
+    "software-options",
+    ...(configuration.drives.length > 0 ? ["drives"] : []),
+    ...(configuration.motors.length > 0 ? ["motors"] : []),
+    ...(operatorHmi.length > 0 ? ["hmi"] : []),
+    ...(ioModulesList.length > 0 ? ["io-modules"] : []),
+    ...(handheldList.length > 0 ? ["handheld"] : []),
+    ...(configuration.safetyFunctions.length > 0 ? ["safety"] : []),
+    ...(configuration.cables && configuration.cables.length > 0 ? ["cables"] : []),
+  ];
+  const allOpen = openSections.length === availableSections.length;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -272,7 +300,7 @@ export function ConfigurationStep() {
         {/* Status strip — 2-up on small screens, 4-up on sm+ */}
         <div className="rounded-md border bg-card/60 overflow-hidden">
           <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-border">
-            <StatCell label="Control Unit" value={configuration.controlUnit.id.replace("_", " ")} mono />
+            <StatCell label="Control Unit" value={configuration.controlUnit.name} mono />
             <StatCell label="Axes" value={String(configuration.totalAxes)} />
             <StatCell label="Channels" value={String(configuration.totalChannels)} />
             <StatCell
@@ -306,12 +334,36 @@ export function ConfigurationStep() {
           into swap menus. Collapses by default to stay out of the way. */}
       <AiModifyPane />
 
-      {/* Configuration sections — key categories expanded on arrival so
-          users see the shape of their system without clicking through
-          every accordion row. */}
+      {/* Configuration sections — all collapsed by default so the page
+          opens to a clean overview. Users either click a single header
+          or use the toggle below to fan everything out at once. */}
+      <div className="flex items-center justify-between -mb-1 pl-1">
+        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          Bill of materials
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpenSections(allOpen ? [] : availableSections)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-background/40 hover:bg-accent/30 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+          title={allOpen ? "Collapse every section" : "Expand every section"}
+        >
+          {allOpen ? (
+            <>
+              <ChevronsDownUp className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Collapse all
+            </>
+          ) : (
+            <>
+              <ChevronsUpDown className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Expand all
+            </>
+          )}
+        </button>
+      </div>
       <Accordion
         multiple
-        defaultValue={["control-unit", "drives", "motors"]}
+        value={openSections}
+        onValueChange={(v) => setOpenSections(v as string[])}
       >
         {/* Control Unit */}
         <SectionPanel
@@ -652,14 +704,19 @@ export function ConfigurationStep() {
           after several edits, new users don't need to see it first. */}
       <HistoryPanel />
 
-      {/* Notes */}
+      {/* Sizing notes — engineering callouts surfaced from the
+          configuration engine. Styled as a leader/annotation strip to
+          match the rest of the spec sheet. */}
       {configuration.notes.length > 0 && (
-        <div className="rounded-lg border bg-muted/50 p-4">
-          <h3 className="text-sm font-semibold mb-2">Notes</h3>
+        <div className="callout-strip rounded-r-md">
+          <div className="label-spec mb-2">Sizing notes</div>
           <ul className="space-y-1">
             {configuration.notes.map((note, i) => (
-              <li key={i} className="text-sm text-muted-foreground flex gap-2">
-                <span className="text-primary">-</span> {note}
+              <li
+                key={i}
+                className="spec-row text-[12px] text-muted-foreground leading-relaxed"
+              >
+                {note}
               </li>
             ))}
           </ul>

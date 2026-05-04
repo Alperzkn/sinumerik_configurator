@@ -32,7 +32,7 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
   // The ai_traces row id from the most recent AI modify call. The
   // FeedbackPill on the assistant message attaches its 👍/👎 to it.
   const [lastTraceRowId, setLastTraceRowId] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = async (requestText: string) => {
     if (!configuration || !requestText.trim() || isProcessing) return;
