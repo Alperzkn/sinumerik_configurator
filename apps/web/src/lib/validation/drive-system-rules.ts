@@ -243,6 +243,56 @@ export const MOTOR_SPECS: Record<string, MotorSpecs> = {
   "1FK2210-4AC": { shaftHeight: 100, ratedPower: "6.5 kW", ratedTorque: "55 Nm", ratedSpeed: "2000 rpm", maxSpeed: "5500 rpm", maxTorque: "150 Nm", ratedCurrent: "25 A", family: "SIMOTICS S-1FK2", variant: "Compact", motorModule: "6SL5310-1BE15-0DF1", kind: "feed_servo", cooling: "natural" },
 
   // ───────────────────────────────────────────────────────────────────
+  // SIMOTICS S-1FK7 Compact — natural cooling, DC link 510...720V.
+  // Source: D21.4 catalog (2017 edition) pages 8/36, 8/37 — "SIMOTICS
+  // S-1FK7 Compact — Natural cooling, Selection and ordering data"
+  // and matching Motor Module assignments.
+  //
+  // Trunks stored through position 11 (e.g. "1FK7042-2AC71"). The
+  // 4-character ordering suffix (encoder + shaft/brake + IP) is added
+  // by the customer's Siemens partner — the BOM tags 1FK7 rows
+  // "trunk-only — partner completes suffix". Encoder codes (catalog):
+  //   With DRIVE-CLiQ:    1B AS24DQI · 1C AM24DQI · 1Q AS20DQI ·
+  //                       1R AM20DQI · 1U R15DQ · 1P R14DQ
+  //   Without DRIVE-CLiQ: 4A IC2048S/R · 4E AM2048S/R · 4S/4T resolvers
+  // Shaft+brake codes:    A=feather/N/no-brake · B=feather/N/brake ·
+  //                       G=plain/N/no-brake   · H=plain/N/brake
+  // IP class:             0=IP64 · 1=IP65 · 2=IP65+DE flange IP67
+  //
+  // Speed code conventions (position 10):
+  //   C = 2000 rpm · F = 3000 rpm · H = 4500 rpm · K = 6000 rpm
+  //
+  // M_max (peak torque) values estimated at 3 × M_N — typical for 1FK7
+  // sustained over a few seconds. For exact M_max, consult catalog
+  // characteristic curves at the specific operating point.
+  // ───────────────────────────────────────────────────────────────────
+  // 1FK7 Compact — 2000 rpm rated speed
+  "1FK7042-2AC71": { shaftHeight: 48, ratedPower: "0.6 kW", ratedTorque: "2.8 Nm", ratedSpeed: "2000 rpm", maxSpeed: "6000 rpm", maxTorque: "9 Nm", ratedCurrent: "1.55 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7060-2AC71": { shaftHeight: 63, ratedPower: "1.1 kW", ratedTorque: "5.3 Nm", ratedSpeed: "2000 rpm", maxSpeed: "6000 rpm", maxTorque: "16 Nm", ratedCurrent: "2.95 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7062-2AC71": { shaftHeight: 63, ratedPower: "1.5 kW", ratedTorque: "7.0 Nm", ratedSpeed: "2000 rpm", maxSpeed: "6000 rpm", maxTorque: "21 Nm", ratedCurrent: "2.65 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7063-2AC71": { shaftHeight: 63, ratedPower: "1.9 kW", ratedTorque: "8.9 Nm", ratedSpeed: "2000 rpm", maxSpeed: "6000 rpm", maxTorque: "27 Nm", ratedCurrent: "4.4 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7081-2AC71": { shaftHeight: 80, ratedPower: "2.1 kW", ratedTorque: "10.0 Nm", ratedSpeed: "2000 rpm", maxSpeed: "6000 rpm", maxTorque: "30 Nm", ratedCurrent: "4.4 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7083-2AC71": { shaftHeight: 80, ratedPower: "2.6 kW", ratedTorque: "12.5 Nm", ratedSpeed: "2000 rpm", maxSpeed: "6000 rpm", maxTorque: "38 Nm", ratedCurrent: "6.3 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7084-2AC71": { shaftHeight: 80, ratedPower: "3.1 kW", ratedTorque: "15.0 Nm", ratedSpeed: "2000 rpm", maxSpeed: "6000 rpm", maxTorque: "45 Nm", ratedCurrent: "6.7 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7100-2AC71": { shaftHeight: 100, ratedPower: "3.0 kW", ratedTorque: "14.5 Nm", ratedSpeed: "2000 rpm", maxSpeed: "5500 rpm", maxTorque: "44 Nm", ratedCurrent: "7.1 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7101-2AC71": { shaftHeight: 100, ratedPower: "4.3 kW", ratedTorque: "20.5 Nm", ratedSpeed: "2000 rpm", maxSpeed: "5500 rpm", maxTorque: "62 Nm", ratedCurrent: "9.7 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7103-2AC71": { shaftHeight: 100, ratedPower: "5.2 kW", ratedTorque: "25.0 Nm", ratedSpeed: "2000 rpm", maxSpeed: "5500 rpm", maxTorque: "75 Nm", ratedCurrent: "11.0 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7105-2AC71": { shaftHeight: 100, ratedPower: "7.7 kW", ratedTorque: "37.0 Nm", ratedSpeed: "2000 rpm", maxSpeed: "5500 rpm", maxTorque: "111 Nm", ratedCurrent: "16.0 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE23-0AD0", kind: "feed_servo", cooling: "natural" },
+  // 1FK7 Compact — 3000 rpm rated speed
+  "1FK7042-2AF71": { shaftHeight: 48, ratedPower: "0.8 kW", ratedTorque: "2.6 Nm", ratedSpeed: "3000 rpm", maxSpeed: "8000 rpm", maxTorque: "8 Nm", ratedCurrent: "2.0 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE13-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7060-2AF71": { shaftHeight: 63, ratedPower: "1.5 kW", ratedTorque: "4.7 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "14 Nm", ratedCurrent: "3.7 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7062-2AF71": { shaftHeight: 63, ratedPower: "1.9 kW", ratedTorque: "6.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "18 Nm", ratedCurrent: "4.0 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7063-2AF71": { shaftHeight: 63, ratedPower: "2.3 kW", ratedTorque: "7.3 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "22 Nm", ratedCurrent: "5.6 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7080-2AF71": { shaftHeight: 80, ratedPower: "2.1 kW", ratedTorque: "6.8 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "20 Nm", ratedCurrent: "4.4 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE15-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7081-2AF71": { shaftHeight: 80, ratedPower: "2.7 kW", ratedTorque: "8.7 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "26 Nm", ratedCurrent: "6.8 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7083-2AF71": { shaftHeight: 80, ratedPower: "3.3 kW", ratedTorque: "10.5 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "32 Nm", ratedCurrent: "7.2 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7084-2AF71": { shaftHeight: 80, ratedPower: "3.1 kW", ratedTorque: "10.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "7000 rpm", maxTorque: "30 Nm", ratedCurrent: "6.5 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7100-2AF71": { shaftHeight: 100, ratedPower: "3.8 kW", ratedTorque: "12.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "36 Nm", ratedCurrent: "8.0 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7101-2AF71": { shaftHeight: 100, ratedPower: "4.9 kW", ratedTorque: "15.5 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "47 Nm", ratedCurrent: "11.6 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE21-8AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7103-2AF71": { shaftHeight: 100, ratedPower: "4.4 kW", ratedTorque: "14.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "42 Nm", ratedCurrent: "11.5 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE23-0AD0", kind: "feed_servo", cooling: "natural" },
+  "1FK7105-2AF71": { shaftHeight: 100, ratedPower: "8.2 kW", ratedTorque: "26.0 Nm", ratedSpeed: "3000 rpm", maxSpeed: "5500 rpm", maxTorque: "78 Nm", ratedCurrent: "18.0 A", family: "SIMOTICS S-1FK7", variant: "Compact", motorModule: "6SL3120-1TE23-0AD0", kind: "feed_servo", cooling: "natural" },
+
+  // ───────────────────────────────────────────────────────────────────
   // SIMOTICS M-1FE1 — Built-in motor spindles (high-speed direct drive)
   // Source: D21.4 catalog. Verified base MLFBs only — full ordering MLFB
   // has the form `<base>■0-6B■■` etc. (encoder, brake, cabling slots).
