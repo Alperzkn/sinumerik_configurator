@@ -104,10 +104,16 @@ t("1FE1 trunk-only", () => {
   assert.equal(fe1.completeness, "trunk-only");
 });
 
-t("1FN3 trunk-only", () => {
-  const mlfb = buildMlfb(fn3, "1FN3450-4WC00", fn3SelectionsFor({}));
-  assert.equal(mlfb, "1FN3450-4WC00");
-  assert.equal(fn3.completeness, "trunk-only");
+t("1FN3 verified — D21.4 page 8.3/19", () => {
+  const mlfb = buildMlfb(fn3, "1FN3100-3WC00", fn3SelectionsFor());
+  // Default: single-cable connection (A) → suffix -0AA3
+  assert.equal(mlfb, "1FN3100-3WC00-0AA3");
+  assert.equal(fn3.completeness, "verified");
+});
+
+t("1FN3 separate-cable connection (B)", () => {
+  const mlfb = buildMlfb(fn3, "1FN3300-2WC00", fn3SelectionsFor({ connection: "separate" }));
+  assert.equal(mlfb, "1FN3300-2WC00-0BA3");
 });
 
 t("1FW6 trunk-only", () => {
