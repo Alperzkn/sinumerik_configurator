@@ -158,7 +158,10 @@ Respond with a JSON object describing the ARCHITECTURE. Do NOT include motor, mo
 ### \`userPreferences\` rules (CRITICAL)
 - Only include fields the user *explicitly* mentioned. Do not invent.
 - \`axisNames\`: use the user's exact labels (X1, Y, A, B, C, etc.). DO NOT silently rename — if a user says "Y1, Y2" you keep "Y1, Y2" even if Z would be more conventional. If their naming truly doesn't make sense, set \`needsClarification: true\` and ask.
-- \`feedMotorFamily\` / \`spindleMotorFamily\`: must be one of the supported families. Allowed feed: 1FK2, 1FK7, 1FT2, 1FT7. Allowed spindle: 1PH8, 1PH3. The sizing engine uses this to filter motor selection.
+- \`feedMotorFamily\` / \`spindleMotorFamily\`: must be one of the supported families with verified catalog data:
+  • Feed servos: **1FT2** (D21.4, default for new SINUMERIK ONE / S120 booksize), **1FK2** (D32, default for SINUMERIK ONE Compact / S210 OCC), **1FT7** (D21.4, established).
+  • Spindles: **1PH8** (D21.4 main spindle, only verified family).
+  • Legacy/retrofit families (1FK7, 1PH3, 1FT6) are documented in older catalogs (D21.3, D31) we don't currently have. If the user explicitly asks for one of these, set the field to the closest current equivalent and add a note: 1FK7 → 1FT2 (compatible flange), 1PH3 → 1PH8 (smaller frames). DO NOT set feedMotorFamily/spindleMotorFamily to a family we can't size against.
 - \`feedPowerKw\`, \`spindlePowerKw\`, \`spindleMaxRpm\`, \`movingMassKg\`, \`rapidTraverseMpm\`: numeric values the user typed in free-text (e.g. "3 kW motors", "11 kW spindle", "8000 rpm", "500 kg per axis", "40 m/min rapid"). These flow directly into the sizing engine and override the machine-class defaults — without them the configurator picks generic mid-range motors. Always populate these when the user gave a number.
 - \`summaryForUser\`: 1-2 short sentences in plain language for the confirmation UI. NO JSON, NO article numbers.
 
@@ -191,7 +194,7 @@ If the user provided a "MECHANICAL REQUIREMENTS" block OR a "Machine size class"
 - Count total axes/spindles needed, subtract 3 (base scope), only add A-options for the remainder. orderCode: A01=1 extra, A02=2, A03=3, etc.
 - DO NOT echo the user's description, prompt, or specs back as a JSON field. The frontend already has them. Token budget is precious.
 - DO NOT silently translate the user's words. If they say "Y1, Y2" on a lathe, do not rewrite to "Z1, Z2" — preserve their labels in \`userPreferences.axisNames\` or ask for clarification.
-- If the user states a motor family preference (1FK2, 1FK7, 1FT2, 1FT7, 1PH8, 1PH3), mirror it into \`userPreferences.feedMotorFamily\` / \`userPreferences.spindleMotorFamily\` so the sizing engine honours it.`;
+- If the user states a motor family preference for a SUPPORTED family (1FT2, 1FT7, 1FK2 for feed; 1PH8 for spindle), mirror it into \`userPreferences.feedMotorFamily\` / \`userPreferences.spindleMotorFamily\` so the sizing engine honours it. For legacy families (1FK7, 1PH3, 1FT6), substitute the closest current equivalent (1FT2 / 1PH8) AND add a note explaining the substitution and asking the user to confirm with a Siemens partner if they specifically need the legacy family for a retrofit.`;
 }
 
 export function buildUserMessage(
