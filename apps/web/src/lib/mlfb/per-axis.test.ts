@@ -78,22 +78,22 @@ t("detects 1PH8 family", () => {
 
 // ── resolveFeedAxisMlfbs ────────────────────────────────────────────
 
-t("1FT2 trunk-only per-axis: emits trunk + brake metadata, no fake suffix", () => {
-  // Honest mode: trunk-only families don't fabricate suffix codes.
-  // The brake state is conveyed via the AxisMlfb.brake flag and a UI
-  // badge on the row, not via the article number itself.
+t("1FT2 verified per-axis: full MLFBs with brake-aware pos 11", () => {
+  // After page 8.1/55 verification: brake is position 11 (0/1), not
+  // a combined shaft+brake char as in 1FT7. X-axes with brake → "11"
+  // at positions 11-12, Y-axes without → "01".
   const result = resolveFeedAxisMlfbs({
     baseArticle: "1FT2206-4AF",
     axisNames: ["X1", "Y1"],
     brakeAxes: ["X1"],
   });
   assert.equal(result.length, 2);
-  assert.equal(result[0].mlfb, "1FT2206-4AF");
+  assert.equal(result[0].mlfb, "1FT2206-4AF11-1MB0");
   assert.equal(result[0].brake, true);
-  assert.equal(result[0].completeness, "trunk-only");
-  assert.equal(result[1].mlfb, "1FT2206-4AF");
+  assert.equal(result[0].completeness, "verified");
+  assert.equal(result[1].mlfb, "1FT2206-4AF01-1MB0");
   assert.equal(result[1].brake, false);
-  assert.equal(result[1].completeness, "trunk-only");
+  assert.equal(result[1].completeness, "verified");
 });
 
 t("1FK2 trunk-only per-axis", () => {
@@ -125,14 +125,17 @@ t("1FT7 verified per-axis: full MLFB with brake-aware suffix", () => {
 
 // ── resolveFullMotorMlfb ────────────────────────────────────────────
 
-t("trunk-only families return only the trunk + completeness flag", () => {
-  // 1FT2 / 1FK2 / 1FK7 are flagged trunk-only because their catalog
-  // suffix layout hasn't been cross-verified end-to-end. Better to
-  // emit the verified trunk and let the BOM badge it.
+t("1FT2 verified — full MLFB from D21.4 page 8.1/55 layout", () => {
+  // 1FT2 was promoted from trunk-only to verified after the structure
+  // table on page 8.1/55 was decoded position-by-position.
   assert.deepEqual(resolveFullMotorMlfb("1FT2206-4AF"), {
-    mlfb: "1FT2206-4AF",
-    completeness: "trunk-only",
+    mlfb: "1FT2206-4AF01-1MB0",
+    completeness: "verified",
   });
+});
+
+t("trunk-only families still return just the trunk", () => {
+  // 1FK2 / 1FK7 / 1PH3 / 1FE1 / etc. still pending catalog verification.
   assert.deepEqual(resolveFullMotorMlfb("1FK2103-2AG"), {
     mlfb: "1FK2103-2AG",
     completeness: "trunk-only",
@@ -177,9 +180,9 @@ t("decoded entries are populated for verified families", () => {
 });
 
 t("decoded is undefined for trunk-only families", () => {
-  // No decoder for trunk-only — there's no fabricated suffix to decode.
+  // 1FK2 still pending catalog verification — no decoder for trunk-only.
   const result = resolveFeedAxisMlfbs({
-    baseArticle: "1FT2206-4AF",
+    baseArticle: "1FK2103-2AG",
     axisNames: ["X1"],
     brakeAxes: [],
   });

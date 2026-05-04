@@ -28,13 +28,27 @@ const t = (name: string, fn: () => void) => {
 
 console.log("MLFB families");
 
-t("1FT2 trunk-only: builder returns just the trunk, no fake suffix", () => {
-  // Honest mode: 1FT2 ordering layout not exhaustively cross-checked.
-  // The builder skips the suffix template and returns the verified trunk;
-  // the BOM line shows a "partner completes suffix" badge.
+t("1FT2 verified default — D21.4 page 8.1/55 layout", () => {
+  // Defaults: no brake (pos 11=0), IP65 (pos 12=1), feather key (pos 13=1),
+  // AM22DQC absolute multi-turn (pos 14=M), B0 fixed (pos 15-16).
   const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF", ft2SelectionsFor());
-  assert.equal(mlfb, "1FT2104-4AF");
-  assert.equal(ft2DriveCliq.completeness, "trunk-only");
+  assert.equal(mlfb, "1FT2104-4AF01-1MB0");
+  assert.equal(ft2DriveCliq.completeness, "verified");
+});
+
+t("1FT2 with brake → pos 11 = 1", () => {
+  const mlfb = buildMlfb(ft2DriveCliq, "1FT2104-4AF", ft2SelectionsFor({ brake: true }));
+  assert.equal(mlfb, "1FT2104-4AF11-1MB0");
+});
+
+t("1FT2 IP67 + plain shaft + AS26DQC encoder", () => {
+  const mlfb = buildMlfb(
+    ft2DriveCliq,
+    "1FT2206-4AF",
+    ft2SelectionsFor({ ip: "IP67", shaftKind: "plain", encoder: "absolute_single_26" }),
+  );
+  // pos 11=0 (no brake), pos 12=2 (IP67), pos 13=0 (plain), pos 14=B (AS26DQC)
+  assert.equal(mlfb, "1FT2206-4AF02-0BB0");
 });
 
 t("1FK2 trunk-only", () => {
