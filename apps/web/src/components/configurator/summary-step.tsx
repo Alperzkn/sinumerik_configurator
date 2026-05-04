@@ -117,7 +117,14 @@ function buildBom(config: GeneratedConfiguration): BomItem[] {
 }
 
 export function SummaryStep() {
-  const { configuration, resetAll, setStep } = useConfiguratorStore();
+  const {
+    configuration,
+    resetAll,
+    setStep,
+    machineDescription,
+    selectedTemplate,
+    machineSpecs,
+  } = useConfiguratorStore();
   const [copied, setCopied] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<"save" | "load" | null>(null);
   const [showShare, setShowShare] = useState(false);
@@ -284,7 +291,11 @@ export function SummaryStep() {
   const handleExportPdf = async () => {
     void trackAction("export_pdf", { items: bomLines.length, totalQty });
     const { generatePdf } = await import("@/lib/export/pdf-generator");
-    generatePdf(configuration, bomLines);
+    generatePdf(configuration, bomLines, {
+      template: selectedTemplate,
+      description: machineDescription,
+      specs: machineSpecs,
+    });
   };
 
   return (
