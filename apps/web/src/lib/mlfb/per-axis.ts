@@ -22,11 +22,15 @@ import type { AxisMlfb } from "@/types/catalog";
  * orderable.
  */
 export function getBaseMlfb(article: string): string {
+  // A true suffix appears only after the SECOND hyphen — articles with
+  // a single hyphen are catalog trunks (e.g. "1FT2206-4AF",
+  // "1FK2103-2AG", "1FK7042-5AF7") that we must not chop. Articles
+  // with two or more hyphens may have a 4-char trailing suffix
+  // ("1FT7034-5AK71-1DA1", "1PH8133-1FF10-0LA1") which we strip.
+  const hyphens = (article.match(/-/g) ?? []).length;
+  if (hyphens < 2) return article;
   const idx = article.lastIndexOf("-");
-  if (idx < 0) return article;
   const last = article.slice(idx + 1);
-  // Only 4-char segments matching the canonical suffix shape get
-  // stripped. Catalog bases like "4AF" / "2AG" (3 chars) stay intact.
   if (last.length === 4 && /^[0-9][A-Z]+[0-9]$/.test(last)) {
     return article.slice(0, idx);
   }

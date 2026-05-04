@@ -96,7 +96,7 @@ t("1FT2 verified per-axis: full MLFBs with brake-aware pos 11", () => {
   assert.equal(result[1].completeness, "verified");
 });
 
-t("1FK2 trunk-only per-axis", () => {
+t("1FK2 verified per-axis: brake mapped to position 11", () => {
   const result = resolveFeedAxisMlfbs({
     baseArticle: "1FK2103-2AG",
     axisNames: ["X1", "X2", "Y1", "Y2"],
@@ -104,10 +104,12 @@ t("1FK2 trunk-only per-axis", () => {
     connection: "OCC",
   });
   assert.equal(result.length, 4);
-  for (const row of result) {
-    assert.equal(row.mlfb, "1FK2103-2AG");
-    assert.equal(row.completeness, "trunk-only");
-  }
+  // X-axes braked: pos 11 = 1; Y-axes no brake: pos 11 = 0
+  assert.equal(result[0].mlfb, "1FK2103-2AG11-1MA0");
+  assert.equal(result[1].mlfb, "1FK2103-2AG11-1MA0");
+  assert.equal(result[2].mlfb, "1FK2103-2AG01-1MA0");
+  assert.equal(result[3].mlfb, "1FK2103-2AG01-1MA0");
+  for (const row of result) assert.equal(row.completeness, "verified");
 });
 
 t("1FT7 verified per-axis: full MLFB with brake-aware suffix", () => {
@@ -134,10 +136,20 @@ t("1FT2 verified — full MLFB from D21.4 page 8.1/55 layout", () => {
   });
 });
 
-t("trunk-only families still return just the trunk", () => {
-  // 1FK2 / 1FK7 / 1PH3 / 1FE1 / etc. still pending catalog verification.
+t("1FK2 verified — full MLFB from D32 page 1/12 layout", () => {
+  // 1FK2 promoted to verified after the D32 ordering supplements
+  // table was decoded. Pos 11=brake, pos 12=IP, pos 13=shaft,
+  // pos 14=encoder, pos 15=A (OCC fixed), pos 16=0 (reserved).
   assert.deepEqual(resolveFullMotorMlfb("1FK2103-2AG"), {
-    mlfb: "1FK2103-2AG",
+    mlfb: "1FK2103-2AG01-1MA0",
+    completeness: "verified",
+  });
+});
+
+t("trunk-only families still return just the trunk", () => {
+  // 1FK7 / 1PH3 / 1FE1 / 1FN3 / 1FW6 still pending catalog verification.
+  assert.deepEqual(resolveFullMotorMlfb("1FK7042-5AF7"), {
+    mlfb: "1FK7042-5AF7",
     completeness: "trunk-only",
   });
 });
@@ -180,9 +192,9 @@ t("decoded entries are populated for verified families", () => {
 });
 
 t("decoded is undefined for trunk-only families", () => {
-  // 1FK2 still pending catalog verification — no decoder for trunk-only.
+  // 1FK7 still pending — no decoder for trunk-only families.
   const result = resolveFeedAxisMlfbs({
-    baseArticle: "1FK2103-2AG",
+    baseArticle: "1FK7042-5AF7",
     axisNames: ["X1"],
     brakeAxes: [],
   });

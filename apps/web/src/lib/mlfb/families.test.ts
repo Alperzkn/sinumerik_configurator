@@ -51,10 +51,21 @@ t("1FT2 IP67 + plain shaft + AS26DQC encoder", () => {
   assert.equal(mlfb, "1FT2206-4AF02-0BB0");
 });
 
-t("1FK2 trunk-only", () => {
+t("1FK2 verified — D32 page 1/12 layout", () => {
   const mlfb = buildMlfb(fk2, "1FK2103-2AG", fk2SelectionsFor());
-  assert.equal(mlfb, "1FK2103-2AG");
-  assert.equal(fk2.completeness, "trunk-only");
+  // Defaults: no brake, IP65, feather key, AM22DQC, A (OCC), 0 reserved
+  assert.equal(mlfb, "1FK2103-2AG01-1MA0");
+  assert.equal(fk2.completeness, "verified");
+});
+
+t("1FK2 with brake + IP64 + plain shaft + AS22DQC", () => {
+  const mlfb = buildMlfb(
+    fk2,
+    "1FK2104-4AF",
+    fk2SelectionsFor({ brake: true, ip: "IP64", shaftKind: "plain", encoder: "absolute_single" }),
+  );
+  // pos 11=1 (brake), pos 12=0 (IP64), pos 13=0 (plain), pos 14=S (AS22DQC)
+  assert.equal(mlfb, "1FK2104-4AF10-0SA0");
 });
 
 t("1FK7 trunk-only", () => {
