@@ -103,7 +103,7 @@ export interface UserActionRow {
 /**
  * Insert an ai_trace row. Returns the inserted row's `id` so the
  * caller can pass it back to the client (the client uses it to
- * attach feedback later via /api/log/feedback).
+ * attach feedback later via /api/events/feedback).
  */
 export async function logAiTrace(row: AiTraceRow): Promise<string | null> {
   const sb = client();

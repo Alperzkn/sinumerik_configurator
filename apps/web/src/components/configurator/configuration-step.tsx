@@ -62,7 +62,7 @@ export function ConfigurationStep() {
     selectedTemplate,
     machineSpecs,
   } = useConfiguratorStore();
-  // The configurations row id (returned by /api/log/configuration) is
+  // The configurations row id (returned by /api/events/configuration) is
   // captured the first time we render this step with a config; it's
   // used by FeedbackPill to attach a thumbs vote on the BOM as a whole.
   const [configRowId, setConfigRowId] = useState<string | null>(null);

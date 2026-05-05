@@ -128,7 +128,7 @@ export async function trackAction(
 ): Promise<void> {
   if (isTelemetryDisabled()) return;
   try {
-    await fetch("/api/log/action", {
+    await fetch("/api/events/action", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       keepalive: true,
@@ -160,7 +160,7 @@ export async function logConfiguration(payload: {
 }): Promise<string | null> {
   if (isTelemetryDisabled()) return null;
   try {
-    const res = await fetch("/api/log/configuration", {
+    const res = await fetch("/api/events/configuration", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -185,7 +185,7 @@ export async function submitAiFeedback(args: {
 }): Promise<boolean> {
   if (isTelemetryDisabled()) return false;
   try {
-    const res = await fetch("/api/log/feedback", {
+    const res = await fetch("/api/events/feedback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ kind: "ai_trace", ...args }),
@@ -204,7 +204,7 @@ export async function submitConfigurationFeedback(args: {
 }): Promise<boolean> {
   if (isTelemetryDisabled()) return false;
   try {
-    const res = await fetch("/api/log/feedback", {
+    const res = await fetch("/api/events/feedback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ kind: "configuration", ...args }),
