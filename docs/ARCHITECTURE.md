@@ -1,252 +1,478 @@
 # Architecture
 
-This document explains how the SINUMERIK ONE AI Configurator works internally — data flow, AI integration, validation rules, and key design decisions.
+The internals of the SINUMERIK ONE Configurator — repo layout, data
+flow, AI integration, MLFB compositional grammar, drive-system rules,
+telemetry, and the admin dashboard.
 
-## High-Level Overview
+> **Audience** — developers and contributors. End-user material lives
+> in [USER_GUIDE.md](USER_GUIDE.md). Telemetry-specific operational
+> notes (env vars, migrations, Vercel projects) live in
+> [TELEMETRY.md](TELEMETRY.md).
 
-The app is a **Next.js wizard** that collects machine requirements, sends them to **Claude (Anthropic API)** along with curated SINUMERIK catalog data, receives a structured JSON configuration, validates it against drive sizing rules, and renders a complete bill of materials (BOM).
+---
+
+## 1. The big picture
 
 ```mermaid
 flowchart LR
-    User[User] -->|Machine specs| UI[Next.js Wizard]
-    UI -->|API call| Route[/api/recommend]
-    Route -->|System prompt + catalog tables| Claude[Claude Sonnet 4]
-    Claude -->|JSON response| Parser[Response Parser]
-    Parser -->|Validated config| Rules[Drive System Rules]
-    Rules -->|Final BOM| UI
-    UI -->|Export| Out[Copy / Excel / PDF]
+    User[User] -->|machine description + specs| Web[Next.js web app]
+    Web -->|/api/recommend, /api/modify| AI[Claude Sonnet 4]
+    AI -->|JSON architecture| Parser[Response parser]
+    Parser -->|rule-based sizing| Rules[Drive + motor rules]
+    Rules -->|catalog lookup| Catalog[(Local TS catalog)]
+    Rules -->|complete BOM| Web
+    Web -->|/api/events/*| Tel[(Supabase telemetry)]
+    Web -->|export| Out[Clipboard / Excel / PDF / Share]
+    Admin[Admin app] -->|read-only| Tel
 ```
 
-## The 5-Step Wizard Flow
+**Two halves of the design:**
+
+- **The AI does only one job** — read the description and pick the
+  high-level *architecture*: control unit, technology packages,
+  drive family, HMI panel, safety level. It is explicitly forbidden
+  in its prompt from inventing motor or drive part numbers.
+- **Rule-based code in the app**, using a versioned local Siemens
+  catalog, fills in every actual MLFB. Sizing math is deterministic;
+  catalog data is the single source of truth.
+
+This split is what keeps the BOM auditable. Every article number can
+be traced to a catalog file shipped with the repo (NC63, D21.4, D32).
+
+---
+
+## 2. Repo layout
+
+This repo is an npm workspaces monorepo:
+
+```text
+apps/
+├── web/                   public configurator (deploys as the main site)
+└── admin/                 private telemetry dashboard (separate Vercel project)
+packages/
+└── telemetry/             shared Supabase server client + types + redaction
+docs/                      this folder
+supabase/                  SQL migrations
+```
+
+Run scripts from the repo root:
+
+```bash
+npm install                # installs all workspaces
+npm run dev                # apps/web on :3000
+npm run dev:admin          # apps/admin on :3001
+npm run build              # apps/web only
+npm run build:admin        # apps/admin only
+npm run build:all          # both
+```
+
+Vercel auto-detects npm workspaces — the install runs once at the
+repo root, then each Vercel project sets its own `Root Directory`
+(`apps/web` or `apps/admin`) and runs its own build.
+
+---
+
+## 3. The 4-step wizard
 
 ```mermaid
 flowchart TD
-    Start([Landing Page]) --> S1[Step 1: Describe Machine]
-    S1 -->|Template + Specs Form| S2[Step 2: AI Analysis]
-    S2 -->|AI generates config| S3[Step 3: Configuration Review]
-    S3 --> S4[Step 4: Review BOM]
-    S4 --> S5[Step 5: Summary + Export]
-    S5 -->|Optional| V[System Visualization]
-
-    S2 -.->|AI asks questions| Q{Needs more info?}
-    Q -->|Yes| Answer[User answers in chat]
+    Start([Landing]) --> S1[1. Describe]
+    S1 -->|template only, no specs| S3
+    S1 -->|with specs / custom text| S2
+    S2[2. AI analysis] -->|asks questions| Q{Need clarification?}
+    Q -->|yes| Answer[User answers in chat]
     Answer --> S2
-    Q -->|No| S3
-
-    style S1 fill:#0f766e,color:#fff
-    style S2 fill:#7c3aed,color:#fff
-    style S3 fill:#0891b2,color:#fff
-    style S4 fill:#0891b2,color:#fff
-    style S5 fill:#059669,color:#fff
-    style V fill:#be185d,color:#fff
+    Q -->|no| S3[3. Configure]
+    S3 -->|swap / modify / add / remove| S3
+    S3 --> S4[4. Bill of materials]
+    S4 -->|export| Out[Clipboard / Excel / PDF / Share]
+    S4 -->|jump back| S3
 ```
 
-## Data Flow: From User Input to BOM
+The step indicator at the top lets you click any finished step to
+jump back. Wizard state is held in a Zustand store
+([`apps/web/src/store/configurator-store.ts`](../apps/web/src/store/configurator-store.ts)).
+
+---
+
+## 4. Detailed data flow
 
 ```mermaid
 sequenceDiagram
     actor User
     participant UI as Wizard UI
-    participant Store as Zustand Store
+    participant Store as Zustand store
     participant API as /api/recommend
     participant Claude as Claude API
-    participant Parser as Response Parser
-    participant Rules as Drive Rules
+    participant Parser as Response parser
+    participant Rules as Drive + motor rules
+    participant Tel as Supabase telemetry
 
-    User->>UI: Select template + fill specs form
-    UI->>Store: machineDescription + template
-    User->>UI: Click "Continue to AI Analysis"
+    User->>UI: pick template + fill specs form
+    UI->>Store: machineDescription + machineSpecs + selectedTemplate
+    User->>UI: click "Continue to AI Analysis"
 
     UI->>API: POST {systemPrompt, userMessage, history}
-    API->>API: Load catalog reference tables
-    API->>Claude: messages.create with full context
+    API->>API: load catalog reference tables
+    API->>Claude: messages.create(...)
 
     alt AI needs more info
-        Claude-->>API: {needsClarification: true, questions: [...]}
-        API-->>UI: Clarification questions
-        UI->>User: Show questions in chat
-        User->>UI: Type answer
+        Claude-->>API: {needsClarification: true, questions}
+        API-->>UI: clarification questions
+        UI->>User: show questions in chat
+        User->>UI: type answer
         UI->>API: POST with conversation history
-        API->>Claude: messages.create with conversation
+        API->>Claude: messages.create(...)
     end
 
-    Claude-->>API: JSON configuration
+    Claude-->>API: JSON architecture
+    API->>Tel: logAiTrace (fire and forget)
     API->>Parser: parseAiResponse(raw)
     Parser->>Rules: validateDriveSystem()
-    Rules->>Rules: selectLineModule() by total power
-    Rules->>Rules: calculateDriveCliqCables()
+    Rules->>Rules: selectLineModule by total power
+    Rules->>Rules: calculateDriveCliqCables
     Rules->>Rules: getMatchingMcp(panelSize)
-    Rules-->>Parser: warnings[]
+    Rules->>Rules: resolveFeedAxisMlfbs(perAxis)
+    Rules-->>Parser: warnings + populated BOM
     Parser-->>Store: GeneratedConfiguration
-    Store-->>UI: Render BOM
-    UI->>User: Display components, specs, warnings
+    UI->>Tel: logConfiguration when BOM rendered
+    Store-->>UI: render BOM
 ```
 
-## Architectural Layers
+---
 
-```mermaid
-graph TB
-    subgraph UI[UI Layer]
-        Landing[Landing Page]
-        Wizard[Wizard Shell]
-        Sidebar[Selection Sidebar]
-        Viz[System Visualization]
-    end
+## 5. AI integration
 
-    subgraph State[State Layer]
-        Zustand[Zustand Store<br/>currentStep, configuration, aiMessages]
-    end
+### What the AI receives
 
-    subgraph AI[AI Layer]
-        Engine[Recommendation Engine]
-        Prompt[Prompt Builder]
-        Retriever[Catalog Retriever]
-        ResParser[Response Parser]
-    end
+A single system prompt assembled in
+[`prompt-builder.ts`](../apps/web/src/lib/ai/prompt-builder.ts) plus
+catalog reference tables from
+[`catalog-retriever.ts`](../apps/web/src/lib/ai/catalog-retriever.ts).
 
-    subgraph Validation[Validation Layer]
-        DriveRules[Drive System Rules]
-        Compat[Compatibility Checker]
-    end
+| Section                        | Approx. tokens |
+| ------------------------------ | -------------- |
+| Base prompt (rules + schema)   | ~1800          |
+| Catalog selection tables       | ~1200          |
+| **Total system prompt**        | **~3000**      |
 
-    subgraph Data[Data Layer]
-        Catalog[TypeScript Catalog<br/>control units, options, drives, motors, safety]
-        Docs[Catalog Markdown<br/>NC63 / D21.4 / D32]
-    end
+The catalog tables embed compact selection data for the verified
+motor families (1FT2, 1FK2, 1FT7, 1FK7, 1PH8), the SINAMICS S120
+Line Modules, and the standard HMI/MCP combinations. About 95% of
+real configurations are covered without RAG over the full 14 MB of
+catalog markdown.
 
-    subgraph Export[Export Layer]
-        Excel[XLSX Export]
-        PDF[PDF Generator]
-        Copy[Clipboard]
-    end
+### What the AI returns
 
-    UI <--> Zustand
-    UI --> Engine
-    Engine --> Prompt
-    Engine --> Retriever
-    Engine --> ResParser
-    ResParser --> DriveRules
-    ResParser --> Compat
-    ResParser --> Catalog
-    Prompt --> Docs
-    Retriever --> Docs
-    UI --> Export
+A small JSON object — short codes, no MLFBs:
+
+```json
+{
+  "controlUnit": { "id": "NCU_1750" },
+  "cncSoftware": { "variant": "full_scope", "swVersion": "6.25 SP1" },
+  "technologyPackages": [{ "id": "S43" }],
+  "additionalOptions": [{ "orderCode": "A03", "quantity": 2 }],
+  "driveArchitecture": {
+    "family": "S120_booksize",
+    "feedAxisCount": 5,
+    "spindleCount": 1,
+    "preferActiveLineModule": true,
+    "highSpeedSpindle": true
+  },
+  "hmi": { "type": "thin_client", "panelSizeInch": 19 },
+  "safety": { "options": ["S60", "S61"] },
+  "userPreferences": {
+    "motorFamily": "1FT7",
+    "axisNames": ["X", "Y", "Z", "A", "C"],
+    "brakeAxes": ["Z", "A"]
+  },
+  "totalAxes": 6,
+  "totalChannels": 1
+}
 ```
 
-## AI Integration Details
+`userPreferences` is what threads the user's per-axis brake choice
+through to the per-axis MLFB resolver.
 
-### System Prompt Structure
+### Template-only fast path
 
-The system prompt sent to Claude is assembled from two parts:
+If the user only picked a template and filled nothing else, the AI
+is **skipped entirely** and a built-in architecture for that
+template is used
+([`template-architectures.ts`](../apps/web/src/lib/ai/template-architectures.ts)).
+Faster and cheaper. As soon as any spec or note is provided, the
+call routes through the AI.
 
-1. **Base prompt** (`lib/ai/prompt-builder.ts`, ~7KB / ~1800 tokens) — contains:
-   - SINUMERIK ONE base scope rules (3 axes included, 1 channel)
-   - Control unit specs (PPU 1740, NCU 1740/1750/1760)
-   - Safety rules (S60 only for extended safety)
-   - Technology packages (S41/S42/S43)
-   - Key software options
-   - Mandatory clarification rules
-   - Output JSON schema
+### JSON extraction
 
-2. **Catalog reference tables** (`lib/ai/catalog-retriever.ts`, ~5KB / ~1200 tokens) — contains:
-   - 1FT7 motor selection tables (shaft height, torque, article number, matching Motor Module)
-   - 1PH8 spindle motor tables (power, speed, article number, matching Motor Module)
-   - S120 Line Module options with article numbers
-   - 1FT7 forced ventilation options for heavy-duty machines
+The AI sometimes wraps its JSON in markdown fences or chats around
+it. The extractor in
+[`response-parser.ts`](../apps/web/src/lib/ai/response-parser.ts)
+tries multiple strategies:
 
-Total system prompt: ~3000 tokens.
+1. ```` ```json ... ``` ```` fenced block.
+2. Largest balanced `{ … }` substring.
+3. The whole response as JSON.
 
-### Conversation Flow
+If the AI's `stop_reason` is `max_tokens`, the route returns
+`502 ai_response_truncated` rather than parsing a partial blob.
+
+### Conversation state
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Initial: User starts
+    [*] --> Initial
     Initial --> AskingQuestions: AI needs more info
-    Initial --> Generating: Enough data provided
-
-    AskingQuestions --> UserAnswer: User responds
-    UserAnswer --> Generating: Send with full history
+    Initial --> Generating: enough data provided
+    AskingQuestions --> UserAnswer: user responds
+    UserAnswer --> Generating: send with full history
     UserAnswer --> AskingQuestions: AI asks follow-up
-
-    Generating --> Validated: parseAiResponse + drive rules
-    Validated --> [*]: Show BOM
-
-    Generating --> Error: JSON parse fail / timeout
-    Error --> Initial: User retries
+    Generating --> Validated: parse + drive rules
+    Validated --> [*]: show BOM
+    Generating --> Error: parse fail / timeout / 502
+    Error --> Initial: user retries
 ```
 
-### JSON Response Extraction
+---
 
-The parser tries **3 strategies** to extract JSON from the AI response (Claude sometimes wraps output in markdown):
+## 6. Catalog + MLFB compositional grammar
 
-```typescript
-// 1. Try markdown code block: ```json ... ```
-const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+This is the part that keeps the BOM honest.
 
-// 2. Try raw JSON object
-const jsonMatch = text.match(/\{[\s\S]*\}/);
+### Why compositional, not hardcoded
 
-// 3. Try the entire response as JSON
-JSON.parse(text.trim());
+Hardcoding "189 verified MLFBs" sounds like 189 orderable codes. In
+reality each catalog motor *trunk* (e.g. `1FT2104-4AF`) composes
+with verified suffix combinations (encoder + brake + IP class +
+shaft form) into roughly 30 distinct orderable MLFBs. The
+configurator stores **trunks + slot grammars**:
+
+```text
+189 catalog trunks  ×  ~30 verified suffix combinations per trunk
+= ~5,300 distinct orderable MLFBs the configurator can compose,
+all character-traceable to a catalog page.
 ```
 
-## Drive System Sizing Rules
+### Per-family completeness flags
 
-The validation layer applies engineering rules to catch AI errors:
+`MotorOptionModel.completeness ∈ {"verified" | "partial" | "trunk-only"}`.
 
-### Line Module Sizing
+| Family                 | Completeness | Source page                          |
+| ---------------------- | ------------ | ------------------------------------ |
+| 1FT2                   | verified     | D21.4 page 8.1/55                    |
+| 1FK2                   | verified     | D32 page 1/12                        |
+| 1FN3                   | verified     | D21.4 page 8.3/19                    |
+| 1FT7, 1PH8             | verified     | D21.4                                |
+| 1FK7                   | verified     | D21.4 (2017 ed. pages 8/36-8/37)     |
+| 1PH3, 1FE1, 1FE2, 1FW6 | trunk-only   | layout not catalog-verifiable yet    |
+
+Trunk-only families render their catalog trunk in the BOM with a
+yellow "Trunk-only" badge and a note: *"Encoder, brake, shaft, and
+IP-class characters are assigned at order time by your Siemens
+partner."* The configurator never invents a suffix it cannot prove.
+
+### Per-axis MLFB resolution
+
+When the user provides per-axis brake preferences (in
+`userPreferences.brakeAxes`),
+[`per-axis.ts`](../apps/web/src/lib/mlfb/per-axis.ts) renders one
+fully-resolved MLFB per axis, with a leader-line decoder under the
+motor card showing what each suffix character means.
+
+### MOTOR_SPECS storage convention
+
+Articles in `MOTOR_SPECS` are stored as catalog trunks (e.g.
+`1FT2206-4AF`, `1FK2103-2AG`) — a single hyphen, no suffix. Articles
+with two or more hyphens (`1FT7034-5AK71-1DA1`,
+`1PH8133-1FF10-0LA1`) already carry a 4-char suffix that is preserved
+verbatim. The
+[`getBaseMlfb()`](../apps/web/src/lib/mlfb/per-axis.ts) helper only
+strips trailing 4-char segments matching `/^[0-9][A-Z]+[0-9]$/` AND
+requires ≥ 2 hyphens. This stops accidental truncation of
+catalog-base segments like `-4AF`.
+
+---
+
+## 7. Drive-system sizing rules
+
+The validation layer in
+[`drive-system-rules.ts`](../apps/web/src/lib/validation/drive-system-rules.ts)
+applies engineering rules so the AI never short-circuits sizing.
+
+### Line module sizing
+
+```text
+Sum motor module rated power × 0.7 simultaneity factor
+→ pick smallest Line Module that handles the load
+→ Active vs Smart vs Basic depends on AI flag / user request
+```
+
+Example: `3 × 9A feed (4.8 kW each) + 1 × 30A spindle (16 kW) →
+30.4 kW × 0.7 = 21.3 kW → Smart 36 kW (6SL3130-6TE23-6AA3)`.
+
+### DRIVE-CLiQ topology
+
+```text
+NCU → Line Module → Motor Module 1 → Motor Module 2 → …
+Cable count = Total Motor Modules + 1   (the +1 is NCU → Line Module)
+```
+
+For a 4-module system (3 feed + 1 spindle): **5 DRIVE-CLiQ cables**.
+
+### NCU DRIVE-CLiQ port validation
+
+| Control unit          | Ports |
+| --------------------- | ----- |
+| PPU 1740 / NCU 1740   | 4     |
+| NCU 1750 / NCU 1760   | 6     |
+
+Max 6 Motor Modules per daisy-chain. If exceeded → warn user to add
+NX extension module.
+
+### MCP / panel matching
+
+| Panel size | MCP article                     |
+| ---------- | ------------------------------- |
+| 12-15"     | MCP 1500 (`6FC5303-0AP01-0AA0`) |
+| 19"        | MCP 1900 (`6FC5303-0AP02-0AA0`) |
+| 22"        | MCP 2200 (`6FC5303-0AP03-0AA0`) |
+| 24"        | MCP 2400 (`6FC5303-0AP04-0AA0`) |
+
+### Cables
+
+Cable count is derived from the drive topology; cable cross-section
+from the motor's rated current; cable length from the user's *Cable
+length* spec input (default 10 m). When the user's spec is wrong
+(e.g. they ask 7 m but the BOM shows 10 m) it usually means the
+parser passed the form value instead of the merged
+`sizingSpecs.cableLengthMeters` — the merge happens in
+[`response-parser.ts`](../apps/web/src/lib/ai/response-parser.ts).
+
+---
+
+## 8. Modify-on-natural-language
 
 ```mermaid
-flowchart LR
-    A[Motor Modules<br/>Feed + Spindle] -->|Sum power ratings| B[Total Power]
-    B -->|× 0.7 simultaneity| C[Required Power]
-    C -->|Find smallest sufficient| D[Line Module]
-    D -->|If Active| E[+ Active Interface Module]
+sequenceDiagram
+    actor User
+    participant UI
+    participant API as /api/modify
+    participant Claude
+    participant Mut as config-mutations.ts
 
-    style A fill:#0891b2,color:#fff
-    style D fill:#059669,color:#fff
-    style E fill:#be185d,color:#fff
+    User->>UI: "make the spindle 30 kW"
+    UI->>API: current config + request
+    API->>Claude: messages.create(...)
+    Claude-->>API: {operations: [{op: "set", path: "...", value: 30}, ...]}
+    API->>Tel: logAiTrace
+    API-->>UI: change set
+    UI->>Mut: applyOperations(config, ops)
+    Mut->>Mut: re-run sizing where needed
+    Mut-->>UI: updated GeneratedConfiguration
+    UI->>UI: pushHistory(snapshot)
 ```
 
-Example: 3×9A feed (4.8kW each) + 1×30A spindle (16kW) = 30.4kW × 0.7 = 21.3kW → **Smart 36kW (6SL3130-6TE23-6AA3)**
+The history panel snapshots every change. Reverting picks any prior
+snapshot back into the store.
 
-### DRIVE-CLiQ Cable Count
+---
 
-Topology: `NCU → Line Module → Motor Module 1 → Motor Module 2 → ...`
+## 9. Telemetry pipeline
 
-```
-Cable count = Total Motor Modules + 1
-             (the +1 is NCU to Line Module)
-```
+Three Supabase tables, all written via the service-role key from the
+server-only telemetry helpers in
+[`packages/telemetry/src/server.ts`](../packages/telemetry/src/server.ts).
+Tables have RLS on, no anon policies — leaked anon keys cannot read
+or write telemetry.
 
-For a 4-module system (3 feed + 1 spindle): **5 DRIVE-CLiQ cables** (not 6 or 7).
+| Table            | One row per…                                                          |
+| ---------------- | --------------------------------------------------------------------- |
+| `ai_traces`      | every call to `/api/recommend` and `/api/modify`                      |
+| `configurations` | every distinct BOM the user lands on                                  |
+| `user_actions`   | swap / export / journey-start / share / save events                   |
 
-### MCP-Panel Size Matching
+A `sessions_overview` SQL view aggregates by `session_id` for the
+admin dashboard list page.
 
-```mermaid
-flowchart LR
-    Panel[HMI Panel Size] -->|12 inch| MCP15[MCP 1500<br/>6FC5303-0AP01-0AA0]
-    Panel -->|15 inch| MCP15
-    Panel -->|19 inch| MCP19[MCP 1900<br/>6FC5303-0AP02-0AA0]
-    Panel -->|22 inch| MCP22[MCP 2200<br/>6FC5303-0AP03-0AA0]
-    Panel -->|24 inch| MCP24[MCP 2400<br/>6FC5303-0AP04-0AA0]
-```
+### Why the routes are `/api/events/*`, not `/api/log/*`
 
-### NCU DRIVE-CLiQ Port Validation
+Earlier versions used `/api/log/configuration` etc. EasyPrivacy and
+similar ad-blocker filter lists block any URL containing `/log/`,
+`/track/`, `/telemetry/`. The fetch failed at the network layer, the
+catch swallowed the error, and nothing reached Supabase — so a user
+on a different PC with uBlock installed never appeared in the admin
+dashboard while the developer's PC did. Routes are now under the
+neutral `/api/events/*` path.
 
-- PPU 1740 / NCU 1740: 4 ports
-- NCU 1750 / NCU 1760: 6 ports
-- Max 6 Motor Modules per daisy-chain
-- If exceeded → warn user to add NX extension module
+The full operational rundown — env vars, migration, Vercel project
+setup, adding new event kinds — is in
+[TELEMETRY.md](TELEMETRY.md).
 
-## Component Data Model
+---
+
+## 10. Admin dashboard
+
+A separate Next.js app in `apps/admin/`. Single-token auth (cookie
+holds the token, `httpOnly + sameSite=lax + secure-in-prod`).
+
+| Route             | What it shows                                              |
+| ----------------- | ---------------------------------------------------------- |
+| `/login`          | password gate                                              |
+| `/`               | sessions list with a top-line stats strip                  |
+| `/sessions/[id]`  | full timeline grouped by AI turn                           |
+| `/traces/[id]`    | one AI trace with prompt, raw response, parsed JSON        |
+
+The stats strip on `/` aggregates the visible cohort: total AI
+calls (build vs. modify), median per-call latency, tokens out + in,
+positive-feedback ratio, error count + error rate. Tone shifts from
+neutral to good/bad based on the underlying ratio so problems jump
+out without reading every cell.
+
+Each session row leads with relative time ("2h ago") above the
+exact timestamp and surfaces *modify / 👎 / error* tags directly
+under the session id so reviewers can scan for sessions worth
+opening.
+
+---
+
+## 11. PDF export rationale page
+
+The exported PDF
+([`pdf-generator.ts`](../apps/web/src/lib/export/pdf-generator.ts))
+includes a second-page **Configuration rationale** composed
+deterministically from configuration data — never AI-generated:
+
+1. **Configuration overview** — narrative paragraph (machine type,
+   axes/channels, sized-for hints, complexity tier).
+2. **Original requirement** — verbatim quote of the user's
+   description.
+3. **Input parameter table** — every spec value the user entered.
+4. **Architecture decisions** — control unit + CNC software with
+   short factual rationale (form-factor, capacity vs. usage,
+   software variant scope).
+5. **Selected packages & software options** — every tech package
+   and option with the *Selected for* column pulled from the catalog
+   description, plus order code and article number.
+6. **Drive & motor rationale** — one-liner per drive component and
+   motor (Active/Smart/Basic line module distinction, async vs
+   sync spindle).
+7. **Per-axis MLFB breakdown** — each axis with its full MLFB and
+   suffix decoder.
+8. **Warnings + Disclaimer**.
+
+Every section calls `ensureSpace()` before rendering so large BOMs
+no longer overflow the page. Notes wrap via `splitTextToSize`.
+
+---
+
+## 12. Component data model
 
 ```mermaid
 classDiagram
     class GeneratedConfiguration {
         +ControlUnit controlUnit
         +CncSoftware cncSoftware
-        +string softwareVariant
+        +SoftwareVariant softwareVariant
         +TechnologyPackage[] technologyPackages
         +SoftwareOption[] softwareOptions
         +DriveComponent[] drives
@@ -254,215 +480,191 @@ classDiagram
         +HmiComponent[] hmiComponents
         +SafetyFunction[] safetyFunctions
         +CableAccessory[] cables
+        +Record optionQuantities
         +Record driveQuantities
         +Record motorQuantities
-        +Record optionQuantities
         +number totalAxes
         +number totalChannels
         +CompatibilityWarning[] warnings
         +string[] notes
-        +string estimatedComplexity
+        +Complexity estimatedComplexity
     }
-
-    class ControlUnit {
-        +string id
-        +string articleNumber
-        +string formFactor
-        +number maxAxesSpindles
-        +number maxChannels
-        +number driveCliqPorts
-    }
-
     class Motor {
         +string id
-        +string family
+        +MotorFamily family
         +string series
         +string articleNumber
-        +string motorType
+        +MotorType motorType
+        +AxisMlfb[] perAxisMlfbs
+        +Completeness mlfbCompleteness
     }
-
-    class DriveComponent {
-        +string id
-        +string articleNumber
-        +string driveFamily
-        +string componentType
-        +string ratedCurrent
-        +string ratedPower
+    class AxisMlfb {
+        +string axis
+        +string mlfb
+        +boolean brake
+        +SuffixDecode[] decoded
+        +Completeness completeness
     }
-
-    class HmiComponent {
-        +string id
-        +string articleNumber
-        +string category
-        +number screenSize
-    }
-
     GeneratedConfiguration "1" --> "1" ControlUnit
     GeneratedConfiguration "1" --> "*" Motor
-    GeneratedConfiguration "1" --> "*" DriveComponent
-    GeneratedConfiguration "1" --> "*" HmiComponent
+    Motor "1" --> "*" AxisMlfb
 ```
 
-## SINUMERIK ONE System Topology
+Defined in
+[`apps/web/src/types/catalog.ts`](../apps/web/src/types/catalog.ts).
 
-What the app configures — the actual hardware architecture:
+---
+
+## 13. SINUMERIK ONE topology — what we configure
 
 ```mermaid
 flowchart TB
-    subgraph Operator[Operator Level]
-        Panel[HMI Panel<br/>ITC1500/ITC1900/ITC2200]
-        MCP[Machine Control Panel<br/>MCP 1500/1900/2200/2400]
+    subgraph Operator[Operator level]
+        Panel[HMI panel<br/>ITC1500/1900/2200]
+        MCP[Machine control panel<br/>MCP 1500/1900/2200/2400]
         HW[Handwheel]
     end
-
-    subgraph Control[Control Level]
+    subgraph Control[Control level]
         NCU[NCU 1740/1750/1760<br/>or PPU 1740]
     end
-
-    subgraph Drive[Drive Level - S120 Booksize]
-        LM[Line Module<br/>Smart or Active]
-        MM1[Motor Module 1<br/>Feed X]
-        MM2[Motor Module 2<br/>Feed Y]
-        MM3[Motor Module 3<br/>Feed Z]
-        MMS[Motor Module<br/>Spindle]
+    subgraph Drive[Drive level — S120 booksize]
+        LM[Line module<br/>Active or Smart or Basic]
+        MM1[Motor module · X]
+        MM2[Motor module · Y]
+        MM3[Motor module · Z]
+        MMS[Motor module · spindle]
     end
-
-    subgraph Motors[Motor Level - SIMOTICS]
-        MX[1FT7 Servo X]
-        MY[1FT7 Servo Y]
-        MZ[1FT7 Servo Z]
-        MS[1PH8 Spindle]
+    subgraph Motors[Motor level — SIMOTICS]
+        MX[1FT2/1FK2/1FT7 servo · X]
+        MY[1FT2/1FK2/1FT7 servo · Y]
+        MZ[1FT2/1FK2/1FT7 servo · Z]
+        MS[1PH8 spindle]
     end
-
-    Panel -.->|PROFINET| NCU
-    MCP -.->|PROFINET| NCU
-    HW -.->|X120| MCP
-
+    Panel -. PROFINET .-> NCU
+    MCP -. PROFINET .-> NCU
+    HW -. X120 .-> MCP
     NCU ==>|DRIVE-CLiQ| LM
-    LM ==>|DC Bus| MM1
-    LM ==>|DC Bus| MM2
-    LM ==>|DC Bus| MM3
-    LM ==>|DC Bus| MMS
-    LM --.->|DRIVE-CLiQ| MM1
-    MM1 --.->|DRIVE-CLiQ| MM2
-    MM2 --.->|DRIVE-CLiQ| MM3
-    MM3 --.->|DRIVE-CLiQ| MMS
-
-    MM1 -->|Power + Encoder| MX
-    MM2 -->|Power + Encoder| MY
-    MM3 -->|Power + Encoder| MZ
-    MMS -->|Power + Encoder| MS
-
-    style Operator fill:#faf5ff
-    style Control fill:#ecfeff
-    style Drive fill:#eff6ff
-    style Motors fill:#ecfdf5
+    LM ==>|DC bus| MM1
+    LM ==>|DC bus| MM2
+    LM ==>|DC bus| MM3
+    LM ==>|DC bus| MMS
+    LM -. DRIVE-CLiQ .-> MM1
+    MM1 -. DRIVE-CLiQ .-> MM2
+    MM2 -. DRIVE-CLiQ .-> MM3
+    MM3 -. DRIVE-CLiQ .-> MMS
+    MM1 -->|power + encoder| MX
+    MM2 -->|power + encoder| MY
+    MM3 -->|power + encoder| MZ
+    MMS -->|power + encoder| MS
 ```
 
-## Key Design Decisions
+---
 
-### Why use Claude API instead of local rules?
+## 14. Performance characteristics
 
-The SINUMERIK catalog contains **millions of motor/drive combinations** across shaft heights, torques, speeds, encoders, brakes, connectors, IP ratings. Hardcoding every variant is impossible. Claude can:
-- Parse natural language machine descriptions
-- Match mechanical specs to motor torque/speed requirements
-- Choose appropriate converter size, line module, and cable cross-section
-- Explain decisions in plain language
+| Operation                                       | Typical duration |
+| ----------------------------------------------- | ---------------- |
+| Initial AI call (with full catalog context)     | 8 - 15 s         |
+| Follow-up AI call (with conversation history)   | 5 - 10 s         |
+| AI modify call                                  | 4 - 8 s          |
+| Response parsing + validation                   | < 50 ms          |
+| BOM rendering                                   | < 100 ms         |
+| Excel export                                    | < 500 ms         |
+| PDF export (with rationale page)                | < 1 s            |
+| Telemetry POST (`/api/events/*`)                | < 200 ms         |
 
-### Why embed compact tables instead of RAG on full catalogs?
+`max_tokens` for AI calls: **16384** for `/api/recommend`, **8192**
+for `/api/modify`. Exceeding either returns
+`502 ai_response_truncated`.
 
-Early versions tried chunking the 14MB of catalog markdown. Problems:
-- Slow indexing on each request
-- Unpredictable chunk selection
-- Token budget overruns
+---
 
-The current approach embeds ~20 selection tables (1FT7, 1PH8, Line Modules, Motor Modules) — about 1200 tokens — directly into the prompt. These tables cover 95% of typical configurations.
+## 15. File reference
 
-### Why validate AI output with rules?
+### apps/web
 
-Claude occasionally makes sizing errors (e.g., undersized Line Module, wrong DRIVE-CLiQ cable count). The rules layer catches these:
+| File                                                          | Purpose                                                |
+| ------------------------------------------------------------- | ------------------------------------------------------ |
+| `src/app/api/recommend/route.ts`                              | Server route, calls Anthropic, logs `ai_traces`        |
+| `src/app/api/modify/route.ts`                                 | Same for natural-language modify                       |
+| `src/app/api/events/{configuration,action,feedback}/route.ts` | Telemetry endpoints (renamed from `/api/log/*`)        |
+| `src/lib/ai/prompt-builder.ts`                                | Base system prompt                                     |
+| `src/lib/ai/catalog-retriever.ts`                             | Compact catalog tables embedded in the prompt          |
+| `src/lib/ai/template-architectures.ts`                        | Pre-defined per-template canned architectures          |
+| `src/lib/ai/recommendation-engine.ts`                         | Client-side fetch wrapper                              |
+| `src/lib/ai/modify-engine.ts`                                 | Client-side modify wrapper                             |
+| `src/lib/ai/response-parser.ts`                               | AI JSON → typed config                                 |
+| `src/lib/ai/config-mutations.ts`                              | Apply modify ops to a config                           |
+| `src/lib/validation/drive-system-rules.ts`                    | Sizing rules + warnings                                |
+| `src/lib/mlfb/builder.ts`                                     | Compositional MLFB assembler                           |
+| `src/lib/mlfb/families/*.ts`                                  | Per-family suffix grammars (1FT2, 1FK2, 1FN3, 1FT7, …) |
+| `src/lib/mlfb/per-axis.ts`                                    | Per-axis MLFB resolver                                 |
+| `src/lib/sizing/{spindle,feed}-sizing.ts`                     | Motor + drive sizing math                              |
+| `src/lib/export/pdf-generator.ts`                             | PDF with rationale narrative                           |
+| `src/lib/share/config-sharing.ts`                             | Share-as-text serializer                               |
+| `src/lib/telemetry/client.ts`                                 | Browser telemetry client                               |
+| `src/data/*.ts`                                               | Catalog data (motors, drives, hmi, cables, options, …) |
+| `src/store/configurator-store.ts`                             | Zustand state                                          |
+| `src/components/configurator/*.tsx`                           | Wizard UI                                              |
+| `src/components/configurator/disclaimer-dialog.tsx`           | Engineering-review gating dialog                       |
+
+### apps/admin
+
+| File                                  | Purpose                                                |
+| ------------------------------------- | ------------------------------------------------------ |
+| `src/app/page.tsx`                    | Sessions list + stats strip                            |
+| `src/app/sessions/[id]/page.tsx`      | One-session timeline grouped by AI turn                |
+| `src/app/traces/[id]/page.tsx`        | One-AI-trace detail (prompt + raw + parsed JSON)       |
+| `src/app/api/login/route.ts`          | Password gate                                          |
+| `src/lib/auth.ts`                     | `requireAdmin`, cookie helpers                         |
+| `src/lib/format.ts`                   | Date/duration/tokens/relative-time helpers + median    |
+
+### packages/telemetry
+
+| File                          | Purpose                                                  |
+| ----------------------------- | -------------------------------------------------------- |
+| `src/server.ts`               | Supabase client, redaction, insert + read helpers        |
+| `src/index.ts`                | Re-exports for both apps                                 |
+
+---
+
+## 16. Key design decisions
+
+### Why split AI from rules
+
+Hardcoding millions of motor / drive variants is impossible; asking
+an LLM to invent MLFBs is irresponsible. The split keeps the AI on
+fuzzy decisions (architecture) and the deterministic catalog on
+exact lookups (article numbers). Every BOM line is auditable.
+
+### Why embed compact tables instead of RAG
+
+Early versions tried chunking the 14 MB of catalog markdown.
+Indexing was slow per-request, chunk selection was unpredictable,
+token budgets blew up. ~1200 tokens of curated selection tables
+covers 95% of configurations.
+
+### Why validate AI output with rules
+
+The AI occasionally makes sizing errors (undersized line module,
+wrong DRIVE-CLiQ count, wrong MCP). The rules layer recomputes:
+
 - `selectLineModule()` — recomputes required power
 - `calculateDriveCliqCables()` — deterministic topology
 - `getMatchingMcp()` — enforces panel size match
 - `checkDriveCliqPorts()` — flags NX extension need
+- `resolveFeedAxisMlfbs()` — composes per-axis MLFBs from verified
+  trunks + suffix grammar
 
-Warnings are shown to the user; critical issues auto-corrected.
+### Why a specs form instead of relying on AI questions
 
-### Why a specs form instead of relying on AI questions?
+Experiments showed Claude inconsistently asks clarifying questions.
+A structured form guarantees the mechanical inputs always reach the
+sizing math.
 
-Experiments showed Claude inconsistently asks clarifying questions. A structured form guarantees mechanical data (axis travels, moving mass, spindle power) is always provided up front.
+### Why the admin and web apps are split
 
-## Request/Response Example
-
-### Request (to `/api/recommend`)
-
-```json
-{
-  "systemPrompt": "You are a SINUMERIK ONE expert...",
-  "userMessage": "5-axis milling machine. Axes: X Y Z A C.\n\nMechanical Specifications:\nMachine size: Large machine (500-2000kg/axis)\nAxis travel: 2000 × 1500 × 800 mm\nMoving mass per axis: 800 kg\nRapid traverse: 40 m/min\nSpindle power: 22 kW\nSpindle max speed: 18000 rpm\nPrimary material: steel",
-  "conversationHistory": []
-}
-```
-
-### Response (from Claude → parsed)
-
-```json
-{
-  "controlUnit": { "id": "NCU_1750", "reason": "5-axis simultaneous requires NCU 1750+ for Dynamics 5 Axis (S43)" },
-  "cncSoftware": { "variant": "full_scope", "swVersion": "6.25 SP1" },
-  "technologyPackages": [{ "id": "S43", "reason": "..." }],
-  "additionalOptions": [
-    { "orderCode": "A03", "name": "3 additional axes/spindles", "quantity": 3, "reason": "..." }
-  ],
-  "drives": {
-    "mainFamily": "S120_booksize",
-    "feedMotorModules": 5,
-    "spindleMotorModules": 1,
-    "lineModule": "Active Line Module 55kW",
-    "lineModuleArticle": "6SL3130-7TE25-5AA3",
-    "feedMotorModuleArticle": "6SL3120-1TE22-4AD0",
-    "spindleMotorModuleArticle": "6SL3120-1TE24-5AC0"
-  },
-  "motors": {
-    "feedMotors": "SIMOTICS S-1FT7",
-    "feedMotorArticle": "1FT7084-5AF71-1DA1",
-    "feedMotorShaftHeight": 80,
-    "spindleMotors": "SIMOTICS M-1PH8",
-    "spindleMotorArticle": "1PH8167-1FF10-0LA1",
-    "spindleMotorShaftHeight": 160
-  },
-  "hmi": { "type": "thin_client", "model": "ITC1900 V3 19\"" },
-  "mcp": { "articleNumber": "6FC5303-0AP02-0AA0", "model": "MCP 1900" },
-  "safety": { "options": ["S60", "S61"] },
-  "totalAxes": 6,
-  "totalChannels": 1,
-  "notes": ["..."],
-  "estimatedComplexity": "advanced"
-}
-```
-
-## Performance Characteristics
-
-| Operation | Typical Duration |
-|---|---|
-| Initial AI call (with full catalog context) | 8-15 seconds |
-| Follow-up AI call (with conversation history) | 5-10 seconds |
-| Response parsing + validation | <50ms |
-| BOM rendering | <100ms |
-| Excel export | <500ms |
-| PDF export | <1s |
-
-## File Reference
-
-| File | Purpose |
-|---|---|
-| `src/app/api/recommend/route.ts` | Server-side API endpoint, calls Anthropic |
-| `src/lib/ai/prompt-builder.ts` | Base system prompt |
-| `src/lib/ai/catalog-retriever.ts` | Compact catalog tables |
-| `src/lib/ai/recommendation-engine.ts` | Client-side fetch wrapper |
-| `src/lib/ai/response-parser.ts` | AI JSON → typed config |
-| `src/lib/validation/drive-system-rules.ts` | Sizing rules + warnings |
-| `src/store/configurator-store.ts` | Zustand state |
-| `src/components/configurator/wizard-shell.tsx` | 5-step wizard container |
-| `src/components/configurator/ai-analysis-step.tsx` | AI conversation UI |
-| `src/components/configurator/system-visualization.tsx` | Block diagram page |
+So the public site has zero awareness of the telemetry tables (only
+the service-role key the server uses), so the admin can deploy on a
+private domain with its own auth, and so a leaked admin token can't
+write to the public configurator.

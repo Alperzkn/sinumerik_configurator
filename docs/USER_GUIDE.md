@@ -1,267 +1,316 @@
 # User Guide
 
-A step-by-step guide to using the SINUMERIK ONE AI Configurator.
+The plain-English guide to the SINUMERIK ONE Configurator. No code,
+no jargon — just what each screen does and how to get a clean bill of
+materials out the other side.
 
-## What This App Does
+> **Who this is for** — application engineers, sales engineers, and
+> anyone who needs a starting-point BOM for a SINUMERIK ONE machine.
+> If you are a developer, see [ARCHITECTURE.md](ARCHITECTURE.md) instead.
 
-You describe the CNC machine you want to build. The AI picks all the SINUMERIK ONE components you need — control unit, CNC software, drives, motors, safety options, HMI panel, MCP, cables — and produces a complete bill of materials with real Siemens article numbers (MLFBs).
+---
 
-## The 5-Step Workflow
+## What the app does in one sentence
 
-```mermaid
-flowchart LR
-    S1[1. Describe<br/>Machine] --> S2[2. AI<br/>Analysis]
-    S2 --> S3[3. Configuration]
-    S3 --> S4[4. Review]
-    S4 --> S5[5. Summary<br/>& Export]
+You describe a machine in plain language (or pick a template). The
+app picks every Siemens part — control unit, drives, motors, safety,
+HMI, cables — and gives you a complete BOM with real article numbers
+(MLFBs) you can hand to your Siemens partner.
 
-    style S1 fill:#0f766e,color:#fff
-    style S2 fill:#7c3aed,color:#fff
-    style S3 fill:#0891b2,color:#fff
-    style S4 fill:#0891b2,color:#fff
-    style S5 fill:#059669,color:#fff
+It is a **starting point for discussion**, not an order. Every BOM
+must be reviewed by a qualified engineer before procurement.
+
+---
+
+## The 4-step wizard
+
+```text
+┌──────────┐    ┌──────────┐    ┌────────────┐    ┌──────────────┐
+│ 1.       │ →  │ 2.       │ →  │ 3.         │ →  │ 4.           │
+│ Describe │    │ Analyse  │    │ Configure  │    │ Bill of      │
+│          │    │ (AI)     │    │            │    │ materials    │
+└──────────┘    └──────────┘    └────────────┘    └──────────────┘
 ```
 
-## Step 1: Describe Your Machine
+A step indicator at the top shows where you are. You can click any
+finished step to jump back.
 
-Choose between two input modes:
+---
 
-### Template Mode
+## Step 1 — Describe your machine
 
-Pick from 8 machine types:
+You have two ways to tell the app what you're building.
 
-| Template | Axes | Typical Use |
-|---|---|---|
-| 3-Axis Mill | X, Y, Z + Spindle | General milling |
-| 5-Axis Center | X, Y, Z, A, C + Spindle | Complex geometry, aerospace |
-| CNC Lathe | X, Z + Spindle | Cylindrical parts |
-| Mill-Turn | Multi-axis + multi-spindle | Combined turning + milling |
-| Grinding | X, Y, Z + Wheel | Surface/cylindrical grinding |
-| Laser Cutting | X, Y, Z + Laser | Sheet metal, flat material |
-| Punch / Nibble | X, Y + Tool | Sheet metal forming |
-| Robot Cell | 6 joint axes | Articulated arm robot |
+### Option A: pick a template
 
-### Mechanical Specifications Form
+Eight machine types, each with sensible defaults baked in:
 
-After selecting a template, **fill in the mechanical specs** — this is critical for proper motor/drive sizing:
+| Template      | Typical axes               | Used for                        |
+| ------------- | -------------------------- | ------------------------------- |
+| 3-axis mill   | X, Y, Z + spindle          | General milling                 |
+| 5-axis mill   | X, Y, Z, A, C + spindle    | Aerospace, complex geometry     |
+| CNC lathe     | X, Z + spindle             | Cylindrical parts               |
+| Mill-turn     | Multi-axis + multi-spindle | Combined turning + milling      |
+| Grinding      | X, Y, Z + wheel            | Surface or cylindrical grinding |
+| Laser cutting | X, Y, Z + laser            | Sheet metal                     |
+| Punching      | X, Y + tool                | Sheet metal forming             |
+| Robot cell    | 6 joint axes               | Articulated arm                 |
 
-| Field | Example | Why It Matters |
-|---|---|---|
-| Machine Size | Small / Medium / Large / Very Large | Determines motor shaft height (48 / 63 / 80 / 100+) |
-| Axis Travel | 800 × 500 × 500 mm | Affects rapid traverse power needs |
-| Moving Mass | 300 kg per axis | Bigger mass → bigger motor torque |
-| Rapid Traverse | 30 m/min | Higher speed → more motor power |
-| Spindle Power | 15 kW | Determines 1PH8 motor size |
-| Spindle Max Speed | 12000 rpm | Selects forced-ventilation or standard motor |
-| Material | Aluminum / Steel / Titanium | Cutting force → torque requirements |
+Picking a template alone is enough to get a starter BOM. If you
+*also* fill in the mechanical specs form below, the AI uses those
+values to size motors and drives properly — strongly recommended for
+production machines.
 
-> **⚠ If you skip the specs form**, the AI may select undersized motors. A yellow warning appears: "Fill in machine specs for optimal motor/drive sizing".
+### Option B: write a free-form description
 
-### Custom Description Mode
+Type a paragraph. Example:
 
-Write a free-form description. The AI parses natural language. Example:
+> "5-axis gantry milling machine for aerospace parts. X 3000 mm,
+> Y 2000 mm, Z 1000 mm. Moving mass per axis around 2000 kg. Spindle
+> 24 000 rpm at 30 kW. High surface quality on titanium alloys."
 
-> "5-axis gantry milling machine for aerospace parts. X 3000mm Y 2000mm Z 1000mm travel. Gantry moving mass ~2000kg per axis. Spindle 24000rpm 30kW. High surface quality for titanium alloys."
+The AI parses natural language. The more numbers you give it, the
+better the sizing. Vague descriptions ("big machine, heavy duty")
+get vague sizing.
 
-## Step 2: AI Analysis
+### The mechanical specs form
 
-The app sends your description to Claude (Anthropic API) along with curated SINUMERIK catalog data.
+| Field          | Example value                | Why it matters                             |
+| -------------- | ---------------------------- | ------------------------------------------ |
+| Machine size   | Small / Medium / Large       | Picks default motor shaft height           |
+| Axis travel    | 800 × 500 × 500 mm           | Affects rapid traverse power               |
+| Moving mass    | 300 kg per axis              | Bigger mass → bigger motor torque          |
+| Rapid traverse | 30 m/min                     | Higher speed → more motor power            |
+| Spindle power  | 15 kW                        | Picks the 1PH8 spindle motor               |
+| Spindle speed  | 12 000 rpm                   | Above 10 000 rpm → forced ventilation      |
+| Material       | Aluminium / Steel / Titanium | Cutting force → torque                     |
+| Cable length   | 7 m                          | Determines power and encoder cable lengths |
+| Safety level   | Basic / Extended / Full      | Hard override on safety package            |
 
-### What happens
+> ⚠ **If you skip the specs form**, the AI may pick undersized
+> motors. A yellow warning appears.
 
-```mermaid
-sequenceDiagram
-    participant You
-    participant App
-    participant Claude
+---
 
-    You->>App: Click "Continue to AI Analysis"
-    App->>Claude: Send machine description + catalog data
-    Note over Claude: 8-15 seconds processing
+## Step 2 — AI analysis
 
-    alt Enough info provided
-        Claude-->>App: Configuration JSON
-        App->>You: Show summary
-    else Need more details
-        Claude-->>App: Clarifying questions
-        App->>You: Display questions in chat
-        You->>App: Type answer
-        App->>Claude: Send with full conversation
-        Claude-->>App: Final configuration
-        App->>You: Show summary
-    end
-```
+The app sends your description and specs to Claude (Anthropic). It
+takes 8–15 seconds. Live status updates show what's happening:
 
-### Progress Indicators
+> Connecting to AI… → Analysing requirements… → Selecting control
+> unit… → Evaluating drive options… → Matching motors… → Validating…
 
-While waiting, you see animated status updates:
-1. Connecting to AI...
-2. Analyzing machine requirements...
-3. Selecting control unit...
-4. Evaluating drive system options...
-5. Matching motors to mechanical requirements...
-6. Selecting optimal components...
-7. Validating configuration...
+If the AI needs more details, it asks 1–3 clarifying questions in
+chat. Type your answer and press Enter.
 
-### If the AI Asks Questions
+> **Heads-up** — if you only picked a template and filled nothing
+> else, the AI is **skipped entirely** and a built-in architecture
+> for that template is used. Faster and cheaper. As soon as you fill
+> any spec, the call routes through the AI so your input is heard.
 
-Answer in the chat input. Example exchange:
+---
 
-> **AI:** To properly size motors, I need more details:
-> 1. What is the required rapid traverse speed for each axis?
-> 2. Is this a production or prototype machine?
->
-> **You:** 30 m/min rapid. Production machine for aerospace.
+## Step 3 — Configure
 
-Click **Send** or press **Enter**. The AI uses your answers plus the original description.
+You land on a clean overview: every BOM section is collapsed by
+default with an item count next to it. Click any section header to
+open it, or use **Expand all** in the top-right of the BOM to fan
+everything open at once.
 
-## Step 3: Configuration
+Sections you'll see (some appear only when relevant):
 
-The AI-generated configuration is displayed in collapsible sections:
+| Section          | Contains                                                    |
+| ---------------- | ----------------------------------------------------------- |
+| Control unit     | NCU 1740/1750/1760 or PPU 1740 + spec sheet                 |
+| CNC software     | Export or full-scope variant + version                      |
+| Tech packages    | S41 (Operate), S42 (3-axis), S43 (5-axis), …                |
+| Software options | A03 additional axes, S60/S61 safety, communication options  |
+| Drive system     | Line module + motor modules with article numbers            |
+| Motors           | 1FT2/1FK2/1FT7/1FK7 servo + 1PH8 spindle (per-axis MLFBs)   |
+| HMI components   | Thin-client panel + MCP + handwheel                         |
+| I/O modules      | PP 72/48 or ET200SP                                         |
+| Safety           | Basic STO/SS1/SBC + extended (S60/S61) if applicable        |
+| Cables           | DRIVE-CLiQ, motor power (sized by current), encoder, MCP    |
 
-- **Control Unit** — NCU 1740/1750/1760 or PPU 1740 with specs (max axes, channels, DRIVE-CLiQ ports)
-- **CNC Software** — Export or full-scope version + SW version
-- **Technology Packages** — S41 (Dynamics Operate), S42 (3-axis), S43 (5-axis), etc.
-- **Software Options** — Additional axis licenses, safety (S60/S61), communication options
-- **Drive System** — Motor Modules and Line Module with article numbers, rated current/power
-- **Motors** — 1FT7 feed motors and 1PH8 spindle with complete MLFBs
-- **HMI Components** — Thin Client panel + MCP + handwheel
-- **Safety Functions** — Basic (STO/SS1/SBC) + extended if applicable
-- **Cables & Accessories** — DRIVE-CLiQ, power cables (sized by motor current), PROFINET, MCP connectors
+### Three ways to change anything
 
-## Step 4: Review
+1. **Swap a single component** — click any card, browse compatible
+   variants from the catalog. Dependent components (motor modules,
+   line modules, cables) re-size automatically.
+2. **Ask the AI in plain English** — open the *Ask AI to modify*
+   pane at the top. Try "make the spindle 30 kW" or "switch to
+   active line module". The AI returns a small change set, the
+   app re-runs sizing on top of your existing config.
+3. **Add or remove options** — use the *Add option or package*
+   button inside the Software options section.
 
-Verify the complete item list as a table: **#, Component, Article Number, Qty, Category**.
+### History panel
 
-Compatibility warnings appear at the top if any issues were detected:
-- Undersized Line Module
-- Wrong MCP for panel size
-- DRIVE-CLiQ port limit exceeded
-- Export version incompatibilities
+Every change is snapshotted. The History panel at the bottom (closed
+by default) lists every step. Click any entry to revert.
 
-## Step 5: Summary & Export
+### What the colours mean on motor cards
 
-The final BOM with three export options:
+- **Trunk-only badge** — the motor's catalog "trunk" is verified, but
+  the encoder/brake/shaft/IP characters of its full MLFB are
+  assigned at order time by your Siemens partner. Don't try to
+  guess them.
+- **Per-axis MLFB list** — when you specify which axes need brakes,
+  each axis gets its own complete orderable MLFB shown beneath the
+  motor card with a leader-line decoder showing what each suffix
+  position means.
 
-### Copy to Clipboard
+### Engineering review reminder
 
-Tab-separated text (paste into Excel, email, ticket):
+A yellow disclaimer banner sits below the page header. The first
+time you arrive on this step you also see a one-time gating dialog
+explaining that **every BOM must be reviewed by a qualified
+engineer**. Click "Re-read the disclaimer" any time to see it again.
+
+---
+
+## Step 4 — Bill of materials
+
+The final BOM table. Four exports:
+
+### Copy to clipboard
+
+Tab-separated text — paste straight into Excel, email, or a ticket:
 
 ```text
 Pos   MLFB                    Qty   Description
 1     6FC5317-5AA00-0AA1      1     NCU 1750
 2     6FC5852-1XG25-1YA0      1     CNC SW 6.25 SP1 (full scope)
-...
+…
 ```
 
-### Excel Export
+### Excel (.xlsx)
 
-`.xlsx` file with three sheets:
-- **BOM** — all line items
-- **Summary** — control unit, axes, channels, complexity
-- **Notes** — configuration notes from AI
+Three sheets: BOM, Summary, and Notes.
 
-### PDF Export
+### PDF
 
-Printable PDF with header, BOM table, and notes.
+Page 1: bill of materials table + sizing notes.
 
-### System Diagram
+Page 2: **Configuration rationale** — the new addition. Includes a
+deterministic narrative of what was selected and why, your original
+requirement quoted verbatim, every input parameter you entered, the
+architecture decisions table, a "Selected packages & software
+options" table with a *Selected for* column from the catalog, drive
+and motor one-liners, per-axis MLFB suffix decoder, and any
+warnings. Hand this to your Siemens partner — they can verify
+line-by-line without going back to the conversation.
 
-Click **"View System Diagram"** to see a block diagram of the system architecture:
+### Share as text
 
-```mermaid
-flowchart TB
-    subgraph Top[Operator Level - Purple]
-        P[HMI Panel] --- M[MCP] --- H[Handwheel]
-    end
+A single text blob (markdown BOM + a base64 payload). Someone else
+can paste it back into the configurator to load your exact config.
+You can attach an optional one-line modification request that's
+applied as soon as it's loaded.
 
-    subgraph Mid[Control Level - Teal]
-        NCU[NCU / PPU]
-    end
+---
 
-    subgraph Drives[Drive Level - Blue]
-        L[Line Module]
-        MM1[Motor Module]
-        MM2[Motor Module]
-        MM3[...]
-    end
+## Frequently asked questions
 
-    subgraph Motors[Motor Level - Green]
-        Mot1[Feed Motors]
-        Mot2[Spindle Motor]
-    end
+### How accurate are the article numbers?
 
-    Top -->|PROFINET| Mid
-    Mid -->|DRIVE-CLiQ| Drives
-    Drives -->|Power cables| Motors
-```
+Catalog-verified for control units, drives, software, safety,
+cables, HMI, and core motor trunks. The configurator never invents
+MLFB suffix codes — when a motor's encoder/brake/shaft/IP positions
+are catalogue-ambiguous, the BOM shows the verified trunk and a
+"trunk-only" badge so you and your partner know to specify the
+final characters at order time.
 
-## Live Sidebar
+### Can I trust the BOM for procurement?
 
-Throughout all steps, the **right sidebar** shows your currently selected components. Click the collapse button to hide it for more workspace.
+No — every BOM must be **reviewed by a qualified application
+engineer** first. Compatibility, safety integration, sizing,
+cabling environment, EMC, ambient conditions, kinematics — none of
+that is fully modelled here.
 
-## Tips for Best Results
+### What data does the app collect?
 
-### Do:
-- ✅ **Fill in the specs form** — machine size, axis travels, moving mass, spindle power
-- ✅ **Answer AI clarifying questions precisely** with numbers (torques, speeds, masses)
-- ✅ **Specify the workpiece material** — affects cutting forces and motor sizing
-- ✅ **Mention special requirements early** — gantry configuration, linear motors, dual-drive axes
+Anonymous prompts and AI responses are logged so the tool can
+improve. Obvious identifiers (emails, customer codes, long digit
+strings) are scrubbed before storage. There is a one-click opt-out
+in the disclaimer dialog: *Disable anonymous telemetry on this
+device*.
 
-### Don't:
-- ❌ Use only vague descriptions ("big machine", "heavy duty") — you'll get generic sizing
-- ❌ Skip the specs form for production machines
-- ❌ Forget to mention safety requirements if you need extended safety (S60 + S61 + SLS/SOS/SLP)
+### My session doesn't show up in the admin tool
 
-## Troubleshooting
+Most likely your browser has an ad-blocker or privacy extension
+(uBlock, Privacy Badger, Brave Shields, AdGuard) blocking the
+telemetry endpoint. Check the browser DevTools Network tab for
+blocked POSTs.
+
+### The AI picked the wrong motors
+
+- Make sure you filled in the specs form. Garbage in, garbage out.
+- Add specific numbers to the description: moving mass, rapid
+  speed, acceleration.
+- On the Configure step, swap the motor manually or ask the AI to
+  modify it ("upgrade the spindle to 40 kW").
 
 ### "AI request timed out after 45 seconds"
 
-The Anthropic API is slow right now. Click retry. If persistent:
-- Check your API key is valid in `.env.local`
-- Check Anthropic status at [status.anthropic.com](https://status.anthropic.com)
-- Try a shorter description
+The Anthropic API is slow right now. Click retry. If it persists:
 
-### "Could not extract JSON from AI response"
+- Check your `ANTHROPIC_API_KEY` is set (developers only).
+- Check Anthropic status at
+  [status.anthropic.com](https://status.anthropic.com).
+- Try a shorter description.
 
-Claude occasionally produces malformed responses. Click retry. The app tries 3 extraction strategies but some responses still fail.
+### What does an MLFB actually look like?
 
-### The AI selected wrong motors
+Take `6SL3120-1TE21-0AD0`:
 
-Verify you filled in the specs form. If yes:
-- Go back and add more detail to the description
-- Include specific numbers: moving mass, rapid speed, acceleration
-- In the Review step, you can manually note discrepancies; future versions will allow direct component swaps
+- `6SL3120` → SINAMICS S120 single Motor Module booksize.
+- `1TE21` → rated current code (9 A in this case).
+- `0AD0` → cooling type (D = internal air + sensor module adapter).
 
-### "No API key set, using mock response"
+Paste any MLFB into [SiePortal](https://sieportal.siemens.com) to
+order.
 
-Your `.env.local` file is missing or the key variable is wrong. It must contain:
+---
 
-```text
-ANTHROPIC_API_KEY=sk-ant-api03-...
-```
+## Tips for the best results
 
-Restart the dev server after editing `.env.local`.
+### Do
 
-## Keyboard Shortcuts
+- Fill in the specs form for production machines.
+- Answer AI questions with numbers, not adjectives.
+- Specify the workpiece material — affects cutting force and motor
+  torque.
+- Mention special configurations early: gantry, dual-drive axes,
+  linear motors, rotary tables.
 
-| Key | Action |
-|---|---|
-| Enter (in chat input) | Send answer to AI |
-| Shift+Enter | New line in chat |
-| Esc | Collapse sidebar (not implemented yet) |
+### Don't
 
-## Understanding the BOM Output
+- Use only vague descriptions ("big machine", "heavy duty").
+- Skip the disclaimer — it's there because BOMs need engineering
+  review.
+- Order parts straight from the BOM without checking with a Siemens
+  partner.
 
-Every line in the final BOM has:
-- **MLFB** — Siemens article number, e.g., `6SL3120-1TE21-0AD0`
-- **Qty** — How many units needed
-- **Description** — Human-readable name with order code if applicable
-- **Category** — Which component family it belongs to
+---
 
-MLFB structure example — `6SL3120-1TE21-0AD0`:
-- `6SL3120` = SINAMICS S120 single Motor Module booksize
-- `1TE21` = Rated current code (9A)
-- `0AD0` = Cooling type (D = internal air + sensor module adapter)
+## Keyboard shortcuts
 
-Copy the MLFB into SiePortal at [sieportal.siemens.com](https://sieportal.siemens.com) to order.
+| Key           | Action                          |
+| ------------- | ------------------------------- |
+| Enter         | Send answer to AI / submit form |
+| Shift + Enter | Newline in the chat input       |
+
+---
+
+## Where to go next
+
+- **For developers** — see [ARCHITECTURE.md](ARCHITECTURE.md) for
+  the monorepo layout, AI prompt structure, MLFB compositional
+  grammar, telemetry pipeline, and admin dashboard.
+- **For Siemens reference material** — the `docs/datalab-output-*`
+  files contain extracted catalog text from NC63 (SINUMERIK), D21.4
+  (SINAMICS), and D32 (1FK2 motors).
+- **Visual workflow** — open `docs/workflow.excalidraw` in
+  [excalidraw.com](https://excalidraw.com) for a one-page picture
+  of the data flow.
