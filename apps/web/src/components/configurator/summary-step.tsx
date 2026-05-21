@@ -72,13 +72,36 @@ function buildBom(config: GeneratedConfiguration): BomItem[] {
   }
 
   for (const motor of config.motors) {
-    const qty = config.motorQuantities[motor.id] || 1;
-    lines.push({
-      articleNumber: motor.articleNumber || motor.series,
-      name: motor.name,
-      quantity: qty,
-      category: "Motor",
-    });
+    const perAxis = motor.perAxisMlfbs;
+    if (perAxis && perAxis.length > 0) {
+      // Each axis carries its own orderable MLFB (brake / encoder vary
+      // per axis). Group identical MLFBs so the BOM shows one line per
+      // distinct article with a quantity — and the per-axis codes the
+      // user configured in step 3 actually reach the export.
+      const groups = new Map<string, { axes: string[]; brake: boolean }>();
+      for (const ax of perAxis) {
+        const g = groups.get(ax.mlfb) ?? { axes: [], brake: false };
+        g.axes.push(ax.axis);
+        if (ax.brake) g.brake = true;
+        groups.set(ax.mlfb, g);
+      }
+      for (const [mlfb, g] of groups) {
+        lines.push({
+          articleNumber: mlfb,
+          name: `${motor.name} — ${g.axes.join(", ")}${g.brake ? " (with brake)" : ""}`,
+          quantity: g.axes.length,
+          category: "Motor",
+        });
+      }
+    } else {
+      const qty = config.motorQuantities[motor.id] || 1;
+      lines.push({
+        articleNumber: motor.articleNumber || motor.series,
+        name: motor.name,
+        quantity: qty,
+        category: "Motor",
+      });
+    }
   }
 
   for (const hmi of config.hmiComponents) {
@@ -91,15 +114,16 @@ function buildBom(config: GeneratedConfiguration): BomItem[] {
   }
 
   for (const sf of config.safetyFunctions.filter((s) => !s.isBasicScope)) {
-    if (sf.articleNumber) {
-      lines.push({
-        articleNumber: sf.articleNumber,
-        name: sf.name,
-        quantity: 1,
-        orderCode: sf.orderCode,
-        category: "Safety",
-      });
-    }
+    // Many extended safety functions are ordered by their order code
+    // (S60 / S61 / K01…) and carry no full article number. Don't drop
+    // them — fall back to the order code so they still appear in the BOM.
+    lines.push({
+      articleNumber: sf.articleNumber || sf.orderCode || "—",
+      name: sf.name,
+      quantity: 1,
+      orderCode: sf.orderCode,
+      category: "Safety",
+    });
   }
 
   for (const cable of config.cables || []) {
