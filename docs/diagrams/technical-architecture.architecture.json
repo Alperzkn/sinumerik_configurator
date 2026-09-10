@@ -420,7 +420,7 @@
       "fromSide": "bottom",
       "toSide": "top",
       "labelAt": [
-        630,
+        600,
         262
       ]
     },
@@ -433,7 +433,7 @@
       "fromSide": "right",
       "toSide": "left",
       "labelAt": [
-        685,
+        712,
         266
       ]
     },
