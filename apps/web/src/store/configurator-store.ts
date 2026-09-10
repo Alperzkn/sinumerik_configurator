@@ -57,6 +57,21 @@ export interface MachineSpecsState {
   cableLengthMeters: string;
 }
 
+/** Blank specs form — shared by the initial state, reset, and BOM import. */
+export const EMPTY_MACHINE_SPECS: MachineSpecsState = {
+  axisTravel: "",
+  movingMass: "",
+  rapidTraverse: "",
+  spindlePower: "",
+  spindleSpeed: "",
+  material: "",
+  machineSize: "",
+  safetyLevel: "",
+  handheldUnit: "",
+  ioModule: "",
+  cableLengthMeters: "",
+};
+
 interface ConfiguratorState {
   // Wizard navigation
   currentStep: WizardStep;
@@ -77,6 +92,11 @@ interface ConfiguratorState {
 
   // Change-history log
   history: HistoryEntry[];
+
+  /** Id in `saved-configs.ts` the current configuration was loaded from / saved as. */
+  activeSavedId: string | null;
+  /** Bumped whenever the saved-configs list changes so subscribers re-read localStorage. */
+  savedConfigsRevision: number;
 
   // Actions
   setStep: (step: WizardStep) => void;
@@ -99,12 +119,17 @@ interface ConfiguratorState {
    * marks the relevant steps as completed so the user lands on
    * Configuration ready to review or modify.
    */
-  loadSavedSnapshot: (snapshot: {
-    machineDescription: string;
-    selectedTemplate: MachineType | null;
-    machineSpecs: MachineSpecsState;
-    configuration: GeneratedConfiguration;
-  }) => void;
+  loadSavedSnapshot: (
+    snapshot: {
+      machineDescription: string;
+      selectedTemplate: MachineType | null;
+      machineSpecs: MachineSpecsState;
+      configuration: GeneratedConfiguration;
+    },
+    savedId?: string | null,
+  ) => void;
+  setActiveSavedId: (id: string | null) => void;
+  bumpSavedConfigs: () => void;
 
   /**
    * Append a single history entry. Caller must provide the post-change
@@ -125,30 +150,20 @@ interface ConfiguratorState {
   clearHistory: () => void;
 }
 
-export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
+export const useConfiguratorStore = create<ConfiguratorState>((set) => ({
   // Initial state
   currentStep: "description",
   completedSteps: new Set(),
   machineDescription: "",
   selectedTemplate: null,
-  machineSpecs: {
-    axisTravel: "",
-    movingMass: "",
-    rapidTraverse: "",
-    spindlePower: "",
-    spindleSpeed: "",
-    material: "",
-    machineSize: "",
-    safetyLevel: "",
-    handheldUnit: "",
-    ioModule: "",
-    cableLengthMeters: "",
-  },
+  machineSpecs: { ...EMPTY_MACHINE_SPECS },
   aiMessages: [],
   isAiProcessing: false,
   isConfigurationReady: false,
   configuration: null,
   history: [],
+  activeSavedId: null,
+  savedConfigsRevision: 0,
 
   // Actions
   setStep: (step) => set({ currentStep: step }),
@@ -235,28 +250,22 @@ export const useConfiguratorStore = create<ConfiguratorState>((set, get) => ({
       completedSteps: new Set(),
       machineDescription: "",
       selectedTemplate: null,
-      machineSpecs: {
-        axisTravel: "",
-        movingMass: "",
-        rapidTraverse: "",
-        spindlePower: "",
-        spindleSpeed: "",
-        material: "",
-        machineSize: "",
-        safetyLevel: "",
-        handheldUnit: "",
-        ioModule: "",
-        cableLengthMeters: "",
-      },
+      machineSpecs: { ...EMPTY_MACHINE_SPECS },
       aiMessages: [],
       isAiProcessing: false,
       isConfigurationReady: false,
       configuration: null,
       history: [],
+      activeSavedId: null,
     }),
 
-  loadSavedSnapshot: (snapshot) =>
+  setActiveSavedId: (id) => set({ activeSavedId: id }),
+
+  bumpSavedConfigs: () => set((s) => ({ savedConfigsRevision: s.savedConfigsRevision + 1 })),
+
+  loadSavedSnapshot: (snapshot, savedId = null) =>
     set({
+      activeSavedId: savedId,
       machineDescription: snapshot.machineDescription,
       selectedTemplate: snapshot.selectedTemplate,
       machineSpecs: snapshot.machineSpecs,

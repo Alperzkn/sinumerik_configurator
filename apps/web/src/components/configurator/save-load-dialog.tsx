@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +52,8 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
     machineSpecs,
     configuration,
     loadSavedSnapshot,
+    setActiveSavedId,
+    bumpSavedConfigs,
   } = useConfiguratorStore();
 
   const [saved, setSaved] = useState<SavedConfig[]>([]);
@@ -60,7 +62,11 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
   const [info, setInfo] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  // Reset the form each time the dialog opens ("adjust state while
+  // rendering" — avoids an extra effect-driven render).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setSaved(listSavedConfigs());
       setError(null);
@@ -74,7 +80,7 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
         setName("");
       }
     }
-  }, [open, mode, selectedTemplate]);
+  }
 
   const handleSave = () => {
     if (!configuration) {
@@ -90,6 +96,8 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
         configuration,
       });
       setSaved(listSavedConfigs());
+      setActiveSavedId(result.id);
+      bumpSavedConfigs();
       setInfo(`Saved as "${result.name}".`);
       toast.success("Configuration saved", result.name);
     } catch (e) {
@@ -106,7 +114,7 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
       toast.error("Load failed", "Saved configuration not found.");
       return;
     }
-    loadSavedSnapshot(cfg.data);
+    loadSavedSnapshot(cfg.data, cfg.id);
     toast.success("Configuration loaded", cfg.name);
     onClose();
   };
@@ -115,6 +123,7 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
     const target = saved.find((c) => c.id === id);
     deleteConfig(id);
     setSaved(listSavedConfigs());
+    bumpSavedConfigs();
     setInfo("Deleted.");
     toast.info("Deleted", target?.name);
   };
@@ -128,6 +137,7 @@ export function SaveLoadDialog({ open, mode, onClose }: SaveLoadDialogProps) {
     try {
       const result = await importConfigFromFile(file);
       setSaved(listSavedConfigs());
+      bumpSavedConfigs();
       setInfo(`Imported "${result.name}".`);
       toast.success("Imported", result.name);
     } catch (e) {

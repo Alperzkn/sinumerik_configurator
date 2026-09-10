@@ -351,12 +351,24 @@ export interface CableAccessory {
 }
 
 // --- BOM Item with quantity ---
+/**
+ * How the article number on a BOM line was obtained.
+ *  catalog     — listed verbatim in the local Siemens catalog data
+ *  composed    — motor trunk + catalog-verified suffix (per-axis MLFB)
+ *  trunk_only  — catalog trunk shown; suffix assigned at order time
+ *  order_code  — no article number in the catalog; ordered by option code
+ */
+export type BomBasis = "catalog" | "composed" | "trunk_only" | "order_code";
+
 export interface BomItem {
   articleNumber: string;
   name: string;
   quantity: number;
   orderCode?: string;
   category: string;
+  basis?: BomBasis;
+  /** Siemens catalog the article comes from (NC63, D21.4, D32, …) */
+  source?: string;
 }
 
 // --- Generated Configuration (output of AI) ---

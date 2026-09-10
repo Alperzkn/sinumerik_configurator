@@ -18,127 +18,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useConfiguratorStore } from "@/store/configurator-store";
-import type { GeneratedConfiguration, BomItem } from "@/types/catalog";
+import { buildBom } from "@/lib/export/bom";
+import { BomBasisPill, BOM_BASIS_LABEL } from "./bom-basis-pill";
 import { SaveLoadDialog } from "./save-load-dialog";
 import { ShareConfigDialog } from "./share-config-dialog";
 import { trackAction } from "@/lib/telemetry/client";
 
-function buildBom(config: GeneratedConfiguration): BomItem[] {
-  const lines: BomItem[] = [];
-
-  lines.push({
-    articleNumber: config.controlUnit.articleNumber,
-    name: config.controlUnit.name,
-    quantity: 1,
-    category: "Control Unit",
-  });
-
-  lines.push({
-    articleNumber: config.cncSoftware.articleNumber,
-    name: config.cncSoftware.description,
-    quantity: 1,
-    category: "CNC Software",
-  });
-
-  for (const pkg of config.technologyPackages) {
-    lines.push({
-      articleNumber: pkg.articleNumber,
-      name: pkg.name,
-      quantity: 1,
-      orderCode: pkg.orderCode,
-      category: "Technology Package",
-    });
-  }
-
-  for (const opt of config.softwareOptions) {
-    const qty = config.optionQuantities[opt.id] || 1;
-    lines.push({
-      articleNumber: opt.articleNumber,
-      name: opt.name,
-      quantity: qty,
-      orderCode: opt.orderCode,
-      category: "Software Option",
-    });
-  }
-
-  for (const drive of config.drives) {
-    const qty = config.driveQuantities[drive.id] || 1;
-    lines.push({
-      articleNumber: drive.articleNumber,
-      name: drive.name,
-      quantity: qty,
-      category: "Drive",
-    });
-  }
-
-  for (const motor of config.motors) {
-    const perAxis = motor.perAxisMlfbs;
-    if (perAxis && perAxis.length > 0) {
-      // Each axis carries its own orderable MLFB (brake / encoder vary
-      // per axis). Group identical MLFBs so the BOM shows one line per
-      // distinct article with a quantity — and the per-axis codes the
-      // user configured in step 3 actually reach the export.
-      const groups = new Map<string, { axes: string[]; brake: boolean }>();
-      for (const ax of perAxis) {
-        const g = groups.get(ax.mlfb) ?? { axes: [], brake: false };
-        g.axes.push(ax.axis);
-        if (ax.brake) g.brake = true;
-        groups.set(ax.mlfb, g);
-      }
-      for (const [mlfb, g] of groups) {
-        lines.push({
-          articleNumber: mlfb,
-          name: `${motor.name} — ${g.axes.join(", ")}${g.brake ? " (with brake)" : ""}`,
-          quantity: g.axes.length,
-          category: "Motor",
-        });
-      }
-    } else {
-      const qty = config.motorQuantities[motor.id] || 1;
-      lines.push({
-        articleNumber: motor.articleNumber || motor.series,
-        name: motor.name,
-        quantity: qty,
-        category: "Motor",
-      });
-    }
-  }
-
-  for (const hmi of config.hmiComponents) {
-    lines.push({
-      articleNumber: hmi.articleNumber,
-      name: hmi.name,
-      quantity: 1,
-      category: "HMI",
-    });
-  }
-
-  for (const sf of config.safetyFunctions.filter((s) => !s.isBasicScope)) {
-    // Many extended safety functions are ordered by their order code
-    // (S60 / S61 / K01…) and carry no full article number. Don't drop
-    // them — fall back to the order code so they still appear in the BOM.
-    lines.push({
-      articleNumber: sf.articleNumber || sf.orderCode || "—",
-      name: sf.name,
-      quantity: 1,
-      orderCode: sf.orderCode,
-      category: "Safety",
-    });
-  }
-
-  for (const cable of config.cables || []) {
-    if (cable.quantity > 0) {
-      lines.push({
-        articleNumber: cable.articleNumber,
-        name: cable.name,
-        quantity: cable.quantity,
-        category: "Cable/Accessory",
-      });
-    }
-  }
-
-  return lines;
-}
 
 export function SummaryStep() {
   const {
@@ -169,11 +54,11 @@ export function SummaryStep() {
 
   const handleCopyBom = () => {
     void trackAction("export_clipboard", { items: bomLines.length, totalQty });
-    const header = "Pos\tMLFB (Article Number)\tQty\tDescription\tOrder Code\tCategory";
+    const header = "Pos\tMLFB (Article Number)\tQty\tDescription\tOrder Code\tCategory\tBasis\tSource";
     const text = bomLines
       .map(
         (line, i) =>
-          `${i + 1}\t${line.articleNumber}\t${line.quantity}\t${line.name}\t${line.orderCode || ""}\t${line.category}`
+          `${i + 1}\t${line.articleNumber}\t${line.quantity}\t${line.name}\t${line.orderCode || ""}\t${line.category}\t${BOM_BASIS_LABEL[line.basis ?? "catalog"]}\t${line.source ?? ""}`
       )
       .join("\n");
     navigator.clipboard.writeText(`${header}\n${text}`);
@@ -191,6 +76,8 @@ export function SummaryStep() {
       Description: line.name,
       "Order Code": line.orderCode || "",
       Category: line.category,
+      Basis: BOM_BASIS_LABEL[line.basis ?? "catalog"],
+      Source: line.source ?? "",
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -203,6 +90,8 @@ export function SummaryStep() {
       { wch: 50 },  // Description
       { wch: 10 },  // Order Code
       { wch: 18 },  // Category
+      { wch: 14 },  // Basis
+      { wch: 16 },  // Source
     ];
 
     const wb = XLSX.utils.book_new();
@@ -416,6 +305,7 @@ export function SummaryStep() {
               <th className="text-left py-2.5 px-3 text-[11px] font-semibold text-muted-foreground whitespace-nowrap">MLFB / Article No.</th>
               <th className="text-center py-2.5 px-3 text-[11px] font-semibold text-muted-foreground w-12">Qty</th>
               <th className="text-left py-2.5 px-3 text-[11px] font-semibold text-muted-foreground">Description</th>
+              <th className="text-left py-2.5 px-3 text-[11px] font-semibold text-muted-foreground whitespace-nowrap">Basis · Source</th>
               <th className="text-right py-2.5 px-3 text-[11px] font-semibold text-muted-foreground">Category</th>
             </tr>
           </thead>
@@ -439,6 +329,12 @@ export function SummaryStep() {
                   <span className="text-[13px]">{line.name}</span>
                   {line.orderCode && (
                     <span className="ml-1.5 text-muted-foreground text-[10px] font-mono">({line.orderCode})</span>
+                  )}
+                </td>
+                <td className="py-2 px-3 whitespace-nowrap">
+                  <BomBasisPill basis={line.basis ?? "catalog"} />
+                  {line.source && (
+                    <span className="ml-1.5 font-mono text-[10px] text-muted-foreground">{line.source}</span>
                   )}
                 </td>
                 <td className="py-2 px-3 text-right">

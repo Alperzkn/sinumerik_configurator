@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { specsToSizingInput } from "@/lib/sizing/specs-input";
 import {
   Dialog,
   DialogContent,
@@ -21,14 +22,19 @@ import {
   type SharedConfigPayload,
 } from "@/lib/share/config-sharing";
 import { modifyConfiguration } from "@/lib/ai/modify-engine";
-import type { UserSpecsInput } from "@/lib/sizing";
+import { parseText, rowsFromSheetMatrix, textToMatrix } from "@/lib/convert-808d/parser";
+import { importBomRows, type BomImportResult } from "@/lib/import/bom-import";
+import { EMPTY_MACHINE_SPECS } from "@/store/configurator-store";
+import type { InputRow } from "@/lib/convert-808d/types";
 
 interface ShareConfigDialogProps {
   open: boolean;
   onClose: () => void;
   /** Which tab to show first. Defaults to "share" when a config exists, "import" otherwise. */
-  defaultTab?: "share" | "import";
+  defaultTab?: ShareTab;
 }
+
+type ShareTab = "share" | "import" | "bom";
 
 export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDialogProps) {
   const {
@@ -42,7 +48,11 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
   } = useConfiguratorStore();
 
   const initialTab = defaultTab ?? (configuration ? "share" : "import");
-  const [tab, setTab] = useState<"share" | "import">(initialTab);
+  const [tab, setTab] = useState<ShareTab>(initialTab);
+  // "Import BOM" tab: pasted / uploaded article rows → catalog match preview.
+  const [bomText, setBomText] = useState("");
+  const [bomSourceName, setBomSourceName] = useState("");
+  const [bomPreview, setBomPreview] = useState<BomImportResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [pastedText, setPastedText] = useState("");
   const [changeRequest, setChangeRequest] = useState("");
@@ -51,13 +61,16 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
   const shareRef = useRef<HTMLTextAreaElement>(null);
 
   // Keep internal tab state in sync with the prop when the dialog reopens.
-  useEffect(() => {
+  // "Adjust state while rendering" pattern — no effect, no extra commit.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setTab(defaultTab ?? (configuration ? "share" : "import"));
       setError(null);
       setCopied(false);
     }
-  }, [open, defaultTab, configuration]);
+  }
 
   const shareText = useMemo(() => {
     if (!configuration) return "";
@@ -104,6 +117,54 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
     }
   };
 
+  const runBomImport = (rows: InputRow[], sourceName: string) => {
+    if (!rows.length) {
+      toast.warning("No article numbers found", "Each line needs a Siemens MLFB.");
+      return;
+    }
+    setBomSourceName(sourceName);
+    setBomPreview(importBomRows(rows));
+  };
+
+  const handleBomFiles = async (files: FileList | null) => {
+    const f = files?.[0];
+    if (!f) return;
+    try {
+      let rows: InputRow[] = [];
+      if (/\.(xlsx|xls)$/i.test(f.name)) {
+        const XLSX = await import("xlsx");
+        const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+        for (const sn of wb.SheetNames) {
+          const mx = XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[sn], { header: 1, raw: false, defval: "" });
+          for (const c of rowsFromSheetMatrix(mx, f.name)) rows = rows.concat(c.rows);
+        }
+      } else {
+        for (const c of rowsFromSheetMatrix(textToMatrix(await f.text()), f.name)) rows = rows.concat(c.rows);
+      }
+      runBomImport(rows, f.name);
+    } catch (e) {
+      toast.error(`Could not read ${f.name}`, e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const handleBomLoad = () => {
+    if (!bomPreview) return;
+    loadSavedSnapshot({
+      machineDescription: `Imported bill of materials${bomSourceName ? ` (${bomSourceName})` : ""}`,
+      selectedTemplate: null,
+      machineSpecs: { ...EMPTY_MACHINE_SPECS },
+      configuration: bomPreview.configuration,
+    });
+    pushHistory({ kind: "load", title: "Imported bill of materials", snapshot: bomPreview.configuration });
+    toast.success(
+      "Bill of materials imported",
+      `${bomPreview.matched} line(s) matched${bomPreview.unmatched.length ? `, ${bomPreview.unmatched.length} unmatched` : ""}.`,
+    );
+    setBomPreview(null);
+    setBomText("");
+    onClose();
+  };
+
   const handleLoadOnly = () => {
     const payload = parsePastedPayload();
     if (!payload) return;
@@ -137,23 +198,7 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
       });
 
       // Step 2 — apply the modification
-      const parseNum = (s: string) => {
-        const m = (s || "").match(/([\d.]+)/);
-        return m ? parseFloat(m[1]) : undefined;
-      };
-      const baselineSpecs: UserSpecsInput = {
-        spindlePowerKw: parseNum(payload.machineSpecs.spindlePower),
-        spindleMaxRpm: parseNum(payload.machineSpecs.spindleSpeed),
-        movingMassKg: parseNum(payload.machineSpecs.movingMass),
-        rapidTraverseMpm: parseNum(payload.machineSpecs.rapidTraverse),
-        axisTravel: payload.machineSpecs.axisTravel,
-        machineSize: payload.machineSpecs.machineSize as UserSpecsInput["machineSize"],
-        material: payload.machineSpecs.material,
-        ioModule: payload.machineSpecs.ioModule,
-        handheldUnit: payload.machineSpecs.handheldUnit,
-        cableLengthMeters: payload.machineSpecs.cableLengthMeters,
-        safetyLevel: (payload.machineSpecs.safetyLevel || "") as UserSpecsInput["safetyLevel"],
-      };
+      const baselineSpecs = specsToSizingInput(payload.machineSpecs);
 
       const result = await modifyConfiguration(
         payload.configuration,
@@ -229,6 +274,18 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
             >
               Import & modify
             </button>
+            <button
+              type="button"
+              onClick={() => setTab("bom")}
+              className={cn(
+                "px-3 py-1.5 rounded-md transition-colors",
+                tab === "bom"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Import BOM
+            </button>
           </div>
         </div>
 
@@ -273,6 +330,76 @@ export function ShareConfigDialog({ open, onClose, defaultTab }: ShareConfigDial
                 </div>
               </div>
             )
+          ) : tab === "bom" ? (
+            <div className="space-y-3">
+              <div className="text-[11px] text-muted-foreground">
+                Bring in an existing parts list: paste rows from Excel (article number, quantity and
+                description in any column order) or upload an .xlsx / .csv. Every article is matched
+                against the local Siemens catalog; anything unknown is listed, never guessed.
+              </div>
+              <Textarea
+                value={bomText}
+                onChange={(e) => setBomText(e.target.value)}
+                spellCheck={false}
+                placeholder={"6FC5317-5AA00-0AA1\t1\tNCU 1750\n6SL3120-1TE21-0AD0\t3\tMotor Module 9 A\n1FT7064-5AF71-1DA1\t3\t1FT7 servo motor"}
+                className="min-h-[140px] whitespace-pre text-[11px] font-mono"
+              />
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <label className="text-[12px] text-primary underline-offset-2 hover:underline cursor-pointer">
+                  Upload .xlsx / .csv instead
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv,.txt,.tsv"
+                    className="sr-only"
+                    onChange={(e) => {
+                      void handleBomFiles(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => runBomImport(parseText(bomText).rows, "pasted rows")}
+                  disabled={!bomText.trim()}
+                >
+                  Match against catalog
+                </Button>
+              </div>
+
+              {bomPreview && (
+                <div className="rounded-md border bg-muted/20 p-3 text-[12px] space-y-2">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    <span>
+                      <strong className="tabular-nums">{bomPreview.matched}</strong> matched
+                    </span>
+                    <span className={bomPreview.unmatched.length ? "text-amber-600 dark:text-amber-300" : ""}>
+                      <strong className="tabular-nums">{bomPreview.unmatched.length}</strong> unmatched
+                    </span>
+                    <span>
+                      {bomPreview.configuration.controlUnit.name} · {bomPreview.configuration.totalAxes} axes
+                    </span>
+                  </div>
+                  {bomPreview.notes.length > 0 && (
+                    <ul className="list-disc pl-4 text-muted-foreground space-y-0.5">
+                      {bomPreview.notes.map((n, i) => (
+                        <li key={i}>{n}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {bomPreview.unmatched.length > 0 && (
+                    <pre className="max-h-28 overflow-auto rounded bg-background/60 p-2 font-mono text-[11px] text-muted-foreground">
+                      {bomPreview.unmatched.map((u) => `${u.mlfb}\t${u.qty}\t${u.desc}`).join("\n")}
+                    </pre>
+                  )}
+                  <div className="flex justify-end">
+                    <Button size="sm" onClick={handleBomLoad}>
+                      Load into configurator
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="space-y-3">
               <div>

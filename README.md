@@ -46,6 +46,11 @@ numbers (MLFBs) — every component traceable to a catalog page.
 - **Telemetry + admin dashboard** — separate `apps/admin/` Next.js
   app reads anonymised session traces from Supabase. One-click
   opt-out from the engineering-review dialog.
+- **808D → 828D Smart converter** (`/convert`) — paste or upload a
+  SINUMERIK 808D ADVANCED parts list and get every line re-selected
+  from the 828D Smart catalogue (PPU, SD card, S200 drives, 1FL2 /
+  1PH3 Pro motors, cables) with a source page per article. Rule-based;
+  AI is only offered as an optional text reader.
 
 ## Quick start
 

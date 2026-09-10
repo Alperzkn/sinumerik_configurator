@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Cpu, Boxes, ClipboardPaste } from "lucide-react";
+import { ArrowUpRight, Cpu, Boxes, ClipboardPaste, Repeat } from "lucide-react";
 import { LandingBomSample } from "@/components/landing/bom-sample";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -96,7 +96,7 @@ export default function HomePage() {
 
       {/* ── Three entry routes ─────────────────────────────────────── */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 w-full pb-12 sm:pb-14">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <RouteCard
             kind="01"
             href="/configure"
@@ -117,9 +117,17 @@ export default function HomePage() {
             kind="03"
             href="/configure"
             Icon={ClipboardPaste}
-            title="Paste a shared config"
-            subtitle="Round-trip markdown payload"
-            description="Someone sent you a configuration as text? Paste it, optionally add a one-line change request (‘40 kW spindle and Active Line Module’), and the AI modifies it in one step."
+            title="Paste a shared config or BOM"
+            subtitle="Round-trip payload · Excel import"
+            description="Someone sent you a configuration as text? Paste it and optionally add a one-line change request. Or import an existing Excel parts list — every MLFB is matched against the catalog."
+          />
+          <RouteCard
+            kind="04"
+            href="/convert"
+            Icon={Repeat}
+            title="Convert 808D → 828D Smart"
+            subtitle="Rule-based re-selection"
+            description="Paste or upload an 808D ADVANCED parts list. Every line is re-selected from the 828D Smart catalogue — PPU, SD card, S200 drives, 1FL2 / 1PH3 Pro motors, cables — with a source page per article."
           />
         </div>
       </section>

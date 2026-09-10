@@ -9,6 +9,7 @@ import { AiAnalysisStep } from "./ai-analysis-step";
 import { ConfigurationStep } from "./configuration-step";
 import { SummaryStep } from "./summary-step";
 import { SelectionSidebar } from "./selection-sidebar";
+import { SavedConfigChips } from "./saved-config-chips";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function WizardShell() {
@@ -69,6 +70,9 @@ export function WizardShell() {
 
         {/* Content */}
         <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
+          <div className="mb-4 empty:hidden">
+            <SavedConfigChips />
+          </div>
           <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
         </main>
       </div>

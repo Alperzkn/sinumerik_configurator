@@ -173,6 +173,13 @@ engineer**. Click "Re-read the disclaimer" any time to see it again.
 
 The final BOM table. Four exports:
 
+Every line carries a **Basis** pill and the Siemens catalog it comes
+from (NC63, D21.4, D32): *Catalog* means the article is listed verbatim
+in the local catalog data, *Composed* is a motor trunk plus a verified
+suffix, *Trunk only* means your Siemens partner assigns the suffix, and
+*Order code* is a safety option ordered by its code. The same two
+columns appear in the clipboard and Excel exports.
+
 ### Copy to clipboard
 
 Tab-separated text — paste straight into Excel, email, or a ticket:
@@ -201,12 +208,83 @@ and motor one-liners, per-axis MLFB suffix decoder, and any
 warnings. Hand this to your Siemens partner — they can verify
 line-by-line without going back to the conversation.
 
+### Import an existing BOM
+
+The share dialog has an **Import BOM** tab. Paste rows from Excel or
+upload an .xlsx / .csv and every article number is matched against the
+local catalog: control unit, software, options, drives, motors, HMI,
+safety and cables. Unmatched lines are listed, never guessed, and the
+result loads into step 3 where you can swap or modify as usual.
+
+### Working on several machines
+
+Once you have saved a configuration (step 3 → *Save*), a chip bar
+appears above the wizard with one chip per saved machine. Click a chip
+to switch; the work you were on is saved back first so nothing is lost.
+Chips show the control unit and a count of open warnings.
+
 ### Share as text
 
 A single text blob (markdown BOM + a base64 payload). Someone else
 can paste it back into the configurator to load your exact config.
 You can attach an optional one-line modification request that's
 applied as soon as it's loaded.
+
+---
+
+## The 808D → 828D Smart converter
+
+A separate tool at **/convert** (fourth card on the landing page). It
+takes an existing **SINUMERIK 808D ADVANCED** parts list and re-selects
+every line from the *"SINUMERIK 828D Smart system – Details"* catalogue.
+No AI is involved in choosing products — every rule is deterministic and
+every article carries the PDF page (or Siemens listing) it came from.
+
+### Getting a list in
+
+- **Paste from Excel** — copy the rows (article number, quantity and
+  description in any column order) and press *Convert pasted rows*.
+  Tab-, semicolon- and wide-space-separated text all work. Typos like
+  the letter `O` instead of a zero inside an article number are repaired.
+- **Read with AI** — for messy text (merged cells, quantities written as
+  words, copies from a PDF or e-mail). Claude only reads the text into
+  rows; product selection still goes through the rule engine.
+- **Upload files** — drop one or more `.xlsx` / `.csv` files. Each file
+  (or each distinct value in a *Configuration* column) becomes its own
+  configuration. *Download Excel template* gives you the expected layout.
+
+### Reading the result
+
+Each configuration shows the 828D Smart selection grouped into CNC,
+software options, feed axes, feed-axis cables, spindle, PROFINET and
+other. The **Basis** pill tells you how much to trust a line:
+
+| Pill          | Meaning                                                              |
+| ------------- | -------------------------------------------------------------------- |
+| PDF p.xx      | article listed verbatim in the 828D Smart PDF                        |
+| Derived       | built from the PDF's motor code pattern, family verified at Siemens  |
+| Outside PDF   | cable / accessory not in the PDF, number verified in Siemens listings|
+| Review        | needs a manual decision                                              |
+| No equivalent | not available on 828D Smart                                          |
+| Superseded    | 808D item that disappears (its function is covered by another line)  |
+
+The notes under the table cover configuration-level checks: axis and
+spindle count against the 828D Smart limit of 5, V70 drive count versus
+motors, missing PROFINET cords, the mandatory braking resistor for an
+S200 Spindle drive, and licences carried over.
+
+The *808D input as read* tab shows exactly what was parsed, including
+lines where the quantity was assumed to be 1.
+
+### What comes out
+
+- **Copy as table** — tab-separated, ready for Excel.
+- **Export Excel** — one sheet per configuration with source and notes;
+  *Export all as Excel* adds a summary sheet across configurations.
+- **Show 828D Smart catalogue** — the complete rule base the converter
+  can pick from, with the page each article comes from.
+
+Configurations stay in your browser (local storage) between visits.
 
 ---
 
@@ -220,6 +298,12 @@ MLFB suffix codes — when a motor's encoder/brake/shaft/IP positions
 are catalogue-ambiguous, the BOM shows the verified trunk and a
 "trunk-only" badge so you and your partner know to specify the
 final characters at order time.
+
+### Does the 808D → 828D Smart converter use AI to pick products?
+
+No. The rule engine maps every 808D article deterministically. The only
+optional AI step reads unstructured text into rows, and its output is
+validated against the Siemens article-number shape before use.
 
 ### Can I trust the BOM for procurement?
 

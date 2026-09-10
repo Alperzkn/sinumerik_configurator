@@ -579,7 +579,70 @@ for `/api/modify`. Exceeding either returns
 
 ---
 
-## 15. File reference
+## 15. 808D → 828D Smart converter
+
+A second, AI-free tool under `/convert`. It re-selects a SINUMERIK
+808D ADVANCED bill of materials from the 828D Smart catalogue.
+
+```mermaid
+flowchart LR
+    In[Paste / xlsx / csv] --> P[parser.ts]
+    In -->|messy text| AI["/api/convert/parse (Claude reads rows only)"]
+    AI --> P
+    P -->|InputRow[]| E[engine.ts convert()]
+    C[(catalog.ts — PDF-sourced tables)] --> E
+    E -->|ResultLine[] + notes| UI[components/converter/*]
+    UI --> X[Excel / TSV export]
+```
+
+| Module                                     | Responsibility                                                   |
+| ------------------------------------------ | ---------------------------------------------------------------- |
+| `src/lib/convert-808d/catalog.ts`          | Every 828D Smart article the engine may select, with its source  |
+| `src/lib/convert-808d/parser.ts`           | Cells → `InputRow` (MLFB shape detection, O→0 repair, qty forms) |
+| `src/lib/convert-808d/engine.ts`           | 808D row → 828D Smart lines + configuration-level notes          |
+| `src/lib/convert-808d/export.ts`           | xlsx workbook, TSV, input template                               |
+| `src/lib/convert-808d/catalog-rows.ts`     | Flattened rule base for the on-page catalogue table              |
+| `src/store/converter-store.ts`             | Zustand store, localStorage persistence, first-run example       |
+| `src/components/converter/*`               | Page UI (input rail, summary, chips, result card, catalogue)     |
+| `src/app/api/convert/parse/route.ts`       | Optional AI reader — returns rows only, never products           |
+
+Mapping rules worth knowing:
+
+- **PPU** → 828D Smart PPU 261.5 (horizontal) or 260.5 (vertical) plus
+  the milling or turning SD card. Technology is read from the 808D PPU
+  article, then from description keywords, else milling with a warning.
+- **1FL6 → 1FL2** codes are composed from the PDF's pattern (frame,
+  power digit, speed letter, brake and shaft digits) and paired with the
+  S200 drive for that power. V70 drives become *Superseded*.
+- **1PH1 → 1PH3 Pro** picks the closest 1PH3 Pro variant by power,
+  shaft height and speed, prefers the TTL encoder like the 1PH1, and
+  adds the S200 Spindle drive and a third-party braking resistor.
+- **Cables** map MOTION-CONNECT 300 → 350; lengths not seen in a Siemens
+  listing are flagged *Review* rather than assumed.
+- **Notes** check axes + spindles against the 828D Smart maximum of 5,
+  V70 count vs motors, missing PROFINET cords, and carried-over licences.
+
+Self-running tests: `npx tsx apps/web/src/lib/convert-808d/engine.test.ts`
+and `parser.test.ts` (the shipped example list is the golden case).
+
+---
+
+## 16. Request hardening
+
+- `/api/recommend` and `/api/modify` build their **system prompts on
+  the server** (`prompt-builder.ts`, `buildModifyPrompt`). The client
+  sends only the user text, conversation history and, for modify, the
+  current-configuration summary as data.
+- All AI routes cap input sizes and share an in-process sliding-window
+  limiter (`src/lib/server/request-guards.ts`, 20 calls / 10 min / IP).
+- Telemetry redaction runs over every string leaf of `conversation`,
+  `raw_response` and `parsed_response`, not only `user_message`.
+- Admin login compares the token in constant time and throttles
+  attempts per IP; per-session timeline queries are capped.
+
+---
+
+## 17. File reference
 
 ### apps/web
 
@@ -595,7 +658,16 @@ for `/api/modify`. Exceeding either returns
 | `src/lib/ai/modify-engine.ts`                                 | Client-side modify wrapper                             |
 | `src/lib/ai/response-parser.ts`                               | AI JSON → typed config                                 |
 | `src/lib/ai/config-mutations.ts`                              | Apply modify ops to a config                           |
-| `src/lib/validation/drive-system-rules.ts`                    | Sizing rules + warnings                                |
+| `src/lib/validation/drive-system-rules.ts`                    | Sizing rules + warnings (S120 + S210 tables)           |
+| `src/data/compatibility-rules.ts`                             | Catalog compatibility rules run after every generation |
+| `src/lib/export/bom.ts`                                       | Single BOM flattener + per-line basis/source provenance |
+| `src/lib/import/bom-import.ts`                                | Existing BOM (paste / xlsx) → catalog-matched config    |
+| `src/components/configurator/saved-config-chips.tsx`          | Chip bar for switching between saved configurations     |
+| `src/lib/sizing/specs-input.ts`                               | Specs form → sizing-engine input                       |
+| `src/lib/server/request-guards.ts`                            | Rate limiting + input caps for AI routes               |
+| `src/lib/convert-808d/*`                                      | 808D → 828D Smart converter (see §15)                  |
+| `src/app/convert/page.tsx`, `src/components/converter/*`      | Converter page + UI                                    |
+| `src/app/api/convert/parse/route.ts`                          | AI text-to-rows reader for the converter               |
 | `src/lib/mlfb/builder.ts`                                     | Compositional MLFB assembler                           |
 | `src/lib/mlfb/families/*.ts`                                  | Per-family suffix grammars (1FT2, 1FK2, 1FN3, 1FT7, …) |
 | `src/lib/mlfb/per-axis.ts`                                    | Per-axis MLFB resolver                                 |
@@ -628,7 +700,7 @@ for `/api/modify`. Exceeding either returns
 
 ---
 
-## 16. Key design decisions
+## 18. Key design decisions
 
 ### Why split AI from rules
 
