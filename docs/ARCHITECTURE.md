@@ -639,10 +639,14 @@ options, the 5-axis limit — appears in the NC 82 chapter-2 overview of
 September 2026; the S200 converter articles, the 1FL2 code legend and
 the MOTION-CONNECT 350 families match D 37.1 of November 2025; the 808D
 input side (PPU/MCP articles, V70 drives, `1FL6…-0xx1` codes, the 1PH1
-table, MC300 cables, option codes) matches NC 81.1. Not verifiable
-offline yet: the S200 *Spindle* drive articles and the 1PH3 Pro ordering
-table (the artifact cites the 828D Smart details PDF and the 1PH3 Pro
-manual 06/2026, neither of which Siemens serves without a login).
+table, MC300 cables, option codes) matches NC 81.1. The 828D Smart
+details PDF (09/2026) is in `docs/` and its page references (p.15
+options, p.27 feed drives, p.35 spindle drives, p.47 package, p.48
+codes) resolve; the 1PH3 Pro manual (06/2026) Table 3-2 confirms every
+1PH3 Pro row and supplies the power-cable cross-sections; IK PI (2015)
+lists five of the nine PROFINET cord lengths, the rest are flagged for
+review. Still listing-based only: the 1PH3 Pro shaft digit (0 plain /
+2 half-key) and the individual MOTION-CONNECT 350 length codes.
 
 ---
 

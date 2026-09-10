@@ -228,11 +228,14 @@ export interface Ph3Variant {
   enc: string;
   /** suffix after the shaft digit */
   sfx: string;
+  /** MOTION-CONNECT 500 raw power cable (6FX5008-{cable}-1DA0) — cross-section per 1PH3 Pro manual 06/2026 Table 3-2 */
+  cable: "1BB21" | "1BB31" | "1BB51" | "1BB61";
 }
 
 /**
  * SIMOTICS M-1PH3 Pro for S200 Spindle — Siemens 1PH3 Pro manual 06/2026
- * (doc 110004403) Table 3-2; motor data also PDF p.33/p.35.
+ * (docs/1PH3_Pro_man_0626_en-US.pdf) Table 3-2, verified row by row incl.
+ * rated current and power-cable cross-section; motor data also PDF p.33/p.35.
  *
  * Code = 1PH3{frame}-1{enc}{wind}12-{shaft}{sfx}
  * Shaft digit: 0 = plain shaft (without keyway), 2 = shaft with key,
@@ -244,23 +247,24 @@ export interface Ph3Variant {
  * NOT usable with S200 Spindle (PDF p.31/p.32/p.35).
  */
 export const PH3: Ph3Variant[] = [
-  { frame: "103", sh: 100, kw: 3.7, n: 1000, nmax: 10000, wind: "D", enc: "HL", sfx: "GA1" },
-  { frame: "101", sh: 100, kw: 3.7, n: 1500, nmax: 12000, wind: "F", enc: "H", sfx: "KA1" },
-  { frame: "101", sh: 100, kw: 3.7, n: 1500, nmax: 10000, wind: "F", enc: "L", sfx: "GA1" },
-  { frame: "105", sh: 100, kw: 5.5, n: 1000, nmax: 10000, wind: "D", enc: "HL", sfx: "GA1" },
-  { frame: "103", sh: 100, kw: 5.5, n: 1500, nmax: 12000, wind: "F", enc: "H", sfx: "KA1" },
-  { frame: "103", sh: 100, kw: 5.5, n: 1500, nmax: 10000, wind: "F", enc: "L", sfx: "GA1" },
-  { frame: "105", sh: 100, kw: 7.5, n: 2000, nmax: 12000, wind: "G", enc: "H", sfx: "KA1" },
-  { frame: "105", sh: 100, kw: 7.5, n: 2000, nmax: 10000, wind: "G", enc: "L", sfx: "GA1" },
-  { frame: "107", sh: 100, kw: 9, n: 1500, nmax: 12000, wind: "F", enc: "H", sfx: "KA1" },
-  { frame: "107", sh: 100, kw: 11, n: 2000, nmax: 12000, wind: "G", enc: "H", sfx: "KA1" },
-  { frame: "131", sh: 132, kw: 7.5, n: 1200, nmax: 8000, wind: "E", enc: "HL", sfx: "GA1" },
-  { frame: "132", sh: 132, kw: 9, n: 1200, nmax: 8000, wind: "E", enc: "HL", sfx: "GA1" },
-  { frame: "131", sh: 132, kw: 11, n: 1500, nmax: 10000, wind: "F", enc: "HL", sfx: "KA1" },
-  { frame: "133", sh: 132, kw: 11, n: 1000, nmax: 8000, wind: "D", enc: "HL", sfx: "GA1" },
-  { frame: "135", sh: 132, kw: 12, n: 1000, nmax: 8000, wind: "D", enc: "HL", sfx: "GA1" },
-  { frame: "133", sh: 132, kw: 15, n: 2000, nmax: 10000, wind: "G", enc: "HL", sfx: "KA1" },
-  { frame: "136", sh: 132, kw: 15, n: 1000, nmax: 8000, wind: "D", enc: "HL", sfx: "GA1" },
+  { frame: "103", sh: 100, kw: 3.7, n: 1000, nmax: 10000, wind: "D", enc: "HL", sfx: "GA1", cable: "1BB21" },
+  { frame: "101", sh: 100, kw: 3.7, n: 1500, nmax: 12000, wind: "F", enc: "H", sfx: "KA1", cable: "1BB21" },
+  { frame: "101", sh: 100, kw: 3.7, n: 1500, nmax: 10000, wind: "F", enc: "L", sfx: "GA1", cable: "1BB21" },
+  { frame: "105", sh: 100, kw: 5.5, n: 1000, nmax: 10000, wind: "D", enc: "HL", sfx: "GA1", cable: "1BB31" },
+  { frame: "103", sh: 100, kw: 5.5, n: 1500, nmax: 12000, wind: "F", enc: "H", sfx: "KA1", cable: "1BB31" },
+  { frame: "103", sh: 100, kw: 5.5, n: 1500, nmax: 10000, wind: "F", enc: "L", sfx: "GA1", cable: "1BB31" },
+  { frame: "105", sh: 100, kw: 7.5, n: 2000, nmax: 12000, wind: "G", enc: "H", sfx: "KA1", cable: "1BB31" },
+  { frame: "105", sh: 100, kw: 7.5, n: 2000, nmax: 10000, wind: "G", enc: "L", sfx: "GA1", cable: "1BB31" },
+  { frame: "107", sh: 100, kw: 9, n: 1500, nmax: 12000, wind: "F", enc: "H", sfx: "KA1", cable: "1BB51" },
+  { frame: "107", sh: 100, kw: 11, n: 2000, nmax: 12000, wind: "G", enc: "H", sfx: "KA1", cable: "1BB51" },
+  { frame: "131", sh: 132, kw: 7.5, n: 1200, nmax: 8000, wind: "E", enc: "HL", sfx: "GA1", cable: "1BB51" },
+  { frame: "132", sh: 132, kw: 9, n: 1200, nmax: 8000, wind: "E", enc: "HL", sfx: "GA1", cable: "1BB51" },
+  { frame: "131", sh: 132, kw: 11, n: 1500, nmax: 10000, wind: "F", enc: "HL", sfx: "KA1", cable: "1BB51" },
+  { frame: "133", sh: 132, kw: 11, n: 1000, nmax: 8000, wind: "D", enc: "HL", sfx: "GA1", cable: "1BB51" },
+  { frame: "135", sh: 132, kw: 12, n: 1000, nmax: 8000, wind: "D", enc: "HL", sfx: "GA1", cable: "1BB51" },
+  { frame: "133", sh: 132, kw: 15, n: 2000, nmax: 10000, wind: "G", enc: "HL", sfx: "KA1", cable: "1BB51" },
+  { frame: "136", sh: 132, kw: 15, n: 1000, nmax: 8000, wind: "S", enc: "HL", sfx: "GA1", cable: "1BB51" }, // Y/Δ winding: 1000 rpm (Y) / 2000 rpm (Δ)
+  { frame: "136", sh: 132, kw: 15, n: 1000, nmax: 8000, wind: "D", enc: "HL", sfx: "GA1", cable: "1BB61" },
 ];
 
 /** 6FX3502-2XB13 length codes listed in the 1PH3 Pro manual. */
@@ -307,19 +311,20 @@ export const LEN: Record<string, string> = {
 };
 
 /**
- * IE TP Cord RJ45/RJ45 4x2 Cat 6A — every code seen in Siemens Industry
- * Mall / distributor listings. [metres, article, label], ascending.
+ * IE TP Cord RJ45/RJ45 4x2 (PROFINET). [metres, article, label, catalog-listed],
+ * ascending. `true` = printed in catalog IK PI 2015 (docs/); `false` = seen
+ * only in Siemens Industry Mall / distributor listings.
  */
-export const PN_CORDS: Array<[number, string, string]> = [
-  [0.3, "6XV1870-3QE30", "0.3 m"],
-  [0.5, "6XV1870-3QE50", "0.5 m"],
-  [1, "6XV1870-3QH10", "1 m"],
-  [2, "6XV1870-3QH20", "2 m"],
-  [3, "6XV1870-3QH30", "3 m"],
-  [6, "6XV1870-3QH60", "6 m"],
-  [10, "6XV1870-3QN10", "10 m"],
-  [20, "6XV1870-3QN20", "20 m"],
-  [30, "6XV1870-3QN30", "30 m"],
+export const PN_CORDS: Array<[number, string, string, boolean]> = [
+  [0.3, "6XV1870-3QE30", "0.3 m", false],
+  [0.5, "6XV1870-3QE50", "0.5 m", true],
+  [1, "6XV1870-3QH10", "1 m", true],
+  [2, "6XV1870-3QH20", "2 m", true],
+  [3, "6XV1870-3QH30", "3 m", false],
+  [6, "6XV1870-3QH60", "6 m", true],
+  [10, "6XV1870-3QN10", "10 m", true],
+  [20, "6XV1870-3QN20", "20 m", false],
+  [30, "6XV1870-3QN30", "30 m", false],
 ];
 
 /**

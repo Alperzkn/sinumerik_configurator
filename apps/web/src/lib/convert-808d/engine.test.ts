@@ -235,6 +235,27 @@ t("1PH1 power cable picks the cross-section from the preceding spindle", () => {
   assert.equal(c?.cls, "verified");
 });
 
+t("power cable cross-section follows Table 3-2 of the 1PH3 Pro manual", () => {
+  const r55 = convert([row("1PH1105-1LD10-0GA0"), row("6FX5008-1BB31-1AF0")]); // 5.5 kW SH100 → 4x4
+  assert.equal(find(r55.lines, "6FX5008-1BB31-1DA0")?.cls, "verified");
+  const r11 = convert([row("1PH1133-1LD10-0GA0"), row("6FX5008-1BB61-1AF0")]); // 11 kW SH132 → 4x10
+  assert.equal(find(r11.lines, "6FX5008-1BB51-1DA0")?.cls, "verified");
+  const rNone = convert([row("6FX5008-1BB21-1AF0")]);
+  assert.equal(rNone.lines[0].cls, "review");
+});
+
+t("1PH3136 Y/Δ winding (S) pasted directly is accepted", () => {
+  const r = convert([row("1PH3136-1HS12-0GA1")]);
+  assert.equal(find(r.lines, "1PH3136-1HS12-0GA1")?.cls, "derived");
+  assert.ok(find(r.lines, "6SL5510-1EE21-5AF0"));
+});
+
+t("PROFINET cord lengths printed in IK PI are verified, others flagged", () => {
+  const r = convert([row("6FC5548-0BA20-1AD0", 1, "PPU-V70 bus cable 3 m"), row("6FC5548-0BA20-1AA3", 2, "V70-V70 0.35 m")]);
+  assert.equal(find(r.lines, "6XV1870-3QH30")?.cls, "review");
+  assert.equal(find(r.lines, "6XV1870-3QE50")?.cls, "verified");
+});
+
 t("1PH1 encoder cable with an unlisted length is flagged", () => {
   const r = convert([row("6FX3002-2CT30-1DA0")]);
   assert.equal(find(r.lines, "6FX3502-2XB13-1DA0")?.cls, "review");

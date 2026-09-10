@@ -1,0 +1,1426 @@
+SINUMERIK 828D Smart system
+ Preconfigured system for standard machine tools
+ The right system for a smart future
+
+ - Details
+
+Unrestricted | © Siemens 2026
+Agenda
+
+
+ 01      Target machine types and SINUMERIK 828D Smart system introduction
+
+
+
+
+Page 2   Unrestricted | © Siemens 2026
+OEM key challenges in high-volume & value-oriented standard machine tool segment
+
+
+
+         Cost & Margin Pressure of OEM                             Performance & Stability Dilemma
+         • Raw materials, labor and factory operating costs keep   • Mass production scenarios require 24/7 stable
+           rising continuously.                                      operation and minimal unplanned downtime.
+         • Downstream end-users require lower machine prices,      • Most low-cost basic CNC products sacrifice precision
+           which severely compresses OEM profit margins.             and performance; while mid-range products are over-
+           Traditional high-end CNC systems are too costly for       equipped with redundant functions, raising
+           large-scale standard machine production.                  unnecessary costs. The market lacks a solution with
+                                                                     balanced performance and cost.
+
+
+         Delivery & Efficiency Demands                             Globalization & Service Barriers
+         • Emerging sectors including AI liquid cooling, data      • Many local OEMs intend to expand overseas business,
+           center infrastructure, automotive and 3C electronics      but lack mature global service networks and unified
+           drive exponential growth of standard machine tools.       technical support. Fragmented CNC & drive solutions
+         • OEMs are forced to shorten commissioning, production      bring difficulties in cross-region maintenance and
+           and delivery cycles to meet surging orders.               technical service.
+
+
+
+
+Page 3   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart system - designed for standard VMC and Turning machines
+
+
+         System performance that refines your expectations                           24.   Stability built for continuous production
+         • SINUMERIK 828D Smart controller: an extension of the proven 828D                • Unified & Mature Platform: 828D Smart shares a unified hardware concept
+           platform, delivering optimized performance.                                       and software platform with mature 828D system, ensuring a stable and
+         • SINAMICS S200 servo drive system:                                                 consistent technology foundation.
+
+                 ✓ PROFINET communication with the controller, enabling superior           • Field-Proven Components: S200 drives and motors have been widely
+                   motion precision.                                                         adopted across diverse industries, with their reliability thoroughly proven in
+                                                                                             the field.
+                 ✓ Built on a unified platform with planned portfolio extensions.
+                                                                                           • Robust Supply Chain: all system components are backed by a mature
+         • SINAMICS S200 spindle drive system:                                               production and supply chain management system, enabling timely response
+                 ✓ Up to 200% overload capacity, enabling fast acceleration &                to market fluctuations.
+                   deceleration, higher productivity.
+                 ✓ Reduced vibration for better surface quality.
+
+
+
+
+         Simplicity that accelerates your business                                         Global Strength to Empower Overseas Expansion
+         • Simplified commissioning: Easy and standardized configuration and               • Powered by Siemens' global service network and international brand
+           commissioning is critical when commissioning machines at scale.                   influence — full support for OEM’s overseas business.
+         • User-friendly programming and diagnosis: faster operator onboarding and
+           troubleshooting during large-scale ramp-ups.
+         • Maintenance-Free controller design: No fan, no battery.
+         • Streamlined ordering and inventory management: simplified options to
+           choose from, no complex configurations needed.
+
+
+
+Page 4   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart system - target Industries
+- Configuration tailored to value-oriented market needs
+
+Focus on standard machines tool usage sector,
+                                                 offers reliable, precise and efficient CNC performance.
+
+
+
+
+                                                                                                                         …….
+
+
+
+
+Support on Turning, Milling and Grinding technology       General machining, AI liquid cooling, humanoid robotics, New
+                                                          Energy Vehicle, 3C, mold& die, semiconductors and more
+
+
+Page 5   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart system - target machine types
+
+
+
+
+                                                                                 1 or 2-Channel Turning center
+     Main                                                                                                           All types of machines…
+    Machine
+     Types
+                                                                            Grinding              Gantry machine
+                                         VMC<1.3m          2-axis Turning
+
+
+
+
+                                                                            VMC≥1.3m               Tapping center
+
+
+                                                    Standard                            Midrange                           High-End
+
+
+  Solution
+
+                                           SINUMERIK 828D Smart                  SINUMERIK 828D                         SINUMERIK ONE
+
+
+Page 6   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart system - position inside SINUMERIK family
+
+
+           Entry class                                        Standard                                  Midrange / Compact class                                       Premium class
+                                                                                                                                                                       SINUMERIK ONE
+
+                                                                                                               SINUMERIK 828D
+                                                   SINUMERIK 828D Smart
+   Will phase out in Oct. 2027
+         SINUMERIK 808D
+                                                     NEW
+
+
+
+
+                                                                                                                                                        • Drive based
+                                                                                                                                                        • Focus machine type: 5-axis machine, Multi
+                                                                                                                                                          technology
+                                           • Panel based                                          • Panel based & Standalone
+ • Panel based                                                                                                                                          • With extensive drive and motor portfolio
+                                           • Focus machine type: Standard vertical machining      • Focus machine type: High precision machining
+ • Turning and Milling                                                                                                                                  • with NCU-Link up to 93 NC axis/spindle
+                                             centers, Lathes for basic turning                      centers, Grinding, Gantry machine, Tapping center
+ • Up to 6 axes/spindles                                                                                                                                • Up to 10 channels
+                                             applications, Engraving                              • With extensive drive and motor portfolio
+ • 1 channel                                                                                                                                            • 12‘‘ to 24“- multi touch display modular
+                                           • Pre-defined system performance with selected drive   • Up to 18 axes/spindles
+ • 8,4“- display                                                                                                                                        • SIMATIC S7-1500 based PLC
+                                             and motor                                            • 2 channels
+ • SIMATIC S7-200 based PLC                                                                                                                             • Digital Twin supported
+                                           • Up to 5 axes/spindles                                • 12,1“ / 15,6“- multi-touch display
+                                                                                                                                                        • Cybersecurity & Safety function
+                                           • 1 channel                                            • SIMATIC S7-200 based PLC
+                                           • 12,1“ display                                        • New faster CPU
+                                           • SIMATIC S7-200 based PLC                             • Digital Twin supported
+                                           • Cybersecurity & basic Safety function                • Cybersecurity & Safety function
+                                           • SW 24x                                               • SW 24x, SW 26x, SW 28x
+
+                                                 Machine performance (axis numbers, accuracy, flexibility and stability)
+
+
+Page 7     Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart system - standardized configuration
+
+
+                           Vertical Milling Center                                                   Lathes for basic turning
+
+
+
+
+ SINAMICS S200 (PN 400V)        SINUMERIK 828D Smart   SINAMICS S200 Spindle   SINAMICS S200 (PN 400V)   SINUMERIK 828D Smart   SINAMICS S200 Spindle
+ SIMOTICS 1FL2                                         SIMOTICS 1PH3 Pro       SIMOTICS 1FL2                                    SIMOTICS 1PH3 Pro
+
+
+
+
+Page 8   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart system - target markets
+
+
+ Primary focus markets in the near term: China, India
+ Expansion into other regions after references, success stories, and market proof points are established: Brazil, Türkiye,
+ Austria, Switzerland, Italy, ASEAN, South Korea etc.
+
+                                                                       Austria
+
+                                                                                 Türkiye
+                                                                                                                   South
+                                                                                                                   Korea
+                                              Switzerland
+
+
+
+                                                               Italy
+                                                                                                              China
+
+
+
+                                                                                           India
+                                                      Brazil
+                                                                                                      ASEAN
+
+
+
+
+Page 9   Unrestricted | © Siemens 2026
+Agenda
+
+
+
+
+ 02       SINUMERIK 828D Smart hardware and software details
+
+
+
+
+Page 10   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart PPU 26x.5 system integration
+- Various connectable components
+
+
+
+
+                                          •   PROFINET connection to SINAMICS S200 & S200 Spindle
+                                          •   SINUMERIK 828D MCP
+                                                • MCP 1200U-H
+                                                • MCP 1200U-V
+                                          •   Mini handheld unit
+                                          •   Handheld electronic handwheel
+                                          •   PP 72/48D PN / PP 72/48D 2/2A PN I/O modules
+                                          •   PN/PN coupler
+
+
+
+
+Page 11   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart PPU 26X.5
+
+
+                         Standard application
+                                     Panel-based PPU
+
+                                                                                             PPU261.5                    PPU260.5
+                                                                            CNC                  16:10 1280*800 12.1’’ screen
+
+                                                                      Keyboard for CNC      ONG keyboard            QWERTY Keyboard
+
+                                                                    Machine control panel   MCP 1200U-H               MCP 1200U-V
+
+                                                                       User Interface               Standard OPERATE HMI
+
+                                                                     HMI OA tooling for
+                                                                                                      Create MyScreens
+                                                                       Run EasyXML
+                                                                     Supported software
+                                                                                                     SW24x T, M or G-Tec
+                                                                        technology
+
+
+
+                                                                   Similar design and operating style to the
+                                                                   whole SINUMERIK 828D family
+
+
+              PPU 261.5                                PPU 260.5
+
+
+
+Page 12   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart PPU 26X.5 system
+- Interfaces just fit your demand
+
+                       ✓    Optional encoder (e.g. TTL spindle encoder)
+
+                                  ✓       2 × Handwheels
+                                                                                            ✓   PN for S200 drive
+                                              ✓   +24 V DC
+                                                                                                          ✓       LAN for commission
+
+                                                                                                              ✓     LAN for Ethernet
+                                                                                                                    ✓   2 × USB
+
+
+                                                                                                                              ✓   SD card slot
+                                                               ✓   Fast digital IO for NC
+
+
+
+
+                                                               ✓   2 × Digital IO for PLC
+
+
+
+
+Page 13   Unrestricted | © Siemens 2026
+SINUMERIK 828D family software scaling overview (1/3)
+
+
+                                                                    SW 24x             Features                                                               SW 24x
+            Type
+            “✓” Standard “O“ Optional “– “ not support                                 “✓” Standard “O“ Optional         “– “ not support         828D Smart               828D
+                                                               828D Smart    828D
+                                                                                      IPO cycle for max. configuration
+            PPU 260.5 / 261.5                                      ✓          x       • Turning / Milling / G-Tech                              9 ms / 9 ms / 9 ms   9 ms / 9 ms / 9 ms
+                                                                                      Minimum block change time, approx.
+ CNC HW     PPU 270.5 / 271.5 / 290.5                              x          ✓
+                                                                                      • Turning / Milling / G-Tech                              9 ms / 9 ms / 9 ms   9 ms / 9 ms / 9 ms
+            PU 272.5                                               x          ✓       Minimum block change time with compressor, approx.
+                                                                                      • Turning / Milling / G-Tech                               9 ms / 3 ms / –     9 ms / 0.9 ms / –
+ CNC SW                                                                               Position control cycle
+ SW5.2x
+            T/M/G                                                  ✓          ✓                                                                   3 ms (125 µs)        3 ms (125 µs)
+                                                                                      PLC cycle time                                                  9 ms                 9 ms
+            MCP 1200 U-H                                           ✓          ✓
+                                                                                      DRIVE-CLiQ S120: Velocity and current controller clock
+                                                                                      cycle                                                             –                 125 µs
+ MCP        MCP 1200 U-V                                           ✓          ✓
+                                                                                      Velocity and current controller clock cycle for a high-
+            MCP 1500U                                              ✓          ✓       speed spindle
+                                                                                      Mixed operation without NX: 4 × 125 µs and 1 × 62.5 µs,
+ Drive      SINAMICS S200/S200 Spindle                             ✓          –       max. number of axes = 5
+                                                                                                                                                                       – / 62.5 µs / 62.5
+            SIMOTICS 1FL2                                          ✓          –       • Turning / Milling / G-Tech Cylindrical/G-Tech Surface
+                                                                                                                                                     –/–/–                     µs
+ Motor
+            SIMOTICS 1PH3 Pro(Biss/TTL)                            ✓          –       SINAMICS S200: Velocity and current controller clock
+                                                                                      cycle for a high-speed spindle                                 125 µs                  –
+Operate    HT10                                                    –          O
+          Maximum axes in system (including axes/spindles in                          Number of Numeric Control Extensions NX10.3                       –                    1
+          machining channel + axes in handling channel + PLC                          Number of Numeric Control Extensions NX15.3                       –                    1
+ Axes     positioning axes )
+ number   • Turning                                                5        8 (5+3)   Number of I/O modules PP 72/48D PN or PP 72/48D 2/2A
+          • Milling                                                5        8 (5+3)   PN
+          • G-Tech Cylindrical/G-Tech Surface                      5        8 (5+3)   • Turning / Milling / G-Tech                                   1/1/1                3/3/3
+
+
+Page 14   Unrestricted | © Siemens 2026
+SINUMERIK 828D family software scaling overview (2/3)
+
+
+ Features                                                                                               SW 24x             Article No.
+ “✓” Standard “O“ Optional           “– “ not support T / M / G-Tech                         828D Smart          828D
+Axis/spindle, each additional                                                                    O                 O     6FC5800-0AC20-0YH0
+Positioning axis/auxiliary spindle, each additional                                              O                 O     6FC5800-0AC30-0YH0
+TRANSMIT/TRACYL transformation without Y axis                                                    O                 O     6FC5800-0AS50-0YH0
+Pair of synchronized axes (gantry axes), Basic                                                  O (1)             O(1)   6FC5800-0AS51-0YH0
+Generic coupling CP-Basic, e.g. multi-edge turning                                               O                 O     6FC5800-0AM72-0YH0
+Leadscrew error compensation, bidirectional                                                      O                 O     6FC5800-0AM54-0YH0
+SINUMERIK Operate Runtime license OA Easy Screen
+                                                                                              O/ O/✓             O/O/✓   6FC5800-0AP64-0YH0
+Run MyScreens
+Access protection for cycles Lock MyCycles                                                       O                 O     6FC5800-0AP54-0YH0
+Friction compensation with adaptive characteristics                                              O                 O     6FC5800-0AS06-0YH0
+CNC lock function                                                                                O                 O     6FC5800-0AP76-0YH0
+Advanced technology functions (expansion of the technology cycles for turning and milling)     O/O/–             O/O/–   6FC5800-0AP58-0YH0
+Extended operator functions                                                                      O                 O     6FC5800-0AP16-0YH0
+Basic technology functions                                                                       O                 O     6FC5800-0AQ08-0YH0
+Extended operator basic functions                                                                O                 O     6FC5800-0AQ06-0YH0
+ShopTurn/ShopMill machining step programming                                                   O/O/–             O/O/–   6FC5800-0AP17-0YH0
+Residual material detection and machining for contour pockets and stock removal                O/O/–             O/O/–   6FC5800-0AP13-0YH0
+Simultaneous recording (real-time simulation of the current machining operation)                 O                 O     6FC5800-0AP22-0YH0
+Contour handwheel                                                                                O                 O     6FC5800-0AM08-0YH0
+Top Surface                                                                                    –/O/–             –/O/–   6FC5800-0AS17-0YH0
+Access MyMachine /OPC UA                                                                         O                 O     6FC5800-0AP67-0YH0
+Access MyMachine /OPC UA - Eco                                                                   O                 O     6FC5800-0AQ67-0YH0
+
+
+Page 15    Unrestricted | © Siemens 2026
+SINUMERIK 828D family software scaling overview (3/3)
+
+
+ Features                                                                    SW 24x             Features                                                                    SW 24x
+ “✓” Standard “O“ Optional           “– “ not support                828D Smart       828D      “✓” Standard “O“ Optional              “– “ not support           828D Smart          828D
+Tangential control   Turning / Milling / G-Tech                        –/–/–          –/–/O    Digital inputs, maximum                                                 120              216
+Top Speed plus    Turning / Milling / G-Tech                           –/–/–          –/O/–    Digital outputs, maximum                                                 80              144
+Nodding, Cylinder error, sag, cogging torque compensation, MEC,                                Analog inputs, maximum                                                   2                6
+and spline interpolation                                                 –              O
+                                                                                               Analog outputs, maximum (including PPU output)                           3                7
+SMTE’s and surface turning, interpolation turning, prime turning,                              Extended Safety Integrated functions:
+comb grooving, turning with Y-axis, advanced rapid movement,             –              O      STO, SS1, SS2, SOS, SLS, SAM, SBR, SSM, SLP, SDI, SBM, SBC,              –                O
+reduced dynamic mode                                                                           SBT
+                                                                                                                              1)
+Leading axis/following axis Basic for drives                             –              O      Basic technology functions                                               O                ✓
+                                                                                                                                       2)
+Generic coupling, CP-Static, CP-Comfort                                  –              O      Extended operator basic functions                                        O                ✓
+Inclined axis, inclined axis Basic fixed angle                           –              O       1) 6FC5800-0AQ08-0YB0: The CNC option basic        • Positioning axes softkey in Jog mode
+                                                                                                  technology functions provides you with           • Simple face milling/stock remove of the
+Measuring cycle, measure kinematics                                      –              O         technology cycles of turning and milling for the workpiece softkey in Jog mode
+ACM, RMR/handling, PMM/3D Primitive, TCS                                 –              O         following additional machining operations:       • Swiveling softkey in Jog mode
+                                                                                                  • Swivel plane and swiveling tool                • Manual retraction softkey in Jog mode
+DXF reader, monitoring for maximum tool speed/acceleration, Path                                  • Deep hole drilling 2                           • Thread synchronizing softkey in Jog mode
+acceleration limitation, Simulation 1 (finished part) in 3D              –              O         • Grid or frame position pattern                 • Active zero offset softkey
+representation,                                                                                   • Open slot                                      • Overview zero offset softkey
+Replacement tools for tool management, Identify tool demand,                                      • Tool management function and magazine list     • NC/PLC variable softkey
+Tool identification for loading/unloading tools with code carrier        –              O                                                          • Bus TCP/IP softkey
+                                                                                                                                                   • Axis diagnosis softkey
+ESR, IDC, ILC, Jerk adaptation, DYNNEGMA, AST addon                      –              O       2) 6FC5800-0AQ06-0YB0: The operator functions • Additional measuring version beyond standard
+                                                                                                  in the basic scope of the SINUMERIK 828D are     scope (only milling)
+Angle head adapter, evaluation of internal drive variables, Ctrl-E       –              O         designed for standard applications.              • Standard scope workpiece zero: Set edge, 1
+Memory expansion Ladder Steps, maximum (option)                                                   The CNC option Extended operator basic functions circular spigot and rectangular spigot
+Basic configuration: 24000                                               –            100000      enables the following additional
+                                                                                                  operator functions:
+
+
+Page 16    Unrestricted | © Siemens 2026
+One-Button Auto Servo Tuning (AST)
+- Delivering major time savings during commissioning for machine users
+
+
+                                            Press only one button, we handle the rest
+                                            Simply press one button; the system tunes the entire servo chain automatically
+                                            within 15 minutes , bring the machine to optimal condition instantly
+
+
+                                                  One-Button Start                         Intelligent Optimization
+                                                  Press AST on HMI                         Speed, position, filters tuned
+
+
+
+
+                                                  Auto Collection                          Optimum Performance
+                                                  Inertia, resonance                       Machine at its best
+
+
+
+
+                                            ✓ Auto position & speed tuning
+                                            ✓ Auto filter setting
+                                            ✓ Complete online without offline tools required
+
+
+
+
+Page 17   Unrestricted | © Siemens 2026
+SINUMERIK HMI: Create MyScreens (CMS) editor
+- Develop your own XML screens easily
+
+
+
+                                               •   Simplify the development task of customized screen
+
+                                          +    •
+                                                   via EasyXML
+                                                   Reduce the learning time and coding work mistakes
+
+
+
+
+                                               The editor shall enable users to design / configure
+                                               screens for SINUMERIK Operate.
+                                               • Drag & Drop of elements without code writing
+
+                                          +    • Properties editor of elements
+                                               • Syntax check
+                                               • Expert editor
+                                               • …
+
+                                          Create MyScreens editor is integrated in Access MyMachine
+                                                   /P2P software starting from version 5.0
+
+
+Page 18   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart – Extended operator basic functions                                  6FC5800-0AQ06-0YH0
+
+
+- Overview （1/2）
+
+  Extended operator basic                 NEW
+                                                The CNC option Extended operator basic functions
+  functions                                     enables the following additional operator functions:
+
+                                                    •   Positioning axes softkey in Jog mode
+                                                    •   Simple face milling/ stock remove of the workpiece
+                                                        softkey in Jog mode
+                                                    •   Swiveling softkey in Jog mode
+
+                                                +   •
+                                                    •
+                                                        Manual retraction softkey in Jog mode
+                                                        Thread synchronizing softkey in Jog mode
+                                                    •   Additional measuring version beyond standard
+                                                        scope (only milling, standard scope workpiece zero:
+                                                        Set edge, 1 circular spigot and rectangular spigot
+
+                                                    •   Offers a variety of easy-to-use machine setup
+
+                                                +       functions for part measuring and precutting in
+                                                        order to reduce downtimes of the machine
+                                                        significantly
+
+Page 19   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart – Extended operator basic functions                                6FC5800-0AQ06-0YH0
+
+
+- Overview （2/2）
+
+ Extended operator basic                  NEW
+                                                The CNC option Extended operator basic functions
+ functions                                      enables the following additional operator functions:
+
+
+                                                    •   Active zero offset softkey
+                                                    •   Overview zero offset softkey
+                                                +   •
+                                                    •
+                                                        NC/PLC variable softkey
+                                                        Bus TCP/IP softkey
+                                                    •   Axis diagnosis softkey
+
+
+
+
+Page 20   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart – Basic technology functions                                            6FC5800-0AQ08-0YH0
+
+
+- Technical cycles (1/2)
+
+
+ Basic technology functions               NEW
+
+
+
+
+                                                The CNC option Basic technology functions provides
+                                                you with technology cycles of turning and milling for
+                                                the following additional machining operations:
+
+
+                                                       •   Swivel plane and swiveling tool
+
+                                                 +
+                                                       •   Deep hole drilling 2
+                                                       •   Grid or frame position pattern
+                                                       •   Open slot
+
+                                                       •   Offer more scope of machining cycles for
+                                                  +        drilling and milling of standard geometries
+                                                           even in swiveled planes
+
+
+
+
+Page 21   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart – Basic technology functions                                                6FC5800-0AQ08-0YH0
+
+
+- Tool management (2/2)
+
+
+ Tool management                          NEW
+
+
+
+
+                                                The powerful SINUMERIK tool management ensures
+                                                highly productive manufacturing sequences together with
+                                                user-friendly and intuitive operation :
+
+
+                                                    All in one screen, all under control
+                                                    • Tool types are displayed as easy to remember icons
+                                                    • Clearly structured display of magazine and tool data on
+                                                        one screen
+                                                +   • Fast tool tracking due to readable tool names
+                                                    • Management of up to 128 tools
+                                                    • Tool life monitoring and management of replacement
+                                                        tools
+                                                    • Convenient loading / unloading function for fast
+                                                        magazine assignment
+
+
+
+Page 22   Unrestricted | © Siemens 2026
+Agenda
+
+
+
+
+ 03       Feed axis solution – SINAMICS S200 and SIMOTICS 1FL2
+
+
+
+
+Page 23   Unrestricted | © Siemens 2026
+SINAMICS S200 PN 400V + SIMOTICS S-1FL2
+- Feed Axes
+
+
+
+
+                                                                                                                 Performance-optimized
+                                                                                                              ✓ Speed controller cycle 125us
+
+
+                                                                                                              ✓ Speed up communication to controllers with
+                                                                                                                PN IRT
+
+
+                                                                                                              ✓ High resolution encoder up to multi-turn 21-
+                                                                  3AC 380-480V                                  bit +12 bit
+
+                           FSA                       FSB                    FSC                 FSD
+                                                                                                              ✓ Up to 350% overload capacity
+ Prated [kW]                0.4            0.75             1        1.75         2.5    3.5     5      7
+ I rated [A]                1.3                2.5         3.0        5.3         7.8    11     12.6   13.2
+                                                                                                              ✓ Motors with IP65 protection and metal
+ I max [A]                   6                 9.3         11.5       20          26.5   38.1   38.8   37.4     connection solution
+
+
+
+
+Page 24        Unrestricted | © Siemens 2026
+SIMOTICS S-1FL2 high inertia(HI) servo motor
+- Providing smooth running quality and low torque ripple
+
+
+                                                                                     Features:
+                                                                                     ▪ High inertia for load adaption and smooth operation
+                                                                                     ▪ Max. speed up to 4000rpm
+                                                                                     ▪ Up to 350% overload capacity
+                                                                                     ▪ Protection level IP65
+
+
+                                                                                     ▪ Encoder
+      Shaft height                   Power        Torque              Speed
+        SH [mm]                    Prated [kW]   Mrated [Nm]   nrated / nmax [rpm]         ▪ Absolute BiSS-C encoder multi-turn: 21-bit + 12 bit
+                                       0.4          1.27                                   ▪ Optional holding brake
+           45                                                     3000 / 4000
+                                      0.75          2.39
+                                      0.75          3.58
+                                                                                     ▪ Plain shaft or shaft with key
+                                       1.0          4.78
+           65                          1.5          7.16          2000 / 3000
+                                      1.75          8.36
+                                       2.0          9.55
+                                       2.5          11.9
+                                                                  2000 / 3000
+                                       3.5          16.7
+           90
+                                       5.0          23.9          2000 / 2500
+                                       7.0          33.4          2000 / 2000
+
+
+Page 25   Unrestricted | © Siemens 2026
+SIMOTICS S-1FL2 flange mechanical is compatible with other suppliers
+- Also Compatible with 1FL6*
+
+
+                                                                                     Comparison of shaft end   Descriptions                 Siemens
+
+                                                                                                               Spigot diameter    ФLB [mm] 110
+                                                                                                               Spigot Tolerance       [mm] 0 / -0.035
+                                                                                                               Spigot length        LE [mm] 6
+                                                                                     SH65
+                                                                                                               Pitch diameter.    ФL A [mm] 145
+                                                                                                               Screw holes        4xLZ [mm] 9
+                                                                                                               Flange thickness     LG[mm] 12
+
+
+ Comparison of shaft end                     Descriptions                 Siemens    Comparison of shaft end   Descriptions                 Siemens
+
+                                             Spigot diameter    ФLB [mm] 80                                    Spigot diameter    ФLB [mm] 114.3
+                                             Spigot Tolerance       [mm] 0 / -0.03                             Spigot Tolerance       [mm] 0 / -0.035
+                                             Spigot length        LE [mm] 4                                    Spigot length        LE [mm] 3
+ SH45                                                                                SH90
+                                             Pitch diameter.    ФL A [mm] 100                                  Pitch diameter.    ФL A [mm] 200
+                                             Screw holes        4xLZ [mm] 6.7                                  Screw holes        4xLZ [mm] 13.5
+                                             Flange thickness    LG[mm] 10                                     Flange thickness    LG[mm] 18
+
+* 1FL6 is used in the SINUMERIK 808 system
+
+
+
+Page 26      Unrestricted | © Siemens 2026
+SINAMICS S200 and SIMOTICS S-1FL2
+- Optimized feed axis solution
+
+
+                                                       Wide range selections cover most applications of basic machines:
+                                                       • Power range/Static torque: 0.4kW/1.27Nm ~ 7kW/33.4Nm
+                                                       • Motor mechanical options: without brake / with brake; plain shaft / fitted key
+                                                       • Encoder: Absolute multi-turn 21-bit + 12bit
+
+
+
+                              SIMOTICS S-1FL2 Servo Motor                                                   SINAMICS S200 Drive
+Shaft height        Power         Rated Torque         Speed                                           Rated Current
+                                                                       Encoder        Frame Size                                  Order number
+  sh [mm]           Pn[kW]           Mn [Nm]      nn / nmax [rpm]                                          I [A]
+                       0.4                 1.27                                          FSA                1.3             6SL5510-1BE10-4AF0-Z T80
+      45                                           3000 / 4000
+                      0.75                 2.39
+                                                                                                                            6SL5510-1BE10-8AF0-Z T80
+                      0.75                 3.58                                          FSB                3.0
+                        1                  4.78                                                                             6SL5510-1BE11-0AF0-Z T80
+      65               1.5                 7.16
+                                                                    Abs. multi-turn                                         6SL5510-1BE11-5AF0-Z T80
+                      1.75                  8.4    2000 / 3000
+                                                                    21-bit + 12bit       FSC                7.8
+                        2                   9.6
+                                                                                                                            6SL5510-1BE12-5AF0-Z T80
+                       2.5                 11.9
+                       3.5                 16.7                                                                             6SL5510-1BE13-5AF0-Z T80
+      90
+                        5                  23.9    2000 / 2500                           FSD               13.2             6SL5510-1BE15-0AF0-Z T80
+                        7                  33.4    2000 / 2000                                                              6SL5510-1BE17-0AF0-Z T80
+
+
+Page 27    Unrestricted | © Siemens 2026
+Agenda
+
+
+
+
+ 04       Spindle solution – SINAMICS S200 Spindle and SIMOTICS 1PH3 Pro
+
+
+
+
+Page 28   Unrestricted | © Siemens 2026
+SINAMICS S200 Spindle + SIMOTICS 1PH3 Pro
+- Spindle Axis
+
+
+
+
+                                                                                          Performance-optimized
+                                                                                       ✓ Speed controller cycle 125us
+
+
+                                                                                       ✓ Speed up communication to controllers with
+                                                                                         PN IRT
+                                                            SIMOTICS 1PH3 Pro
+
+                                                                                       ✓ High resolution encoder up to 21-bit
+            SINAMICS 200 Spindle
+                                                 3AC 380-480V
+                                                FSE                         FSF        ✓ Up to 200% overload capacity
+             Prated [kW]                  3.7         7.5           11            15
+             I rated [A]                  13          18            30            43   ✓ Motors with IP54 protection and metal
+                                                                                         connection solution
+             I max [A]                    26          36            60            86
+
+
+
+
+Page 29   Unrestricted | © Siemens 2026
+SINAMICS S200 family selected portfolio
+- (S200 + S200 Spindle) connected with 828D Smart as M2.5 solution
+
+
+                        Feed Axes               Spindle Axis
+                               S200                 S200 Spindle                                      1. Same…
+                  STO,SS1                     STO,SS1                                                 • Size / footprint
+                  PN                          PN                                                      • Mec. housing
+
+
+
+
+                                                                        Control Unit
+                                                                                                      • Mec. Interface
+                                                                                       Similar CU
+                  Holding brake                                                        PCBA
+                  Encoder (BiSS)              Encoder (BiSS)                           Interface
+                                              2nd Encoder. (TTL)
+                                                                                       reserved       2. Consistant in…
+                                              Temp sensor                                             •   Control
+                                                                                                      •   Engineering
+                                                                                                      •   Firmware
+                  Integrated Brake resistor   External Brake resistor                                 •   Diagnosis
+                  400V:
+                                                                                       FSA, B, C, D   3. Scalable
+                                                                        Power
+                  0.4 - 7kW
+                                              400V: 3.7kW, 7.5kW
+                                                                                       FSE, FSF       Software
+                                              400V: 11kW, 15kW
+
+
+  • Different …Size / footprint,
+    Mec. Housing…
+  • still consistent in SW
+
+
+
+Page 30   Unrestricted | © Siemens 2026
+Main features of 3rd generation SINAMICS drive S200 Spindle and S200
+
+
+                    Topics                             S200 Spindle                                     S200PN 400V
+Supporting grid type                                      TN / TT / IT                                     TN / TT / IT
+PWM frequency                             4k rated                           8k derating                       8k
+Output frequency                                          0~550 Hz                                         0~550 Hz
+Current loop cycle time                   125 μs                               125 μs                        125 μs
+Speed loop cycle time                     125 μs                               125 μs                        125 μs
+Communication                                             PROFINET                                         PROFINET
+Communication cycle                                     250 μs (IRT)                                     250 μs (IRT)
+External 24V supply                                    Yes, daisy chain                                 Yes, daisy chain
+                                                         X120: BiSS
+Encoder interface                                                                                          X120: BiSS
+                                                         X121: TTL
+Commissioning interface                                  X127: RJ45                                       X127: RJ45
+Motor support                                             1PH3 Pro                                          1FL2 HI
+Temperature sensor                                     PT1000 / KTY84                                          /
+Overload capacity                                       200% 2.5min                                       Up to 300%
+                                                     Speed control
+                                                                                                         Speed control
+Control feature                                             EPos
+                                                                                                             EPos
+                                            Support of full closed loop control
+Certification                                    CE, UKCA, KC, EAC, RCM                           CE, UL, UKCA, KC, EAC, RCM
+
+Ring-Redundancy                                          MRP, MRPD                                        MRP, MRPD
+
+Safety Integrated                             Basic: STO via terminal (SIL3)                     Basic: STO via terminal (SIL3)
+
+Engineering                                          TIA Portal/Startdrive                 TIA Portal/Startdrive, Integrated Webserver
+
+Cable Connection                                          up to 20m                                        up to 30m
+
+
+
+Page 31   Unrestricted | © Siemens 2026
+SIMOTICS M-1PH3 Pro for midrange application
+- Comprehensive solution
+
+                                                                          Mid-range
+ Properties                                                           Main Spindle Motor
+                                                                           1PH3 Pro
+                                                                                          Standard applications
+ Applications                                    Entry-level series
+                                                                                     Turning, Grinding, entry Milling
+ Control system                              SINUMERIK 828D Smart                          SINUMERIK 828D
+ Converter                                         S200 Spindle                     S120 (2nd Gen.) / S220 (3rd Gen.)
+
+
+ Motor
+
+
+
+ • Power range                     • 3.7 - 15 kW                               • 3.7 - 15 kW
+ • Shaft heights                   • 100/132                                   • 100/132
+ • Variance/standards              • no UL/STO only                            • UL/safety
+ • Encoder                         • TTL (Incremental) / BiSS (ST Absolute)    • 1Vpp Sin/Cos (Incremental)
+ • Accuracy                        • 13-bit, 21-bit                            • 22-bit/DQ
+ • Vibration class                 • S, SR                                     • S，SR
+ • Overload                        • 2.0                                       • 2.0
+ • Max. speed                      • 10,000 - 12,000 rpm                       • 10,000 - 12,000 rpm
+ • Cooling method                  • Fan cooling (NDE -> DE)                   • Fan cooling (DE -> NDE)
+ • Degree of protection            • IP54                                      • IP55
+
+
+
+Page 32   Unrestricted | © Siemens 2026
+SIMOTICS M-1PH3 Pro main motor for SINUMERIK 828D Smart
+- Flexible choice
+
+                                      rate speed                                                         2 encoder variants:
+                       rat. power                     rated   Speed n10/   Speed n2   Max. speed n3
+  No.     1PH3..                        n1 /rpm                                                          • TTL: 13 bit -> 828D Smart + S200 SP (3rd Gen.)
+                         Ps1 / kW                  Torque MS1   rpm          / rpm        /rpm
+                                                                                                         • BiSS-C: 20 bit -> 828D Smart + S200 SP (3rd Gen.)
+   1          101          3.7            1500        24         1500       4500         12000
+                                                                                                         1 winding type:
+   2          103          3.7            1000        35         1000       3500         10000           • Y connection
+   3          103          5.5            1500        35         1500       4500         12000
+                                                                                                         3 shaft variants:
+   4          105          5.5            1000        53         1000       3000         10000           • Plain shaft
+   5          105          7.5            2000        36         1500       4500         12000           • Half-key balancing
+                                                                                                         • Full-key balancing
+   6          107           9             1500        57         1500       4500         12000
+   7          107           11            2000        53         1500       5000         12000
+                                                                                                               power [kW]
+
+   8          131          7.5            1200        60         1000       6000          8000               PS65%
+
+   9          132           9             1200        72         1000       5000          8000
+  10          131           11            1500        70         1500       4000         10000
+  11          133           11            1000        105        1000       3500          8000             PS6-25%
+  12          135           12            1000        115        1000       3400          8000        PS6-40%, P1 S1
+  13          133           15            2000        72         1500       4000         10000
+  14          136           15            1000        143        1000       3000          8000
+
+          •     2 shaft heights, 1 winding type, 2 encoder variants, 3 shaft variants
+                •    New features ( Balancing / Vibration / Run out / Max speed)                                                                 speed [rpm]
+                                                                                                                       n1o n1      n2    n3
+
+
+Page 33   Unrestricted | © Siemens 2026
+SIMOTICS 1PH3 Pro with enhanced performance is competitive for standard machine Segment
+- Enhanced technology
+
+
+            1PH3 Pro Enhanced: Run Out                         1PH3 Pro                           1PH3 Pro Enhanced: Vibration
+
+• Spigot: ≤0.02mm (1PH3 : ≤0.05mm)              Power range            3.7kW – 15kW
+                                                                    SH100: Up to 12krpm
+• Flange axial: ≤0.02mm (1PH3 : ≤0.05mm)       Maximum speed
+                                                                    SH132: Up to 10krpm
+
+          1PH3 Pro Enhanced: Rotor Quality      Winding type                 Y
+
+
+• Motor temperature Decrease
+
+• Motor efficiency Increase                                                                     1PH3 Pro Enhanced: On-site balance
+
+• Enlarged consistent power range (N2 speed)
+
+• Enhanced encoder / bearing lifetime
+
+• Ensure production quality consistency
+
+     1PH3 Pro Enhanced: Maximum Speed ->
+                                                    1PH3 Pro Enhanced: Packaging            1PH3 Pro Enhanced: New encoder solution
+               Standard bearing
+• SH100: Up to 10krpm (1PH3: 6krpm)
+                                                                   Wooden box with steel   • BiSS-C/TTL + S200 SP
+                                                                   hinge / VCI bag to
+• SH132: Up to 8krpm (1PH3: 6krpm)
+                                                                   Enhance delivery
+                                                                   protection
+
+
+
+Page 34    Unrestricted | © Siemens 2026
+SINAMICS S200 Spindle and SIMOTICS 1PH3 Pro
+- Optimized Spindle solution
+
+
+                                           Wide range selections cover most applications of basic machines:
+                                           • Power range with 2 different frame size: 3.7kW ~ 15kW
+                                           • Motor mechanical options: flange mounting (B5) / foot mounting (B3); plain shaft, fitted key full key balancing / fitted key half key balancing
+                                           • Encoder options: incremental encoder TTL 2500 ppr / absolute encoder single-turn 21-bit
+
+
+                                            SIMOTICS M-1PH3 Pro Main Motor                                                                 SINAMICS S200 Spindle Drive
+    Shaft height          Power            Torque                Speed                                                                 Rated Current
+                                                                                                   Encoder              Frame size                              Order number
+      SH [mm]             Pn[kW]           (N`m)           nn / nmax [rpm]                                                                 I [A]
+                            3.7              35              1000 / 10000
+                                                             1500 / 12000                                                                    13                  6SL5510-1EE13-7AF0
+                             3.7             24
+                                                             1500 / 10000
+                             5.5             53              1000 / 10000
+                                                                                                                            FSE
+                                                             1500 / 12000
+          SH100              5.5             35
+                                                             1500 / 10000                                                                    18                  6SL5510-1EE17-5AF0
+                                                             2000 / 12000
+                             7.5             36
+                                                             2000 / 10000
+                                                                                                 INC.2500 ppr
+                              9              57              1500 / 12000
+                                                                                                 Abs. ST. 21bit
+                             11              53              2000 / 12000
+                             7.5             60               1200 / 8000
+                                                                                                                                             30                  6SL5510-1EE21-1AF0
+                              9              72               1200 / 8000
+                             11              105              1000 / 8000                                                   FSF
+          SH132              11              70              1500 / 10000
+                             12              115              1000 / 8000
+                             15              72              2000 / 10000                                                                    43                  6SL5510-1EE21-5AF0
+                             15             143                  1000 / 8000
+
+
+Page 35    Unrestricted | © Siemens 2026
+Agenda
+
+
+
+
+ 05       Cutting test result vs competitors on target machine types
+
+
+
+
+Page 36   Unrestricted | © Siemens 2026
+High-bandwidth speed control-turning-milling composite machine
+- Outstanding dynamic performance is prepared for real cutting
+
+
+     Turning-Milling                                            From AST
+
+
+                                                                           380               Hz
+                                                                           Bandwidth for speed control loop
+
+
+
+
+                                                                           • Bandwidth frequency 380Hz
+                                                                           • Phase margin > 45°
+           X           Z          Spindle                                  • Magnitude margin > 6dB
+                                              SINAMICS S200
+
+
+Inertia ratio   0.57        0.8
+
+
+
+
+                                            SIMOTICS MAIN MOTOR 1PH3 Pro
+SIMOTICS SERVO MOTORS 1FL2
+
+
+Page 37    Unrestricted | © Siemens 2026
+Cutting benchmark test SINUMERIK 828D Smart VS competitor in turning
+- Measurement of machining result
+
+
+                                                                     SINUMERIK 828D Smart
+                                            Roughness check: μm      Competitor
+
+                                                                                                                +31,5%     Key conclusion
+                                                                                                                         • Visual Inspection: Both systems are
+                                                            +7,6%
+                                                                                                                           smooth and meet quality standards
+                                                                                                                         • Surface Roughness: Siemens
+                                                                                                                           slightly better than Competitor —
+                                                                                                                           lower Rz values in both workpieces
+                                                    2,604                                                   3,495
+                                            2,419                                                                          indicate better surface finish
+                                                                                                    2,658
+                                                                                                                           consistency
+                                                                                                                         • Machining Time: Both systems
+
+   0,407 0,443           0,498 0,541                                0,556 0,592    0,675 0,744                             operate at nearly the same speeds,
+                                                                                                                           showing the efficiency is
+          Ra                   Rq               Rz                      Ra              Rq              Rz
+                                                                                                                           comparable.
+          Siemens:1min11s | Competitor:1min13s                          Siemens:3min48s | Competitor:3min46s
+
+
+
+
+Page 38     Unrestricted | © Siemens 2026
+The highlights of machining in turning
+
+
+                                High Dynamic Servo Drive                  Motor pre-installed cogging torque compensation
+
+                                          High dynamic servo response            SIMOTICS 1FL2
+
+                                          High-bandwidth speed control
+                                                                               The compensation for cogging torque before leaving the factory
+                                                                               Pre-calibration, install and go
+
+
+                                                 Precise control of            The torque/speed ripple is extremely small
+                                                 circular interpolation        It operates smoothly with almost no vibration
+
+
+                                                                               The surface finish of conical and cylindrical is excellent
+                                                                               Mirror-finish surface quality
+
+                                            There is no friction mark          The tool path is uniform and bright
+                                            when switching quadrants
+                                                                               The surface is consistent and flawless
+
+
+
+
+Page 39   Unrestricted | © Siemens 2026
+High-bandwidth speed control-milling (mold-die machining)
+- Outstanding dynamic performance is prepared for real cutting
+
+
+     Engraving Machine                                               From AST
+
+                                                        SINUMERIK
+                                                        828D Smart
+                                                                                420               Hz
+                                                                                Bandwidth for speed control loop
+
+
+
+
+                                                                                • Bandwidth frequency 420Hz
+              X           Y            Z                                        • Phase margin > 45°
+                                                                                • Magnitude margin > 6dB
+                                                   SINAMICS S200
+
+
+
+Inertia ratio 0.60            0.57          0.41
+
+
+
+
+          SIMOTICS SERVO MOTORS 1FL2
+
+
+Page 40     Unrestricted | © Siemens 2026
+User field testing: real cutting result compared with competitor in milling
+
+
+                                          SINUMERIK                                            Competitor
+                                          828D Smart                                           High Speed Setting
+                                                                                               312 min
+                                          Advanced Surface
+                                          CTOL=0.008, 324min
+
+
+
+
+                                                The same NC program
+                                                45#Steel
+                                                S12000 F1600
+
+
+
+
+ The cutting path is uniform,                                  The cutting path is unclear,
+                                                               discontinuous, and there were
+ smooth, continuous and clear.                                 over cutting
+
+
+
+
+Page 41   Unrestricted | © Siemens 2026
+High-bandwidth speed control-milling (VMC)
+- Outstanding dynamic performance is prepared for real cutting
+
+          Vertical Machining Center                                    From AST
+
+                                                        SINUMERIK
+                                                        828D Smart                   300               Hz
+                                                                                     Bandwidth for speed control loop
+
+
+
+
+                                                                                     • Bandwidth frequency 300Hz
+ Spindle              X           Y          Z
+                                                                                     • Phase margin > 45°
+                                                                                     • Magnitude margin > 6dB
+                                                       SINAMICS S200
+
+
+
+          I Inertia ratio 0.92        1.45       0.5
+
+                                                        SIMOTICS SERVO MOTORS 1FL2
+
+
+    SIMOTICS MAIN MOTOR 1PH3 pro
+
+
+Page 42      Unrestricted | © Siemens 2026
+Machining time performance is comparable to top competitor on typical workpiece milling
+manufacturing
+
+    Unit: minutes
+                                                                                        +0,5%
+
+                                                                                443,0           445,0
+              Finish cutting                                                                    182,0
+              Rough cutting                                     -2,5%           187,0
+                                                        158,0
+                                                                        154,0
+
+
+
+                                        +0,8%
+                                                        134,0           129,0
+                                                                                                263,0
+                                119,0           120,0                           256,0
+                                                92,0
+           +2,3%                97,0
+    12,8           13,1
+                                                28,0    24,0            25,0
+     5,3            5,1         22,0
+     7,5            8,0
+
+
+
+
+    Work piece 1                  Work piece 2           Work piece 3            Work piece 4
+
+
+Page 43    Unrestricted | © Siemens 2026
+Comparison of real cutting results with competitor based on VMC855II
+
+
+ SINUMERIK 828D Smart                     The cutting result for SINUMERIK 828D Smart is                                 SINUMERIK 828D Smart
+                                          better in the finer details. For example, there are
+ Top Surface CTOL=0.01                    some over cutting on the corners and tool path is not
+                                                                                                                         Top Surface CTOL=0.01
+                                          smooth.
+
+
+
+
+                                                                                        The cutting result for 828D smart
+   Competitor                                                                           is better in the contour precision.
+                                                                                                                              Competitor
+
+
+
+
+Page 44   Unrestricted | © Siemens 2026
+Machining accuracy comparison: Siemens vs top competitor in milling                      300 pts· CMM
+
+- Red bar height = CMM out-of-tolerance ratio
+
+                 SINUMERIK 828D Smart SW24                      Top Competitor
+                                          4.0%                        26.0%
+
+                                     12 / 300 out of tol.         78 / 300 out of tol.
+
+
+
+
+Page 45   Unrestricted | © Siemens 2026
+Agenda
+
+
+
+
+ 06       Typical package ordering information
+
+
+
+
+Page 46   Unrestricted | © Siemens 2026
+What you need in SINUMERIK 828D Smart system package
+
+
+                                              From Siemens                                                        From 3rd Party
+PPU + MCP + SD card w. SW license
+          (Same as PPU.5)              (Same as PPU.5 SW24)
+                                                                                                                    2nd Encoder
+                                                                                                                    Optional. Use a second encoder
+                                                                               Cables                               connect to PPU to achieve higher
+                                                                               PN cable (PPU to S200)               accuracy.
+  SITOP                                                                        PN cables (S200 to S200/S200 SP)
+                                                                               Power cables (drive to motor)
+                                                                               Encoder cables (drive to motor)
+                                                                               *Brake cables (drive to motor)
+
+
+
+
+                                                                                                                    Brake resistor
+                                                                                                                    Brake resistor is mandatory for
+           SINAMICS S200 drive                                                                                      S200 spindle drive!
+           SIMOTICS 1FL2 motor
+                                                       SINAMICS S200 Spindle drive
+                                                       SIMOTICS 1PH3 Pro motor
+           *Brake cable is only needed when 1FL2 motor is with brake.
+
+
+
+Page 47     Unrestricted | © Siemens 2026
+Typical examples for main components in a package
+
+
+
+                                             VMC850                                                                 CK6150
+
+
+
+    Component                       Description         QTY       Article No.            Component             Description          QTY       Article No.
+
+           PPU                             Vertical      1      6FC5370-3AA50-0AA0           PPU                Horizontal           1      6FC5370-2AA50-0AA0
+
+           MCP                             Vertical      1      6FC5303-0AF33-1AA1           MCP                Horizontal           1      6FC5303-0AF32-1AA1
+
+  SD card with SW                                                                       SD card with SW
+                                           Milling       1      6FC5835-2GY50-0YA0                                Turning            1      6FC5835-1GY50-0YA0
+      license                                                                               license
+                               M0=13.3Nm, SH65, 2kW,                                                      M0=18.1Nm, SH90, 3.5kW,
+           1FL2                Nn=2000rpm, w/o. brake
+                                                         2      1FL2306-7AC01-0MB0           1FL2          Nn=2000rpm, w/o. brake
+                                                                                                                                     1      1FL2310-2AC01-0MB0
+
+                               M0=13.3Nm, SH65, 2kW,                                                      M0=18.1Nm, SH90, 3.5kW,
+           1FL2                 Nn=2000rpm, w. brake
+                                                         1      1FL2306-7AC11-0MB0           1FL2           Nn=2000rpm, w. brake
+                                                                                                                                     1      1FL2310-2AC11-0MB0
+
+           S200                            2.5kW         3    6SL5510-1BE12-5AF0-ZT80        S200                 3.5kW              2    6SL5510-1BE13-5AF0-ZT80
+                               SH100, 7.5kW, BISS,                                                            SH132, 11kW, TTL,
+      1PH3 Pro              Nn=2000rpm, Nmax=12krpm
+                                                         1     1PH3105-1HG12-0KA1          1PH3 Pro       Nn=1500rpm, Nmax=10krpm
+                                                                                                                                     1      1PH3131-1LF12-0KA1
+
+          S200 SP                          7.5kW         1      6SL5510-1EE17-5AF0         S200 SP                11kW               1      6SL5510-1EE21-1AF0
+
+
+
+
+Page 48    Unrestricted | © Siemens 2026
+Agenda
+
+
+
+
+ 07       Service
+
+
+
+
+Page 49   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart service concept
+
+
+
+          Warranty & service protect             Repair service
+          • Standard: 24 months for whole        • In-house repair as standard
+            system                               • Return indicator: W55 for 828D Smart
+          • OSS plus: 2nd phase of 24 months     • LRC: SNC for PPU & Drive, SMCM for motor
+          • Value added: up to 72 months
+                                                 • RRC: After ELFF, 24 months after PM300
+
+
+          Technical Support                      Spare & Field service
+          • Online support: Siemens SiePortal    • Spare part exchange as standard,
+          • Industry Online Support Mobile app     Spares on Web - Siemens AG
+          • Siemens contact person database:     • Field service worldwide
+            Contact Database - Siemens AG        • On-site support free of charge via
+                                                   OSS plus registration
+
+
+          Special Investigation                  Training
+           • Special Investigation as standard   • Training courses offered on
+                                                   SITRAIN | Siemens
+                                                 • TTT for Internal training
+
+
+Page 50   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart warranty & OSS plus & field service
+
+
+
+             1st 24 months
+             covered @OEM +Dealer
+
+
+                                             2nd 24 months                                   Value added
+                                             Covered @End Customer                           Extension possible
+
+
+
+
+                                          24 months                                      48 months                72 months
+
+                                                    • Online Support
+                                                    • Provision of service personnel
+                                                    • On-site diagnosis
+                                                    • Troubleshooting on site
+                                                    • Proof of the fault rectification
+
+
+
+
+Page 51   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart spare part & repair service
+
+
+                                          Spare parts                              Repair Service & ELFF
+
+
+
+
+                                           Spare part info. available:              Data regarding return or repair
+                                           Spares on Web - Siemens AG               administration :PMD - Cockpit
+
+                                           Spare units:                             ELFF:
+                                           • All module article number for whole    • 24 months after PM300 for whole
+                                              package                                  package
+
+                                           Spare parts:                             Lead repair center:
+                                           • Fan of 1PH3 Pro                        • SNC: 828D Smart & S200 & S200
+                                           • Fan of S200/S200 SP                       Spindle
+                                           • Connectors of MC350 &380               • SMCM: 1PH3 Pro & 1FL2
+
+                                           Spare kits:                              Regional repair center:
+                                           • Terminal kits of S200/S200 SP          • India & Germany for whole package
+                                           • Shield plate kits of S200/S200 SP         after ELFF
+
+
+Page 52   Unrestricted | © Siemens 2026
+SINUMERIK 828D Smart system
+- Why should you use it now?
+
+
+
+
+   Optimize solution for standard turning and milling
+                                                                                                   Global presence
+                               Simplicity                                      Stability
+
+              SINUMERIK 828D Smart system
+                                          Cost efficiency             More than sufficient performance
+
+           Fast and easy commissioning                                   High-volume & value-oriented segment
+
+
+                                                   Maintenance free                               User-friendly operation
+
+
+Page 53   Unrestricted | © Siemens 2026
+Disclaimer
+
+
+   © Siemens 2026
+
+   Subject to changes and errors. The information given in this
+   document only contains general descriptions and/or performance
+   features which may not always specifically reflect those described, or
+   which may undergo modification in the course of further
+   development of the products. The requested performance features
+   are binding only when they are expressly agreed upon in the
+   concluded contract.
+
+   All product designations may be trademarks or other rights of
+   Siemens AG, its affiliated companies or other companies whose use
+   by third parties for their own purposes could violate the rights of the
+   respective owner.
+
+
+Page 54   Unrestricted | © Siemens 2026
+

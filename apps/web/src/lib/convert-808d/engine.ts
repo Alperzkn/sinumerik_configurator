@@ -533,24 +533,17 @@ export function convert(rows: InputRow[]): ConversionResult {
     }
     if (/^6FX5008-1BB[2-6]1-/.test(m)) {
       const pick = lastPh3;
-      let code: string | null = null;
-      let why = "";
-      if (pick && pick.sh === 100 && pick.wind === "D") {
-        code = "6FX5008-1BB21-1DA0";
-        why = "4x2.5 mm² for SH100 1000-rpm types";
-      } else if (pick && pick.frame === "136") {
-        code = "6FX5008-1BB61-1DA0";
-        why = "4x16 mm² for 1PH3136";
-      }
+      const XS: Record<string, string> = { "1BB21": "4x2.5", "1BB31": "4x4", "1BB51": "4x10", "1BB61": "4x16" };
+      const code = pick ? `6FX5008-${pick.cable}-1DA0` : null;
       out.push(
         line({
           mlfb: code || "6FX5008-1BB?1-1DA0",
-          desc: `Power cable for 1PH3 Pro, MOTION-CONNECT 500, sold as 30 m raw length without connectors (terminal-box motor)${why ? ` – ${why}` : " – cross-section 4x2.5 / 4x4 / 4x10 / 4x16 mm² (1BB21 / 1BB31 / 1BB51 / 1BB61) per motor current, 1PH3 Pro manual §3.2.4"}. Replaces ${m}.`,
+          desc: `Power cable for 1PH3 Pro, MOTION-CONNECT 500, sold as 30 m raw length without connectors (terminal-box motor)${pick ? ` – ${XS[pick.cable]} mm² for 1PH3${pick.frame} ${pick.kw} kW (Table 3-2)` : " – cross-section 4x2.5 / 4x4 / 4x10 / 4x16 mm² (1BB21 / 1BB31 / 1BB51 / 1BB61) per motor current; no spindle motor line preceded this cable"}. Replaces ${m}.`,
           qty: q,
           ...o,
           cls: code ? "verified" : "review",
           grp: "Spindle",
-          src: "Outside PDF – Siemens 1PH3 Pro manual 06/2026 §3.2.4",
+          src: "Outside PDF – cross-section: 1PH3 Pro manual 06/2026 Table 3-2; article: NC 81.1 (same MC500 raw cables as for 1PH1)",
           note: "Raw cable: order length and glands per installation; the 808D pre-assembled length no longer applies.",
         }),
       );
@@ -586,16 +579,19 @@ export function convert(rows: InputRow[]): ConversionResult {
             ? parseFloat(LEN[last])
             : 3;
       const cord = PN_CORDS.find((c) => c[0] >= L) || PN_CORDS[PN_CORDS.length - 1];
+      const listed = cord[3];
       out.push(
         line({
           mlfb: cord[1],
-          desc: `Industrial Ethernet TP Cord RJ45/RJ45 4x2, Cat 6A, pre-assembled, ${cord[2]} (PROFINET) – ${/PPU/i.test(r.desc) ? "PPU → first S200" : "S200 → S200 daisy chain"}`,
+          desc: `Industrial Ethernet TP Cord RJ45/RJ45 4x2, pre-assembled, ${cord[2]} (PROFINET) – ${/PPU/i.test(r.desc) ? "PPU → first S200" : "S200 → S200 daisy chain"}`,
           qty: q,
           ...o,
-          cls: "verified",
+          cls: listed ? "verified" : "review",
           grp: "PROFINET",
-          src: "Outside PDF – PDF p.47 requires PN cables; code seen in Siemens Industry Mall / distributor listings",
-          note: `Nearest length at or above the ${L} m V70 cable.`,
+          src: listed
+            ? "Outside PDF – PDF p.47 requires PN cables; article listed in catalog IK PI 2015"
+            : "Outside PDF – PDF p.47 requires PN cables; this length is seen only in Siemens Industry Mall / distributor listings",
+          note: `Nearest length at or above the ${L} m V70 cable.${listed ? "" : " Confirm the article in SiePortal before ordering."}`,
         }),
       );
       continue;
@@ -750,7 +746,7 @@ export function convert(rows: InputRow[]): ConversionResult {
   if (pnDriveCount && !out.some((l) => /^6XV/.test(l.mlfb))) {
     notes.push([
       "info",
-      `PROFINET cabling not in the 808D list: you need 1 cord PPU → S200 and ${Math.max(pnDriveCount - 1, 0)} cord(s) S200 → S200 (PDF p.47), e.g. 6XV1870-3QH30 (PPU → S200) and 6XV1870-3QE50 (S200 → S200).`,
+      `PROFINET cabling not in the 808D list: you need 1 cord PPU → S200 and ${Math.max(pnDriveCount - 1, 0)} cord(s) S200 → S200 (PDF p.47), e.g. 6XV1870-3QH20 (2 m, PPU → S200) and 6XV1870-3QE50 (0.5 m, S200 → S200) – both listed in catalog IK PI.`,
     ]);
   }
   if (spindleQty) {

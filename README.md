@@ -136,6 +136,11 @@ supabase/migrations/    SQL migrations for the telemetry tables
   the converter (PPU, V70, 1FL6, 1PH1, MOTION-CONNECT 300)
 - **D37.1** — SINAMICS S200 + SIMOTICS 1FL2 + MOTION-CONNECT 350
   (November 2025, chapters 1 and 4)
+- **SINUMERIK 828D Smart system – Details** (September 2026) — the
+  page-referenced source of every 808D → 828D Smart converter rule
+- **SIMOTICS M-1PH3 Pro equipment manual** (June 2026) — Table 3-2:
+  1PH3 Pro ordering data, encoder letters and power-cable cross-sections
+- **IK PI** (2015, PROFINET chapter) — Industrial Ethernet TP cords
 - **D33** — SINAMICS V90 + 1FL6 (July 2022, update April 2024)
 - **D31.1 / D31.2** — SINAMICS G120 / G120C and distributed converters
   (2021–2025), for analog spindle inverters and auxiliary axes
