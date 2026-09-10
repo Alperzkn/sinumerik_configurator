@@ -18,7 +18,7 @@ import {
   OPTION_ALIASES,
   OPTION_KEYWORDS,
   OPTION_NONE,
-  PH1,
+  lookupPh1,
   PH3,
   PH3_ENC_CABLE,
   PH3_EXAMPLES,
@@ -244,7 +244,9 @@ export function convert(rows: InputRow[]): ConversionResult {
     }
 
     // --- 1FL6 feed motors ---
-    const fm = m.match(/^1FL6(\d{3})-1A[CF]6\d-2([AL])([ABGH])1$/);
+    // NC 81.1 (V70 for 808D) lists the codes as 1FL6xxx-1Ax61-0■■1; the V90
+    // variants of the same motors read -2■■1. Both are the same HI 400 V motor.
+    const fm = m.match(/^1FL6(\d{3})-1A[CF]6\d-[02]([AL])([ABGH])1$/);
     if (fm) {
       const d = FL6[fm[1]];
       if (!d) {
@@ -387,7 +389,7 @@ export function convert(rows: InputRow[]): ConversionResult {
 
     // --- Spindle motor 1PH1 (808D) → 1PH3 Pro + S200 Spindle ---
     if (/^1PH1/.test(m)) {
-      const known = PH1[m.slice(0, 13)];
+      const known = lookupPh1(m);
       const kwM = (r.desc || "").match(/(\d+(?:[.,]\d+)?)\s*kW/i);
       const nM = (r.desc || "").match(/(\d{3,4})\s*(?:rpm|1\/min|min-1|dev)/i);
       const kw = known ? known.kw : kwM ? parseFloat(kwM[1].replace(",", ".")) : null;
@@ -476,6 +478,22 @@ export function convert(rows: InputRow[]): ConversionResult {
       continue;
     }
 
+    // --- 808D (basic) V60 setpoint cable / 1FL5 motors: no S200 rule ---
+    if (/^6FC5548-0BA00/.test(m) || /^1FL5/.test(m)) {
+      out.push(
+        line({
+          mlfb: NO_ARTICLE,
+          desc: `${m} belongs to the SINUMERIK 808D (basic) with SINAMICS V60 / 1FL5 (NC 81.1). There is no S200 counterpart for V60 — re-select the axis as 1FL2 + S200 by torque and speed.`,
+          qty: q,
+          ...o,
+          cls: "none",
+          grp: /^1FL5/.test(m) ? "Feed axes" : "Feed-axis cables",
+          src: "NC 81.1 2018 – 808D basic scope",
+        }),
+      );
+      continue;
+    }
+
     // --- Analog spindle setpoint cable ---
     if (/^6FC5548-0BA05/.test(m)) {
       analogSpindle = true;
@@ -493,8 +511,9 @@ export function convert(rows: InputRow[]): ConversionResult {
       continue;
     }
 
-    // --- 1PH1 spindle cables → 1PH3 Pro with S200 Spindle (1PH3 Pro manual 06/2026 §3.2.4) ---
-    if (/^6FX3002-2CT30-/.test(m)) {
+    // --- 1PH1 spindle encoder cables (NC 81.1: 2CT30 = incremental, 2DB30 = absolute encoder)
+    //     → 1PH3 Pro with S200 Spindle (1PH3 Pro manual 06/2026 §3.2.4) ---
+    if (/^6FX3002-2(CT|DB)30-/.test(m)) {
       const len = m.split("-")[2];
       const ok = PH3_ENC_CABLE.includes(len);
       out.push(
@@ -582,8 +601,9 @@ export function convert(rows: InputRow[]): ConversionResult {
       continue;
     }
 
-    // --- Motor cables 1FL6 → 1FL2 (MC300 → MC350) ---
-    const cm = m.match(/^6FX3002-(5CL0[12]|5CL1[12]|2CT12|2DB1[02]|2DB2[02]|5BL0[23])-(1[A-D][A-H]0)$/);
+    // --- Motor cables 1FL6 → 1FL2 (MC300 → MC350). NC 81.1 lists 5CL01/5CL11 (power),
+    //     2CT10 (incremental encoder), 2DB10 (absolute encoder), 5BL02 (brake) for V70. ---
+    const cm = m.match(/^6FX3002-(5CL0[12]|5CL1[12]|2CT1[02]|2DB1[02]|2DB2[02]|5BL0[23])-(1[A-D][A-H]0)$/);
     if (cm) {
       const typ = cm[1];
       const len = cm[2];

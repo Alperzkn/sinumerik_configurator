@@ -128,6 +128,17 @@ supabase/migrations/    SQL migrations for the telemetry tables
 - **D21.4** — SINAMICS S120/S220 + SIMOTICS motor catalog (December 2023)
 - **D21.4 (2017 edition)** — 1FK7 Compact selection tables
 - **D32** — SINAMICS S210 servo drive system catalog (February 2026)
+- **D21.3** — SINAMICS S120 chassis and cabinet modules (January 2026)
+- **NC82** — SINUMERIK 828D / 828D Smart: full catalog (January 2022) and
+  the chapter-2 function overview (September 2026) used to verify the
+  808D → 828D Smart converter
+- **NC81.1** — SINUMERIK 808D / 808D ADVANCED (2018): the source side of
+  the converter (PPU, V70, 1FL6, 1PH1, MOTION-CONNECT 300)
+- **D37.1** — SINAMICS S200 + SIMOTICS 1FL2 + MOTION-CONNECT 350
+  (November 2025, chapters 1 and 4)
+- **D33** — SINAMICS V90 + 1FL6 (July 2022, update April 2024)
+- **D31.1 / D31.2** — SINAMICS G120 / G120C and distributed converters
+  (2021–2025), for analog spindle inverters and auxiliary axes
 
 Catalog markdown extracts are in the `docs/` folder.
 

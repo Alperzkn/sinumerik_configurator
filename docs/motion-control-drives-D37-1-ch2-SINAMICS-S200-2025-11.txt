@@ -1,0 +1,483 @@
+                                                                                  4
+                                    © Siemens 2025
+
+
+
+MOTION-CONNECT connection systems
+
+
+
+                                                     4/2   MOTION-CONNECT 350 and 380
+                                                     4/2   Overview
+
+                                                     4/3   Pre-assembled dual cables
+                                                           for power and communication
+                                                           for SINAMICS S200
+                                                     4/3   Overview
+                                                     4/3   Technical specifications
+
+                                                     4/4   Pre-assembled power cables
+                                                           for SINAMICS S200
+                                                     4/4   Overview
+                                                     4/4   Technical specifications
+
+                                                     4/5   Pre-assembled signal cables
+                                                           for SINAMICS S200
+                                                     4/5   Overview
+                                                     4/5   Technical specifications
+
+                                                     4/6   Pre-assembled brake cables
+                                                           for SINAMICS S200
+                                                     4/6   Overview
+                                                     4/6   Technical specifications
+
+                                                     4/7   Connectors for SINAMICS S200
+                                                     4/7   Overview
+
+
+
+
+                                                           For selection and ordering data please
+                                                           refer to section "System overview"
+                                                           "SINAMICS S200 servo drive system"
+                                                           from page 1/16.
+
+                                                           Detailed technical information on
+                                                           SINAMICS S200 is available on the
+                                                           internet at:
+                                                           www.siemens.com/sinamics-s200/
+                                                           documentation
+
+                                                           In addition, the Siemens Product Configurator
+                                                           can be used on the internet at the following
+                                                           address:
+                                                           www.siemens.com/sinamics-s200/
+                                                           configuration
+
+
+                                                           Siemens D 37.1 · November 2025
+                                                                   © Siemens 2025
+
+
+
+      MOTION-CONNECT connection systems
+
+
+      MOTION-CONNECT 350 and 380
+
+    ■ Overview
+      MOTION-CONNECT 350 and 380 connection systems                           Cables must be installed in accordance with the instructions
+                                                                              supplied by the cable carrier manufacturer.
+      The cables are available in lengths of up to 30 m and one step
+      further optimized in easy and secure installation with "one-push-       In case of vibration load and with horizontal or vertical cable en-
+      lock" motor connecting solution for motor shaft heights 20, 30, 40      tries, we recommend that the cable is additionally fixed if be-
+      and 40 Compact.                                                         tween the cable strain relief on the cable carrier and the terminal
+      • MOTION-CONNECT 350 cables, which provide a connection                 at the motor part of the cable is hanging loose or is not routed.
+         solution for fixed installation applications                         To prevent machine vibrations being transmitted to the connec-
+                                                                              tors, the cable should be fixed at the moving part where the mo-
+      • MOTION-CONNECT 380 cables, which provide a connection                 tor is mounted.
+         solution for drag chain installation applications that require a
+         high number of bending cycles                                        Derating factors for power and signal cables
+      The use of pre-assembled MOTION-CONNECT 350/380 cables                   Ambient air temperature                         Derating factor
+      ensures high quality and system-tested, problem-free operation.          °C (°F)                                         according to EN 60204-1 Table D.1
+                                                                               30 (86)                                         1.10
+      Degree of protection of pre-assembled power and signal cables
+      is IP65 when closed and connected unless otherwise stated.               35 (95)                                         1.05
+                                                                               40 (104)                                        1.00
+      MOTION-CONNECT 350/380 cables are not suitable for
+                                                                               45 (113)                                        0.96
+      outdoor use.
+                                                                               50 (122)                                        0.90
+      MOTION-CONNECT 350/380 cables are approved for a                         55 (131)                                        0.84
+      maximum horizontal travel distance of 5 m without support.
+                                                                               60 (140)                                        0.78
+      The cables must be unwound without twisting.
+                                                                            ■ Characteristic curves
+4
+                                                                              Characteristic curve for MOTION-CONNECT 380
+                                                                              The blue area beneath the characteristic curve represents the
+                                                                              potential range of use for the cables. The characteristic curves
+                                                                              represent the tested operating points.
+
+        G_NC01_XX_00455                                                                                                                               G_D211_EN_00777
+                                                                                                 50
+                                                                                                m/s²
+                                                                                                 40
+
+
+
+                                                                                 Acceleration
+                                                                                                                         MOTION-CONNECT 380
+                                                                                                 30
+
+                                                                                                 20
+      To maximize the service life of the cable carrier and cables, ca-
+      bles in the carrier made from different materials must be sepa-                            10                                                v = 180 m/min
+      rated in the cable carrier using spacers. The spacers must be
+      filled evenly to ensure that the position of the cables does not                            0
+                                                                                                       0   5   10   15   20   25   30   35    40      45    50 m 55
+      change during operation. The cables should be distributed as
+      symmetrically as possible according to their weights and dimen-                                                                        Traversing path
+      sions. Cables with different outer diameters should be separated
+      by spacers as well.                                                     Permissible acceleration for MOTION?CONNECT 380 signal and power
+                                                                              cables
+      When inserting pre-assembled cables into the cable carrier, do
+      not pull at the connector, as this may damage the strain relief or
+      cable clamping.
+      The cables must not be fixed in the cable carrier.
+      They must be freely movable.
+
+
+
+
+                                                 G_NC01_XX_00290
+
+
+
+
+      The cables must be able to be moved without applying force,
+      specifically in the bending radii of the carrier.
+      The specified minimum bending radii must be adhered to.
+      The cable fixings must be attached at both ends at an appropri-
+      ate distance from the end points of the moving parts in a dead
+      zone.
+
+
+
+        4/2          Siemens D 37.1 · November 2025
+                                                                     © Siemens 2025
+
+
+
+                                                                                      MOTION-CONNECT connection systems
+
+
+                                                      Pre-assembled dual cables for power and communication for SINAMICS S200
+
+■ Overview
+
+
+
+
+  Example: MOTION-CONNECT 350/380, dual cable without brake cores              Example: MOTION-CONNECT 350/380, dual cable with brake cores
+  for SIMOTICS S-1FL2 Low Inertia/Medium Inertia servomotors                   for SIMOTICS S-1FL2 Low Inertia/Medium Inertia servomotors
+  For selection and ordering data please refer to section "System overview" "SINAMICS S200 servo drive system" from page 1/16.
+
+■ Technical specifications
+   Dual cable
+   Product name
+                                without brake cores
+                                MOTION-CONNECT 350            MOTION-CONNECT 380
+                                                                                            with brake cores
+                                                                                            MOTION-CONNECT 350            MOTION-CONNECT 380
+                                                                                                                                                        4
+   • for coverter               • SINAMICS S200 200 ... 240 V 1 AC / 3 AC
+                                and
+                                • SINAMICS S200 380 ... 480 V 3 AC
+   • for motor                  • SIMOTICS S-1FL2 Low Inertia, 0.05 kW ... 1 kW
+                                and
+                                • SIMOTICS S-1FL2 Medium Inertia, 0.2 kW ... 1 kW
+   Type                         6FX3502-7CD01-....            6FX3802-7CD01-....            6FX3502-7DD01-....            6FX3802-7DD01-....
+                                6FX3502-7CN01-....            6FX3802-7CN01-....            6FX3502-7DN01-....            6FX3802-7DN01-....
+   No. of cores                 10                            10                            12                            12
+   Degree of protection         IP65                          IP65                          IP65                          IP65
+   motor side
+   (when mated and locked)
+   Certificate of suitability
+   • RoHS                       Yes                           Yes                           Yes                           Yes
+   • CE and UKCA                Yes                           Yes                           Yes                           Yes
+   • cURus                      Yes                           Yes                           Yes                           Yes
+   Rated voltage U0/U           300 V/1000 V                  300 V/1000 V                  300 V/1000 V                  300 V/1000 V
+   Test voltage, rms            4 kV                          4 kV                          4 kV                          4 kV
+   Operating temperature
+   on the surface
+   • Fixed installation         -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)
+   • Flexible installation      -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)
+   Tensile stress, max.
+   • Fixed installation         50 N/mm²                      50 N/mm²                      50 N/mm²                      50 N/mm²
+   • Flexible installation      20 N/mm²                      20 N/mm²                      20 N/mm²                      20 N/mm²
+   Smallest bending radius
+   • Fixed installation         4 × diameter                  4 × diameter                  4 × diameter                  4 × diameter
+   • Flexible installation      7.5 × diameter                7.5 × diameter                7.5 × diameter                7.5 × diameter
+   Torsional stress             Absolute 30°/m                Absolute 30°/m                Absolute 30°/m                Absolute 30°/m
+   Bending                      1 million                     5 million                     1 million                     5 million
+   Insulation material          PP                            PP                            PP                            PP
+   Oil resistance               EN 60811-2-1                  EN 60811-2-1                  EN 60811-2-1                  EN 60811-2-1
+   Outer jacket                 PVC                           PUR                           PVC                           PUR
+   Outer diameter
+   • Power cable                7.5 mm ±0.2 mm                7.5 mm ±0.2 mm                7.5 mm ±0.2 mm                7.5 mm ±0.2 mm
+   • Signal cable               7.0 mm ±0.2 mm                7.0 mm ±0.2 mm                7.0 mm ±0.2 mm                7.0 mm ±0.2 mm
+   Flame-retardant              EN 60332-1-1 to 1-3           EN 60332-1-1 to 1-3           EN 60332-1-1 to 1-3           EN 60332-1-1 to 1-3
+
+
+
+
+                                                                                                        Siemens D 37.1 · November 2025          4/3
+                                                                              © Siemens 2025
+
+
+
+      MOTION-CONNECT connection systems
+
+
+      Pre-assembled power cables for SINAMICS S200
+
+    ■ Overview
+
+
+
+
+      Example: MOTION-CONNECT 350/380, power cable with brake cores                     Example: MOTION-CONNECT 350/380, power cable without brake cores
+      for SIMOTICS S-1FL2 Low Inertia/Medium Inertia servomotors                        for SIMOTICS S-1FL2 High Inertia servomotors
+      For selection and ordering data please refer to section "System overview" "SINAMICS S200 servo drive system" from page 1/16.
+
+    ■ Technical specifications
+4      Power cable
+       Product name
+                                       without brake cores                                                             with brake cores
+                                       MOTION-CONNECT MOTION-CONNECT MOTION-CONNECT MOTION-CONNECT MOTION-CONNECT MOTION-CONNECT
+                                       350            380            350            380            350            380
+       • for coverter                  • SINAMICS S200 380 ... 480 V 3 AC
+       • for motor                     • SIMOTICS S-1FL2 Low Inertia,            • SIMOTICS S-1FL2 High Inertia,       • SIMOTICS S-1FL2 Low Inertia,
+                                         1.5 kW... 2 kW                            0.4 kW ... 7 kW                       1.5 kW ... 2 kW
+                                       and                                                                             and
+                                       • SIMOTICS S-1FL2 Medium Inertia,                                               • SIMOTICS S-1FL2 Medium Inertia,
+                                         1 kW ... 1.5 kW                                                                 1 kW ... 1.5 kW
+       Type                            6FX3502-5CK32-.... 6FX3802-5CK32-.... 6FX3502-5CL01-.... 6FX3802-5CL01-.... 6FX3502-5DK32-.... 6FX3802-5DK32-....
+                                                                             6FX3502-5CL02-.... 6FX3802-5CL02-....
+                                                                             6FX3502-5CL12-.... 6FX3802-5CL12-....
+       No. of cores                    4                     4                   4                   4                 6                  6
+       Degree of protection            IP65                  IP65                IP65                IP65              IP65               IP65
+       motor side
+       (when mated and locked)
+       Certificate of suitability
+       • RoHS                          Yes                   Yes                 Yes                 Yes               Yes                Yes
+       • CE and UKCA                   Yes                   Yes                 Yes                 Yes               Yes                Yes
+       • cURus                         Yes                   Yes                 Yes                 Yes               Yes                Yes
+       Rated voltage U0/U              600 V/1000 V          600 V/1000 V        600 V/1000 V        600 V/1000 V      600 V/1000 V       600 V/1000 V
+       Test voltage, rms               4 kV                  4 kV                4 kV                4 kV              4 kV               4 kV
+       Operating temperature
+       on the surface
+       • Fixed installation            -20 … +80 °C          -20 … +80 °C        -20 … +80 °C        -20 … +80 °C      -20 … +80 °C       -20 … +80 °C
+                                       (-4 … +176 °F)        (-4 … +176 °F)      (-4 … +176 °F)      (-4 … +176 °F)    (-4 … +176 °F)     (-4 … +176 °F)
+       • Flexible installation         -20 … +80 °C          -20 … +80 °C        -20 … +80 °C        -20 … +80 °C      -20 … +80 °C       -20 … +80 °C
+                                       (-4 … +176 °F)        (-4 … +176 °F)      (-4 … +176 °F)      (-4 … +176 °F)    (-4 … +176 °F)     (-4 … +176 °F)
+       Tensile stress, max.
+       • Fixed installation            50 N/mm²              50 N/mm²            50 N/mm²            50 N/mm²          50 N/mm²           50 N/mm²
+       • Flexible installation         20 N/mm²              20 N/mm²            20 N/mm²            20 N/mm²          20 N/mm²           20 N/mm²
+       Smallest bending radius
+       • Fixed installation            4 × diameter          4 × diameter        4 × diameter        4 × diameter      4 × diameter       4 × diameter
+       • Flexible installation         7.5 × diameter        7.5 × diameter      7.5 × diameter      7.5 × diameter    7.5 × diameter     7.5 × diameter
+       Torsional stress                Absolute 30°/m        Absolute 30°/m      Absolute 30°/m      Absolute 30°/m    Absolute 30°/m     Absolute 30°/m
+       Bending                         1 million             5 million           1 million           5 million         1 million          5 million
+       Insulation material             PP                    PP                  PP                  PP                PP                 PP
+       Oil resistance                  EN 60811-2-1          EN 60811-2-1        EN 60811-2-1        EN 60811-2-1      EN 60811-2-1       EN 60811-2-1
+       Outer jacket                    PVC                   PUR                 PVC                 PUR               PVC                PUR
+       Outer diameter                  7.5 mm ±0.2 mm        7.5 mm ±0.2 mm      6FX3.02-5CL01-.... : 7.5 mm ±0.2 mm   7.5 mm ±0.2 mm     7.5 mm ±0.2 mm
+                                                                                 6FX3.02-5CL02-.... : 7.8 mm ±0.3 mm
+                                                                                 6FX3.02-5CL12-.... : 9.0 mm ±0.3 mm
+       Flame-retardant                 EN 60332-1-1 to 1-3 EN 60332-1-1 to 1-3 EN 60332-1-1 to 1-3 EN 60332-1-1 to 1-3 EN 60332-1-1 to 1-3 EN 60332-1-1 to 1-3
+
+
+         4/4            Siemens D 37.1 · November 2025
+                                                                      © Siemens 2025
+
+
+
+                                                                                       MOTION-CONNECT connection systems
+
+
+                                                                                       Pre-assembled signal cables for SINAMICS S200
+
+■ Overview
+
+
+
+
+  Example: MOTION-CONNECT 350/380, signal cable for encoder                    Example: MOTION-CONNECT 350/380, signal cable for encoder
+  connection for SIMOTICS S-1FL2 Medium Inertia servomotors                    connection for SIMOTICS S-1FL2 High Inertia servomotors
+  For selection and ordering data please refer to section "System overview" "SINAMICS S200 servo drive system" from page 1/16.
+
+■ Technical specifications
+   Signal cable
+   Product name
+                                for encoder connection
+                                MOTION-CONNECT 350            MOTION-CONNECT 380            MOTION-CONNECT 350            MOTION-CONNECT 380
+                                                                                                                                                        4
+   • for coverter               • SINAMICS S200 380 ... 480 V 3 AC
+   • for motor                  • SIMOTICS S-1FL2 Low Inertia, 1.5 kW ... 2 kW              • SIMOTICS S-1FL2 High Inertia, 0.4 kW ... 7 kW
+                                and
+                                • SIMOTICS S-1FL2 Medium Inertia, 1 kW ... 1.5 kW
+   Type                         6FX3502-2XB11-....            6FX3802-2XB11-....            6FX3502-2XB12-....            6FX3802-2XB12-....
+   No. of cores                 6                             6                             6                             6
+   Degree of protection         IP65                          IP65                          IP65                          IP65
+   motor side
+   (when mated and locked)
+   Certificate of suitability
+   • RoHS                       Yes                           Yes                           Yes                           Yes
+   • CE and UKCA                Yes                           Yes                           Yes                           Yes
+   • cURus                      Yes                           Yes                           Yes                           Yes
+   Rated voltage U0/U           30 V/300 V                    30 V/300 V                    30 V/300 V                    30 V/300 V
+   Test voltage, rms            500 V                         500 V                         500 V                         500 V
+   Operating temperature
+   on the surface
+   • Fixed installation         -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)
+   • Flexible installation      -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)   -20 … +80 °C (-4 … +176 °F)
+   Tensile stress, max.
+   • Fixed installation         50 N/mm²                      50 N/mm²                      50 N/mm²                      50 N/mm²
+   • Flexible installation      20 N/mm²                      20 N/mm²                      20 N/mm²                      20 N/mm²
+   Smallest bending radius
+   • Fixed installation         4 × diameter                  4 × diameter                  4 × diameter                  4 × diameter
+   • Flexible installation      7.5 × diameter                7.5 × diameter                7.5 × diameter                7.5 × diameter
+   Torsional stress             Absolute 30°/m                Absolute 30°/m                Absolute 30°/m                Absolute 30°/m
+   Bending                      1 million                     5 million                     1 million                     5 million
+   Insulation material          PP                            PP                            PP                            PP
+   Oil resistance               EN 60811-2-1                  EN 60811-2-1                  EN 60811-2-1                  EN 60811-2-1
+   Outer jacket                 PVC                           PUR                           PVC                           PUR
+   Outer diameter               7.0 mm ±0.2 mm                7.0 mm ±0.2 mm                7.0 mm ±0.2 mm                7.0 mm ±0.2 mm
+   Flame-retardant              EN 60332-1-1 to 1-3           EN 60332-1-1 to 1-3           EN 60332-1-1 to 1-3           EN 60332-1-1 to 1-3
+
+
+
+
+                                                                                                         Siemens D 37.1 · November 2025         4/5
+                                                                          © Siemens 2025
+
+
+
+      MOTION-CONNECT connection systems
+
+
+      Pre-assembled brake cables for SINAMICS S200
+
+    ■ Overview
+
+
+
+
+      Example: MOTION-CONNECT 350/380, brake cable for brake
+      connection for SIMOTICS S-1FL2 High Inertia servomotors
+      For selection and ordering data please refer to section "System overview" "SINAMICS S200 servo drive system" from page 1/16.
+
+    ■ Technical specifications
+4      Brake cable
+       Product name
+                                       for brake connection
+                                       MOTION-CONNECT 350                                  MOTION-CONNECT 380
+       • for coverter                  • SINAMICS S200 380 … 480 V 3 AC
+       • for motor                     • SIMOTICS S-1FL2 High Inertia, 0.4 kW … 7 kW
+       Type                            6FX3502-5BL03-....                                  6FX3802-5BL03-....
+       No. of cores                    2                                                   2
+       Degree of protection            IP65                                                IP65
+       motor side
+       (when mated and locked)
+       Certificate of suitability
+       • RoHS                          Yes                                                 Yes
+       • CE and UKCA                   Yes                                                 Yes
+       • cURus                         Yes                                                 Yes
+       Rated voltage U0/U              30 V/300 V                                          30 V/300 V
+       Test voltage, rms               2000 V                                              2000 V
+       Operating temperature
+       on the surface
+       • Fixed installation            -20 … +80 °C (-4 … +176 °F)                         -20 … +80 °C (-4 … +176 °F)
+       • Flexible installation         -20 … +80 °C (-4 … +176 °F)                         -20 … +80 °C (-4 … +176 °F)
+       Tensile stress, max.
+       • Fixed installation            50 N/mm²                                            50 N/mm²
+       • Flexible installation         20 N/mm²                                            20 N/mm²
+       Smallest bending radius
+       • Fixed installation            4 × diameter                                        4 × diameter
+       • Flexible installation         7.5× diameter                                       7.5× diameter
+       Torsional stress                Absolute 30°/m                                      Absolute 30°/m
+       Bending                         1 million                                           5 million
+       Insulation material             PP                                                  PP
+       Oil resistance                  EN 60811-2-1                                        EN 60811-2-1
+       Outer jacket                    PVC                                                 PUR
+       Outer diameter                  6.0 mm ±0.2 mm                                      6.0 mm ±0.2 mm
+       Flame-retardant                 EN 60332-1-1 to 1-3                                 EN 60332-1-1 to 1-3
+
+
+
+
+         4/6            Siemens D 37.1 · November 2025
+                                                                  © Siemens 2025
+
+
+
+                                                                                    MOTION-CONNECT connection systems
+
+
+                                                                                                          Connectors for SINAMICS S200
+
+■ Overview
+  Shaft height         Connectors drive end    Connectors non drive end Connectors motor side
+                       direction (DE)          direction (NDE)
+                       for hybrid connection   for hybrid connection    for power connection    for encoder connection   for brake
+  MOTION-CONNECT connectors for SIMOTICS S-1FL2 Low Inertia servomotors
+  20, 30, 40,          6FX2003-3HD00           6FX2003-3HN00            –                       –                        –
+  40 Compact
+
+
+
+
+  52                   –                       –                        6FX2003-0LL63           6FX2003-0DB63            – (in power connector)
+
+
+
+
+                                                                                                                                                  4
+
+  MOTION-CONNECT connectors for SIMOTICS S-1FL2 Medium Inertia servomotors
+  30, 40, 40 Compact   6FX2003-3HD00           6FX2003-3HN00            –                       –                        –
+
+
+
+
+  48                   –                       –                        6FX2003-0LL63           6FX2003-0DB63            – (in power connector)
+
+
+
+
+  MOTION-CONNECT connectors for SIMOTICS S-1FL2 High Inertia servomotors
+  45, 65, 90           –                       –                        6FX2003-0LL13           6FX2003-0DB13            6FX2003-0LL53
+
+
+
+
+  For selection and ordering data please refer to section "System overview" "SINAMICS S200 servo drive system" from page 1/16.
+
+
+
+                                                                                                    Siemens D 37.1 · November 2025         4/7
+                                                                     © Siemens 2025
+
+
+
+      MOTION-CONNECT connection systems
+
+
+      Connectors for SINAMICS S200
+
+    ■ Overview
+                        Crimp contacts            Crimp contacts           Connectors converter
+                        "power and PE"            "signal and brake"       side
+                        (2000 pieces per reel)    (2000 pieces per reel)
+                        for hybrid connection     for hybrid connection    for power connection   IX signal connector, C-coded for brake
+                                                                                                  for encoder connection
+      MOTION-CONNECT connectors for SINAMICS S200 servo converter
+                        6FX2003-7HP00             6FX2003-7HS00            –                      6FX2003-0DE61               –
+
+
+
+
+      For selection and ordering data please refer to section "System overview" "SINAMICS S200 servo drive system" from page 1/16.
+
+
+
+
+4
+
+
+
+
+        4/8      Siemens D 37.1 · November 2025
+

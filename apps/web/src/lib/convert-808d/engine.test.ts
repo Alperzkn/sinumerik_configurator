@@ -157,6 +157,47 @@ t("known 1PH1 spindle → 1PH3 Pro TTL + S200 Spindle + braking resistor", () =>
   assert.equal(r.axes, 1);
 });
 
+t("V70-style 1FL6 code (-0xx1, NC 81.1) is accepted like the V90 spelling", () => {
+  const r = convert([row("1FL6064-1AC61-0AG1", 2), row("1FL6067-1AC61-0LH1", 1)]);
+  assert.equal(find(r.lines, "1FL2306-4AC01-0MB0")?.qty, 2); // plain shaft, no brake
+  assert.equal(find(r.lines, "1FL2306-7AC11-0MB0")?.qty, 1); // plain shaft, brake
+  assert.equal(r.axes, 3);
+});
+
+t("1PH1105-1LF12 (NC 81.1: 7.5 kW 1500 rpm) maps to the 7.5 kW 1PH3 Pro TTL variant", () => {
+  const r = convert([row("1PH1105-1LF12-0GA0")]);
+  assert.ok(find(r.lines, "1PH3105-1LG12-0GA1"));
+  assert.ok(find(r.lines, "6SL5510-1EE17-5AF0"));
+});
+
+t("1PH1133 (11 kW SH132) maps to a SH132 1PH3 Pro and the FSF spindle drive", () => {
+  const r = convert([row("1PH1133-1LD10-0GA0")]);
+  const motor = r.lines.find((l) => /^1PH3131-1L/.test(l.mlfb) || /^1PH3133-1L/.test(l.mlfb));
+  assert.ok(motor, "expected a SH132 11 kW 1PH3 Pro");
+  assert.ok(find(r.lines, "6SL5510-1EE21-1AF0"));
+});
+
+t("1PH1 absolute-encoder cable 2DB30 maps like 2CT30", () => {
+  const r = convert([row("6FX3002-2DB30-1BA0")]);
+  assert.equal(find(r.lines, "6FX3502-2XB13-1BA0")?.cls, "verified");
+});
+
+t("V70 incremental encoder cable 2CT10 maps to the MC350 encoder cable", () => {
+  const r = convert([row("6FX3002-2CT10-1BA0", 3)]);
+  assert.equal(find(r.lines, "6FX3502-2XB12-1BA0")?.qty, 3);
+});
+
+t("808D CNC lock (0AS71) aliases to 828D 0AP76", () => {
+  const r = convert([row("6FC5800-0AS71-0YB0")]);
+  assert.equal(find(r.lines, "6FC5800-0AP76-0YH0")?.cls, "pdf");
+});
+
+t("808D basic V60 parts are marked as having no equivalent", () => {
+  const r = convert([row("6FC5548-0BA00-1AF0"), row("1FL5064-0AC21-0AG0", 2)]);
+  assert.equal(r.lines.filter((l) => l.cls === "none").length, 2);
+  assert.equal(r.axes, 0);
+});
+
 t("1PH1 with feather key picks shaft digit 2", () => {
   const r = convert([row("1PH1103-1LD12-1GA0")]);
   assert.ok(find(r.lines, "1PH3103-1LD12-2GA1"));

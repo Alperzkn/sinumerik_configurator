@@ -633,6 +633,17 @@ Mapping rules worth knowing:
 Self-running tests: `npx tsx apps/web/src/lib/convert-808d/engine.test.ts`
 and `parser.test.ts` (the shipped example list is the golden case).
 
+Catalog cross-check (2026-09-10, sources in `docs/`): every 828D Smart
+article the engine emits — PPU 26x.5, MCP 1200U, SD cards, the `-0YH0`
+options, the 5-axis limit — appears in the NC 82 chapter-2 overview of
+September 2026; the S200 converter articles, the 1FL2 code legend and
+the MOTION-CONNECT 350 families match D 37.1 of November 2025; the 808D
+input side (PPU/MCP articles, V70 drives, `1FL6…-0xx1` codes, the 1PH1
+table, MC300 cables, option codes) matches NC 81.1. Not verifiable
+offline yet: the S200 *Spindle* drive articles and the 1PH3 Pro ordering
+table (the artifact cites the 828D Smart details PDF and the 1PH3 Pro
+manual 06/2026, neither of which Siemens serves without a login).
+
 ---
 
 ## 16. Request hardening

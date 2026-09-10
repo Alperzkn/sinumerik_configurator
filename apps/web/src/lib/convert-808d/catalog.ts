@@ -8,6 +8,16 @@
  *                  Siemens / distributor listings
  *   - "derived"  — motor codes following the PDF's own pattern (p.48),
  *                  checked against Siemens listings
+ *
+ * Cross-checked 2026-09-10 against the catalogs in docs/:
+ *   - NC 82 ch.2 "828D / 828D Smart – overview of functions" 09/2026:
+ *     PPU 26x.5, MCP 1200U, SD cards, every -0YH0 option below, and the
+ *     828D Smart limit of 5 axes/spindles.
+ *   - D 37.1 11/2025: S200 converter articles (…A F 0 = PROFINET version),
+ *     1FL2 article legend (brake digit, shaft digit, M = 21+12-bit multiturn
+ *     encoder, B = metal circular connector) and MOTION-CONNECT 350 families.
+ *   - NC 81.1 2018: the 808D ADVANCED side (PPU/MCP articles, V70 drives,
+ *     1FL6 "-0xx1" codes, 1PH1 table, MC300 cables, option codes).
  */
 
 import type { LineBasis, LineGroup } from "./types";
@@ -96,8 +106,9 @@ export const OPTIONS: Record<string, string> = {
  *           0AK80 = "additional positioning axis/auxiliary spindle".
  */
 export const OPTION_ALIASES: Record<string, string> = {
-  "0AK70": "0AC20",
-  "0AK80": "0AC30",
+  "0AK70": "0AC20", // NC 81.1: "Axis/spindle, each additional"
+  "0AK80": "0AC30", // not in NC 81.1 (2018) — later 808D SW; kept from the user's own list
+  "0AS71": "0AP76", // NC 81.1: "CNC lock function" → NC 82 09/2026 p.2/x CNC lock function
 };
 
 /** 808D options with no 828D Smart counterpart in the PDF. */
@@ -262,10 +273,27 @@ export interface Ph1Motor {
   enc: string;
 }
 
-/** 808D spindle motors (verified codes only). Key = first 13 chars of the MLFB. */
-export const PH1: Record<string, Ph1Motor> = {
-  "1PH1103-1LD12": { kw: 3.7, n: 1000, sh: 100, enc: "L" },
+/**
+ * 808D spindle motors — NC 81.1 (2018) selection table, page 4/2x:
+ * 1PH1{frame}-1{enc}{wind}1x-{shaft}GA0, winding D = 1000 rpm, F = 1500 rpm,
+ * encoder letter L = incremental (TTL); shaft digit 0 = plain shaft.
+ * Keyed by frame + winding letter.
+ */
+export const PH1_TABLE: Record<string, Ph1Motor> = {
+  "101F": { kw: 3.7, n: 1500, sh: 100, enc: "L" },
+  "103D": { kw: 3.7, n: 1000, sh: 100, enc: "L" },
+  "103F": { kw: 5.5, n: 1500, sh: 100, enc: "L" },
+  "105D": { kw: 5.5, n: 1000, sh: 100, enc: "L" },
+  "105F": { kw: 7.5, n: 1500, sh: 100, enc: "L" },
+  "131D": { kw: 7.5, n: 1000, sh: 132, enc: "L" },
+  "133D": { kw: 11, n: 1000, sh: 132, enc: "L" },
 };
+
+/** Look up an 808D 1PH1 motor by its article number (frame + winding letter). */
+export function lookupPh1(article: string): Ph1Motor | undefined {
+  const m = article.match(/^1PH1(\d{3})-1[A-Z]([DF])1/);
+  return m ? PH1_TABLE[m[1] + m[2]] : undefined;
+}
 
 /** MOTION-CONNECT length code → human length. */
 export const LEN: Record<string, string> = {

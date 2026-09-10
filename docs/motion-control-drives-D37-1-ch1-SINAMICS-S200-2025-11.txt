@@ -1,0 +1,2598 @@
+                                                                 1
+                  © Siemens 2025
+
+
+
+System overview
+
+
+
+                                   1/2    The SINAMICS converter family
+                                   1/2    Overview
+
+                                   1/3    Drive selection
+                                   1/3    Overview
+                                   1/3    More information
+
+                                   1/4    SINAMICS S200 servo drive system
+                                   1/4    Overview
+                                   1/5    Benefits
+                                   1/6    Application
+                                   1/7    Design
+                                   1/11   Integration
+                                   1/13   Configuration
+                                   1/15   Technical specifications
+                                   1/16   Selection and ordering data
+                                   1/16     SINAMICS S200 servo drive system
+                                            with SIMOTICS S-1FL2
+                                   1/16     - Low Inertia servomotors
+                                   1/22     - Medium Inertia servomotors
+                                   1/28     - High Inertia servomotors
+                                   1/34   Accessories
+                                   1/35   More information
+
+                                   1/35   SINAMICS S200 starter kit
+                                   1/35   Selection and ordering data
+
+                                   1/36   Recommended SIMATIC S7 controller
+                                   1/36   Selection and ordering data
+
+
+
+
+                                          Siemens D 37.1 · November 2025
+                                                                                     © Siemens 2025
+
+
+
+      System overview
+
+
+      The SINAMICS converter family
+1   ■ Overview
+      SINAMICS frequency converters
+      SINAMICS frequency converters are the ultimate solution for all                              With increased efficiency and versatility, take your drive applica-
+      drive applications. From low voltage to medium voltage to direct                             tions to the next generation for a digital and sustainable future.
+      current (DC), our frequency converters meet your needs.                                      www.siemens.com/sinamics
+
+                                                                                                                                                                                Direct
+                                                                                 Low voltage
+                                                                                                                                                                               voltage
+
+
+            Standard performance      Distributed         Industry-specific                    Servo converters                             High performance                    DC
+            frequency converters      frequency        frequency converters                                                               frequency converters               converters
+                                      converters
+
+
+
+
+       SINAMICS        SINAMICS      SINAMICS      SINAMICS        SINAMICS       SINAMICS       SINAMICS         SINAMICS     SINAMICS       SINAMICS        SINAMICS        SINAMICS
+          V20            G130           G115D        G120X           G180            V90           S110              S210        G220            S120           S150            DCM
+         G120C           G150           G120D                                       S200                           (6SL5...)                    S120M                           DCP 1)
+         G120                         SIMATIC
+                                    ET 200pro FC-2
+
+
+
+
+        0.12 kW to      75 kW to      0.37 kW to     0.75 kW to     2.2 kW to     0.05 kW to     0.55 kW to       0.05 kW to   0.55 kW to      0.55 kW to        75 kW to      6 kW to
+          250 kW        2700 kW         7.5 kW         630 kW       6600 kW          7 kW          132 kW            7 kW       110 kW          5700 kW          1200 kW       30 MW
+          Pumps,       Pumps,         Conveyor          Pumps,      Pumps,       Handling    Single-axis    Packaging         Pumps,       Production     Test bays,          Rolling mill
+            fans,       fans,        technology,         fans,       fans,      machines,     positioning   machines,           fans,       machines    cross cutters,           drives,
+      compressors, compressors,       single-axis   compressors, compressors,   packaging applications in    handling     compressors, (packaging,       centrifuges         wire-drawing
+         conveyor     conveyor        positioning       building   conveyor     machines,    machine and equipment,          conveyor      textile and                        machines,
+           belts,       belts,       applications   management       belts,     automatic       plant        feed and          belts,        printing                        extruders and
+          mixers,      mixers,         (G120D)         systems,    extruders,   assembly     engineering    withdrawal        mixers,      machines,                           kneaders,
+            mills,      mills,                          process     mixers,     machines,                    devices,           mills,        paper                           cableways
+         spinning     extruders                        industry,     mills,    metal forming              stacking units,    spinning      machines,                            and lifts,
+        machines,                                       HVAC,      kneaders,    machines,                   automatic       machines,        plastic                        test bay drives
+           textile                                   water/waste  centrifuges,   printing                    assembly          textile     processing
+        machines,                                        water    separators    machines,                   machines,       machines,      machines),
+       refrigerated                                   industries               winding and                  laboratory     refrigerated     machine
+          display                                                               unwinding                  automation,        display         tools,
+         counters,                                                                 units                   wood, glass       counters,       plants,
+          fitness                                                                                         and ceramics        fitness     process lines
+       equipment,                                                                                            industry,     equipment,      and rolling
+        ventilation                                                                                       digital printing ventilation    mills, marine
+         systems,                                                                                           machines         systems,        drives,
+        single-axis                                                                                                         single-axis     test bays
+        positioning                                                                                                         positioning
+      applications in                                                                                                     applications in
+       machine and                                                                                                         machine and
+            plant                                                                                                               plant
+       engineering                                                                                                         engineering
+            Catalog      Catalog       Catalog        Catalog        Catalog        Catalog        Catalog         Catalog      Catalog        Catalogs          Catalog       Catalog
+            D 31.1        D 11         D 31.2          D 31.5        D 18.1          D 33          D 31.1           D 32        D 36.1       D 21.3, D 21.4      D 21.3        D 23.1,
+                                                                                    D 37.1                                                      NC 62                          SiePortal
+
+
+                            Engineering tools (e.g. Siemens Product Configurator, TIA Selection Tool, DriveSim Designer/Engineer, STARTER and SINAMICS Startdrive)
+
+                                                                                                                                                                            G_D011_EN_00450x
+       1)
+            DC/DC controllers, see SiePortal.
+
+
+
+
+            1/2        Siemens D 37.1 · November 2025
+                                                                        © Siemens 2025
+
+
+
+                                                                                                                                           System overview
+
+
+                                                                                                                                                Drive selection
+
+■ Overview
+                                                                                                                                                                        1
+  SINAMICS selection guide – typical applications
+   Use               Requirements for torque accuracy/speed accuracy/position accuracy/coordination of axes/functionality
+                     Continuous motion                                                      Non-continuous motion
+                     Basic                 Medium                High                       Basic                    Medium                  High
+
+
+
+
+   Pumping,          Centrifugal pumps     Centrifugal pumps     Eccentric screw            Hydraulic pumps          Hydraulic pumps         Descaling pumps
+   ventilating,      Radial / axial fans   Radial / axial fans   pumps                      Metering pumps           Metering pumps          Hydraulic pumps
+   compressing       Compressors           Compressors
+                     V20                   G120X                 G220                       G120/G220                S110                    S120
+                     G120C                 G130/G150             S120
+                     G120X                 G180 1)
+                                           DCM
+
+
+   Moving            Conveyor belts        Conveyor belts        Elevators                  Acceleration             Acceleration            Storage and retrieval
+                     Roller conveyors      Roller conveyors      Container cranes           conveyors                conveyors               machines
+                     Chain conveyors       Chain conveyors       Mining hoists              Storage and retrieval    Storage and retrieval   Robotics
+                                           Lifting/lowering      Excavators for             machines                 machines                Pick & place
+                                           devices               open-cast mining                                    Cross cutters           Rotary indexing tables
+                                           Elevators             Test bays                                           Reel changers           Cross cutters
+                                           Escalators/moving                                                                                 Roll feeds
+                                           walkways                                                                                          Engagers/
+                                           Indoor cranes                                                                                     disengagers
+                                           Marine drives
+                                           Cable railways
+                     V20                   G120/G220             G220                       V90                      S110                    S120
+                     G115D                 G120D                 S120                       S200                     S210                    S210
+                     G120C                 G130/G150             S150                       G120/G220                DCM                     DCM
+                     ET 200pro FC-2 2)     G180 1)               DCM                        G120D
+   Processing        Mills                 Mills                 Extruders                  Tubular bagging          Tubular bagging         Servo presses
+                     Mixers                Mixers                Winders/unwinders          machines                 machines                Rolling mill drives
+                     Kneaders              Kneaders              Lead/follower drives       Single-axis motion       Single-axis motion      Multi-axis motion
+                     Crushers              Crushers              Calenders                  control                  control                 control
+                     Agitators             Agitators             Main press drives          such as                  such as                 such as
+                     Centrifuges           Centrifuges           Printing machines          • Position profiles      • Position profiles     • Multi-axis positioning
+                                           Extruders                                        • Path profiles          • Path profiles         • Cams
+                                           Rotary furnaces                                                                                   • Interpolations
+                     V20                   G120                  G220                       V90                      S110                    S120
+                     G120C                 G130/G150             S120                       S200                     S210                    S210
+                                           G180 1)               S150                       G120/G220                                        DCM
+                                                                 DCM
+   Machining         Main drives for       Main drives for       Main drives for            Axis drives for          Axis drives for         Axis drives for
+                     • Turning             • Drilling            • Turning                  • Turning                • Drilling              • Turning
+                     • Milling             • Sawing              • Milling                  • Milling                • Sawing                • Milling
+                     • Drilling                                  • Drilling                 • Drilling                                       • Drilling
+                                                                 • Gear cutting                                                              • Lasering
+                                                                 • Grinding                                                                  • Gear cutting
+                                                                                                                                             • Grinding
+                                                                                                                                             • Nibbling and
+                                                                                                                                               punching
+                     S110                  S110                  S120                       S110                     S110                    S120
+                                           S120                                                                      S120
+
+  Using the SINAMICS selection guide                                               • The application type is selected from the vertical column
+                                                                                     - Pumping, ventilating, compressing
+  The varying range of demands on modern variable frequency                          - Moving
+  drives requires a large number of different types. Selecting the                   - Processing
+  optimum drive has become a significantly more complex                              - Machining
+  process. The application matrix shown simplifies this selection
+  process considerably, by suggesting the ideal SINAMICS drive                     • The quality of the motion type is selected from the horizontal row
+  for examples of typical applications and requirements.                             - Basic
+                                                                                     - Medium
+                                                                                     - High
+
+■ More information
+  Further information about SINAMICS is available on the internet at               Practical application examples and descriptions are available
+  www.siemens.com/sinamics                                                         on the internet at
+                                                                                   www.siemens.com/sinamics-applications
+
+  1)                                                                               2)
+       Industry-specific converters.                                                    Information on the SIMATIC ET 200pro FC-2 frequency converter is available in
+                                                                                        Catalog D 31.2 and at
+                                                                                        www.siemens.com/et200pro-fc
+
+                                                                                                                  Siemens D 37.1 · November 2025               1/3
+                                                                        © Siemens 2025
+
+
+
+      System overview
+
+
+      SINAMICS S200 servo drive system
+1   ■ Overview
+      SINAMICS S200 servo drive system                                          System components
+                                                                                SINAMICS S200 servo converters
+                                                                                The SINAMICS S200 servo converters consist of a basic version
+                                                                                and a standard version with pulse train input position control
+                                                                                (PTI) or PROFINET RT/IRT (PN) to meet various needs of
+                                                                                applications and work perfectly together with SIMATIC
+                                                                                controllers. With the SINAMICS S200, the PROFINET function
+                                                                                "Dynamic Frame Packing" (DFP) is available, which enables the
+                                                                                connection of large numbers of axes to a SIMATIC controller.
+                                                                                • SINAMICS S200 Basic servo converters, power range
+                                                                                  0.1 to 1 kW at 200 ... 240 V 1 AC / 3 AC
+                                                                                • SINAMICS S200 servo converters, power range
+                                                                                  0.1 to 1 kW at 200 ... 240 V 1 AC / 3 AC and
+                                                                                  0.2 to 7 kW at 380 ... 480 V 3 AC
+                                                                                SIMOTICS S-1FL2 servomotors
+                                                                                With flexible encoder options, including absolute
+                                                                                encoders 17-bit singleturn, 21-bit singleturn and
+                                                                                21-bit singleturn + 12-bit multiturn, the system provides precise
+      Example: SINAMICS S200 servo drive system consisting of a                 and accurate performance. The encoders can be used without
+      SINAMICS S200 servo converter, 200 ... 240 V 1 AC / 3 AC,                 a battery, making it easy to operate and maintenance.
+      PROFINET, frame size FSB, a SIMOTICS S-1FL2 servomotor, shaft
+      height 30, metal hybrid connector, outlet direction drive end (DE) and
+                                                                                • Low Inertia for high dynamic performance
+      MOTION-CONNECT 350 dual cables for power and communication                • Medium Inertia for dynamic and smooth operational perfor-
+                                                                                  mance
+      The SINAMICS S200 servo drive system is a single axis AC/AC
+      servo drive system with compact design, high dynamic perfor-              • High Inertia for smooth operational performance
+      mance, ease of use and high reliability for motion control appli-         MOTION-CONNECT 350 and 380 connection systems
+      cations in standard servo motion market. It comprises
+      SINAMICS S200 servo converters, SIMOTICS S-1FL2 servomo-                  The cables are available in lengths of up to 30 m and one step
+      tors, MOTION-CONNECT 350 and 380 connection systems and                   further optimized in easy and secure installation with "one-push-
+      engineering tools.                                                        lock" motor connecting solution for motor shaft heights 20, 30
+                                                                                and 40.
+                                                                                • MOTION-CONNECT 350 cables, which provide a connection
+                                                                                  solution for fixed installation applications
+                                                                                • MOTION-CONNECT 380 cables, which provide a connection
+                                                                                  solution for drag chain installation applications that require a
+                                                                                  high number of bending cycles
+                                                                                SINAMICS Drive Software highlights from firmware V6.4
+                                                                                • OPC UA server with information model for inventory manage-
+                                                                                  ment and process data acquisition (from firmware V6.4 HF2)
+                                                                                • Security:
+                                                                                  - Security event log for sending security events via syslog pro-
+                                                                                    tocol to a server
+                                                                                  - Additional UMAC privileges for security configuration
+                                                                                  - Integrity protection for backups
+                                                                                  - Extended handling of certificates
+                                                                                • Integrated Positioning
+                                                                                  - Higher resolution through 64-bit data type for position values
+                                                                                    together with new telegram 113
+                                                                                  - Load gearbox position tracking support for reproducibility of
+                                                                                    the load position when using gears
+                                                                                • Vibration suppression support for the reduction of vibrations in
+                                                                                  the natural frequency range up to 10 Hz
+                                                                                • Configurable supplementary telegram for handover additional
+                                                                                  data to the PLC
+
+
+
+
+        1/4        Siemens D 37.1 · November 2025
+                                                               © Siemens 2025
+
+
+
+                                                                                                                    System overview
+
+
+                                                                                                   SINAMICS S200 servo drive system
+
+■ Benefits
+                                                                                                                                          1
+  Performance-optimized                                                Fit for future
+  Dynamic                                                              Digital engineering journey
+  Ideal for dynamic applications thanks to:                            Unlock potential with a seamless digital engineering journey,
+  • fast current controllers                                           from selection and commissioning to diagnosis via
+                                                                       TIA Selection Tool, Siemens Product Configurator and
+  • 8 kHz PWM frequency                                                TIA Portal. More important, SINAMICS S200 servo drive system
+  Fast                                                                 can be simulated with DriveSim Designer.
+  The system enables seamless communication to controllers via         Scalable system
+  PROFINET IRT, providing fast and efficient data exchange and         As a scalable system, users can get a seamless integrated
+  control.                                                             motion control system together with SIMATIC controllers
+  Overload capacity                                                    (e.g. SIMATIC S7-1500).
+  SIMOTICS S-1FL2 servomotors providing up to 350 % overload           Safety & Security
+  capacity, can handle sudden increases in load without compro-        The system includes a safety concept that features
+  mising performance or efficiency, ensuring uninterrupted             Safety Integrated Basic Function Safe Torque Off (STO),
+  operation and increased productivity.                                ensuring safe and reliable operation. You achieve defense in
+  Compact                                                              depth thanks to User Management and Access Control (UMAC)
+                                                                       providing always active industrial security service.
+  To enable more efficient use of cabinet space and improve
+  application system design, both servo converters and                 Siemens EcoTech Profile (SEP) for SINAMICS S200
+  servomotors are further optimized in compactness thanks to           Siemens introduces a new label: Siemens EcoTech. It is an envi-
+  their high power density. More important, for side-by-side           ronmental declaration for products based on product-specific
+  installation, SINAMICS S200 servo converters require only 1 mm       evaluations of sustainability relevant KPIs.
+  for 200 V series and 10 mm for 400 V series.
+                                                                       To provide maximum transparency, the Siemens EcoTech Profile
+  Easy to use                                                          (SEP) were created for all Siemens EcoTech products.
+  Easy setup                                                           It is a Siemens-created, standardized product data sheet which
+  All frame sizes of SINAMICS S200 servo converters have an            gives insight about the product performance in environmental
+  integrated holding brake control 1), which does not require          relevant criteria as well as about interpretation and comparison
+  connection to an external relay, and the integrated brake resistor   of data against an existing norm, standard or predecessor
+  to dissipate the regenerative power for fast braking, which is       product.
+  easy and cost effective for applications.                            You can find more information on the internet at:
+  Easy engineering.                                                    https://support.industry.siemens.com/cs/ww/en/ps/29596/
+                                                                       cert?ci=5702
+  With directly integrated into SINAMICS Startdrive, and the
+  embedded SINAMICS web server for SINAMICS S200, variety              www.siemens.com/SiemensEcoTech
+  of user-friendly features make the servo drive system easy for
+  engineering. Additionally, advanced One Button Tuning (OBT)
+  enables machines to achieve a high dynamic performance
+  within just seconds.
+                                                                                6LHPHQV(FR7HFK
+  Easy implementation
+  The system is designed to meet global standards and
+  certifications, including CE, UKCA, UL, RCM, EAC, KC and             Extended warranty
+  SEMI F47, ensuring compliance with safety and quality regula-
+  tions worldwide.                                                     For SINAMICS S200 servo drive system, Siemens offers an op-
+                                                                       tional extended warranty of up to 5½ years via Service Protect:
+                                                                       • Free for the first 6 months after registering the product at:
+                                                                          www.siemens.com/serviceprotect
+                                                                       • Subject to a charge for a further 3 or 5 years of extended
+                                                                          warranty for SINAMICS S200 servo converters.
+                                                                       • Subject to a charge for a further 1 or 2 years of extended
+                                                                          warranty for SIMOTICS S-1FL2 servo motors.
+                                                                       You can find detailed information here:
+                                                                       https://support.industry.siemens.com/cs/ww/en/sc/4842
+                                                                       You can find the correct Service Protect product number for your
+                                                                       SINAMICS S200 servo drive system using our simple
+                                                                       configurator
+                                                                       www.siemens.com/serviceprotect
+                                                                       Concerning standard warranty please ask your partner at
+                                                                       Siemens.
+                                                                       Your partner can be found in our Personal Contacts Database at:
+                                                                       www.siemens.com/automation-contact
+
+
+  1) Not available for SINAMICS S200 Basic servo converters.
+
+
+                                                                                                  Siemens D 37.1 · November 2025   1/5
+                                                                         © Siemens 2025
+
+
+
+      System overview
+
+
+      SINAMICS S200 servo drive system
+1   ■ Application
+      Application examples
+                                         SINAMICS S200 servo drive system
+                                         Low Inertia                          Medium Inertia                     High Inertia
+                                         for high dynamic performance         for dynamic and smooth operational for smooth operational performance
+                                                                              performance
+                                         200 V ... 240 V 1 AC / 3 AC          200 V ... 240 V 1 AC / 3 AC or         380 V ... 480 V 3 AC
+                                                                              380 V ... 480 V 3 AC
+       Electronics                       • LED sorting machine                • Assembly production line             –
+                                         • Glass cover inspection machine
+                                         • PCB-AOI detection machine
+                                         • PCB laser cutting machine
+                                         • Screwing machine
+                                         • PCB feeding and blanking machine
+                                         • Assembly production line
+       Battery                           • Stacking machine                   • Laser welding machine                • Coating machine
+                                         • EL filling machine                 • Calendering and slitting machine     • Calendering and slitting machine
+                                         • Busbar welding machine             • Die-cutting machine                  • Die-cutting machine
+                                         • Case insertion machine
+                                         • Detection machine
+       Solar                             • Stringer machine                   • Single crystal growing furnace       –
+                                         • Plating diamond machine            • Batch texturing equipment
+                                         • Screen printing machine            • Squaring machine
+                                         • Auto sorting machine
+       Packaging                         • Filling and sealing machine        • Pillow type packaging machine        • Auto roll-fed square bottom paper bag
+                                         • Bag packing machine                • Roller type blister packaging machine machine
+                                                                              • Rigid box maker                      • Rigid box maker
+                                                                              • Labelling machine
+       Handling and robotics             • 3- or 4-axis delta picker          • Cartesian portal                     • Truss manipulator
+                                         • 4-axis cylindrical robot
+                                         • 5-axis roller picker
+                                         • 4-axis tripod robot
+       Wood working                      • Edging machine                     • Wooden engraving                     • Wooden engraving
+                                         • Panel sawing machine               • Wooden machine center                • Wooden machine center
+       Metal forming                     –                                    –                                      • Punching machine
+                                                                                                                     • Engraving machine
+                                                                                                                     • Edging press machine
+       Other general machinery           –                                    • Diaper production line               • Diaper production line
+                                                                              • Stator winding machine               • Stator winding machine
+                                                                              • Winding embedding machine            • Copper foil green foil machine
+                                                                              • Battery swap station                 • Battery swap station
+
+
+
+
+         1/6           Siemens D 37.1 · November 2025
+                                                                        © Siemens 2025
+
+
+
+                                                                                                                                    System overview
+
+
+                                                                                                                   SINAMICS S200 servo drive system
+
+■ Design
+                                                                                                                                                                   1
+
+                             1 AC
+
+                                                         9                                        10
+
+
+
+                                                                                                         X131*
+                             1
+
+
+
+
+                                                                                                         11
+                                                                       X124
+                                                                                           X127                                                         12
+
+                             2
+                                                                       X1
+                                                                                           X132
+                    3(
+
+
+
+                                                                                                                                                        13
+
+
+
+
+                                          3                                                X120
+                                                                       X2
+
+                                                                                                 X108*
+
+
+
+         1 Fuse or circuit breaker
+                                                                        8                         7           6
+         2 Line filter (optional) 1)
+         3 External braking resistor (optional) 1)
+
+
+
+
+                                                                                                                                      G_D211_EN_00728
+         4 SIMOTICS S-1FL2 servomotor
+         5 Motor power cable (with brake conductors)                                                          5
+         6 Encoder cable
+         7 Shield plate                                                                                                    4
+         8 Shield clamp
+         9 24 V DC power supply
+        10 STO plug
+        11 Memory card (optional)
+        12 Commissioning device
+        13 Controller (for example SIMATIC S7-1500)
+
+
+
+
+            * The interfaces X131 and X108 are only available on the SINAMICS S200 converters, not on the SINAMICS S200 Basic converters.
+            1)
+                 When using the components, make sure that they are connected to the ground correctly.
+
+
+
+
+  System connection overview SINAMICS S200 servo drive system, Pulse Train Input version (PTI), 1 AC
+
+
+
+
+                                                                                                                  Siemens D 37.1 · November 2025             1/7
+                                                                             © Siemens 2025
+
+
+
+      System overview
+
+
+      SINAMICS S200 servo drive system
+1   ■ Design
+
+
+                                      1 AC
+
+                                                                  9                                           10
+
+
+
+                                                                                                                   X131*
+                                      1
+
+
+
+
+                                                                                                                    11
+                                                                                 X124                                                                      12
+                                                                                                     X127
+
+                                      2                                                              X130
+                                                                                 X1
+                             PE                                                                                                                            13
+
+
+
+                                                                                                      X150 P1
+
+
+
+
+                                                                                                     X150 P2
+                                                3                                                    X120
+                                                                                 X2                                                                        14
+
+
+                                                                                                              X108*
+
+
+
+
+              1 Fuse or circuit breaker                                          8                            7       6
+              2 Line filter (optional)1)
+              3 External braking resistor (optional)1)
+
+
+
+
+                                                                                                                                         G_D211_EN_00701
+              4 SIMOTICS S-1FL2 servomotor
+                                                                                                                      5
+              5 Motor power cable (with brake conductors)
+              6 Encoder cable                                                                                              4
+              7 Shield plate
+              8 Shield clamp
+              9 24 V DC power supply
+              10 STO plug
+              11 Memory card (optional)
+              12 Commissioning device
+              13 Controller (for example SIMATIC S7-1500)
+              14 PROFINET connection for the next participant
+
+
+
+                 * The interfaces X131 and X108 are only available on the SINAMICS S200 converters, not on the SINAMICS S200 Basic converters.
+                 1)
+                      When using the components, make sure that they are connected to the ground correctly.
+
+
+
+
+      System connection overview SINAMICS S200 servo drive system, PROFINET version, 1 AC
+
+
+
+
+        1/8            Siemens D 37.1 · November 2025
+                                                                           © Siemens 2025
+
+
+
+                                                                                                                                   System overview
+
+
+                                                                                                                     SINAMICS S200 servo drive system
+
+■ Design
+                                                                                                                                                                     1
+
+                                3 AC
+
+
+                                                      9                                             10
+
+
+                                1
+                                                                                                         X131*
+
+
+
+
+                                                                                                          11                                              12
+                                                                       X124
+
+                                 2
+                                                                                             X127
+                                                                       X1
+                        3(
+                                                                                             X132
+
+
+                                                                                                                                                          13
+
+
+
+
+                                             3                                               X120
+                                                                       X2
+
+
+                                                                                             X108*
+
+
+
+
+         1 Fuse or circuit breaker
+                                                                       8                        7                6
+         2 Line filter (optional) 1)
+         3 External braking resistor (optional) 1)
+
+
+
+                                                                                                                                        G_D211_EN_00730
+         4 SIMOTICS S-1FL2 servomotor
+                                                                                                                 5
+         5 Motor power cable (with brake conductors)
+         6 Encoder cable                                                                                                     4
+         7 Shield plate
+         8 Shield clamp
+         9 24 V DC power supply
+        10 STO plug
+        11 Memory card (optional)
+        12 Commissioning device
+        13 Controller (for example SIMATIC S7-1500)
+
+
+
+
+            * The interfaces X131 and X108 are only available on the SINAMICS S200 converters, not on the SINAMICS S200 Basic converters.
+            1)
+                 When using the components, make sure that they are connected to the ground correctly.
+
+
+
+
+  System connection overview SINAMICS S200 servo drive system, Pulse Train Input version (PTI), 3 AC
+
+
+
+
+                                                                                                                 Siemens D 37.1 · November 2025                1/9
+                                                                             © Siemens 2025
+
+
+
+      System overview
+
+
+      SINAMICS S200 servo drive system
+1   ■ Design
+
+
+                                      3 AC
+
+                                                                   9                                        10
+
+
+
+                                                                                                                   X131*
+                                      1
+
+
+
+
+                                                                                                                   11
+                                                                                 X124                                                                      12
+                                                                                                     X127
+
+
+                                       2                                                             X130
+                                                                                 X1
+                              PE                                                                                                                           13
+
+
+
+                                                                                                     X150 P1
+
+
+
+
+                                                                                                     X150 P2
+                                                                                                     X120
+                                                3                                X2                                                                        14
+
+
+                                                                                                               X108*
+
+
+
+
+               1 Fuse or circuit breaker                                         8                             7        6
+               2 Line filter (optional)1)
+               3 External braking resistor (optional)1)
+
+
+
+                                                                                                                                         G_D211_EN_00702
+               4 SIMOTICS S-1FL2 servomotor                                                                             5
+               5 Motor power cable (with brake conductors)
+               6 Encoder cable                                                                                              4
+               7 Shield plate
+               8 Shield clamp
+               9 24 V DC power supply
+              10 STO plug
+              11 Memory card (optional)
+              12 Commissioning device
+              13 Controller (for example SIMATIC S7-1500)
+              14 PROFINET connection for the next participant
+
+
+
+                  * The interfaces X131 and X108 are only available on the SINAMICS S200 converters, not on the SINAMICS S200 Basic converters.
+                  1)
+                       When using the components, make sure that they are connected to the ground correctly.
+
+
+
+
+      System connection overview SINAMICS S200 servo drive system, PROFINET version, 3 AC
+
+
+
+
+       1/10            Siemens D 37.1 · November 2025
+                                                                         © Siemens 2025
+
+
+
+                                                                                                                      System overview
+
+
+                                                                                                   SINAMICS S200 servo drive system
+
+■ Integration
+                                                                                                                                         1
+
+
+                           1
+
+
+
+
+                           2
+
+
+
+
+                  3                     3
+
+
+
+
+                                                                  4
+
+
+
+
+                                                G_D211_EN_00729
+
+
+
+
+              5                     5
+
+
+
+
+                      6                     6
+
+
+
+
+          1   Controller (for example SIMATIC S7-1500)
+
+          2   Communication between the converter and the controller via setpoint cable
+
+          3   SINAMICS S200 converter product line (PTI version)
+
+          4   Engineering via LAN with the web server in the converter
+
+          5   MOTION-CONNECT 350 or MOTION-CONNECT 380 cables for connecting motor, motor holding brake and encoder
+
+          6   SIMOTICS S-1FL2 servomotor
+
+
+
+
+  System topology SINAMICS S200 servo drive system, Pulse Train Input version (PTI)
+
+
+
+
+                                                                                                 Siemens D 37.1 · November 2025   1/11
+                                                                              © Siemens 2025
+
+
+
+      System overview
+
+
+      SINAMICS S200 servo drive system
+1   ■ Integration
+
+
+                                                           1
+
+
+
+
+                                                           2
+
+
+
+
+                       3                 3                 3                  3                3
+
+
+
+
+                                                                                                                          4
+
+
+
+
+                                                                                                       G_D211_EN_00700a
+
+
+
+
+                   5                 5                 5                  5                5
+
+
+
+
+                           6                 6                 6                  6                6
+
+
+
+
+               1   Controller (for example SIMATIC S7-1500)
+
+               2   Communication between the converter and the controller via PROFINET
+
+               3   SINAMICS S200 converter product line (PROFINET version)
+
+               4   Engineering via LAN with the web server in the converter
+
+               5   MOTION-CONNECT 350 or MOTION-CONNECT 380 cables for connecting motor, motor holding brake and encoder
+
+               6   SIMOTICS S-1FL2 servomotor
+
+
+
+
+      System topology SINAMICS S200 servo drive system, PROFINET version
+
+
+
+
+        1/12           Siemens D 37.1 · November 2025
+                                                            © Siemens 2025
+
+
+
+                                                                                               System overview
+
+
+                                                                              SINAMICS S200 servo drive system
+
+■ Configuration
+                                                                                                                     1
+  The following electronic configuring aids and engineering tools
+  are available for the SINAMICS S200 servo drive system:
+  DriveSim Designer (firmware V6.2 or higher)
+  DriveSim Designer provides easy-to-use models for PROFIdrive-
+  enabled SINAMICS converters, so you can create a digital twin
+  of your drive.
+  More information is provided on the internet at:
+  www.siemens.com/drive-virtualization
+  You can find more information on DriveSim Designer in the
+  Engineering tools section.
+  SINAMICS Selector app
+  Mobile selection guide for frequency converters
+  Siemens has developed the SINAMICS Selector app as a prac-
+  tical tool for finding article numbers for your SINAMICS
+  converters in a power range from 0.1 kW to 630 kW quickly and
+  easily. Whether for SINAMICS V20, SINAMICS V90,
+  SINAMICS G120C, SINAMICS G120P, SINAMICS G120X,
+  SINAMICS G120, SINAMICS G220, SINAMICS S200 or
+  SINAMICS S210: the app will provide you with the correct article
+  numbers conveniently.
+  How does it work?
+  Simply select your application, the frequency converter you
+  require, the rated power and device options as well as the
+  necessary accessories.
+  Then you can save your selection and send it by email. Your
+  preselection is the basis for an order specification with the
+  dealer/Siemens.
+  You will find free downloads for Android and iOS here:
+  www.siemens.com/sinamics-selector
+  Siemens Product Configurator
+  The Siemens Product Configurator helps you configure the
+  optimum drive technology products for a number of applications
+  – starting with gearboxes, motors, converters as well as the
+  associated options and components and ending with control-
+  lers, software licenses and connection systems.
+  The Siemens Product Configurator can be used on the internet
+  without requiring any installation. The
+  Siemens Product Configurator can be found in SiePortal at the
+  following address:
+  www.siemens.com/spc
+  You can find more information on the
+  Siemens Product Configurator in the Engineering tools section.
+
+
+
+
+                                                                             Siemens D 37.1 · November 2025   1/13
+                                                                   © Siemens 2025
+
+
+
+      System overview
+
+
+      SINAMICS S200 servo drive system
+1   ■ Configuration
+      Drive dimensioning of the SINAMICS S200 servo drive system
+      with the TIA Selection Tool
+      The SINAMICS S200 servo drive system is easily configured with
+      the TIA Selection Tool under the Drive Dimensioning plug-in.
+      It provides support when selecting the hardware and firmware
+      components necessary to implement a drive task. The plug-in
+      encompasses the configuration of the entire drive system and
+      allows the handling of individual drives.
+      • Intuitive user interface, menu-based operation and help
+      • Configuration of the SINAMICS S200 servo drive system
+      • Adjustable traversing cycles and various mechanical systems
+         integrated for single-axis applications
+      • Interface to the TIA Portal and SiePortal
+      The TIA Selection Tool is available for free on the internet at
+      www.siemens.com/tia-selection-tool-standalone
+      You can find more information on the TIA Selection Tool in the
+      Engineering tools section.
+      SINAMICS web server for SINAMICS S200
+      The converter can be brought easily and quickly into operation
+      and optimized with the web server. Additional software does not
+      need to be installed as access comes directly from a web
+      browser.
+      You can find more information about the SINAMICS web server
+      for SINAMICS S200 in the Engineering tools section.
+      SINAMICS Startdrive commissioning tool (TIA Portal)
+      SINAMICS Startdrive is a tool for configuring, commissioning,
+      and diagnosing the SINAMICS converter family and is
+      integrated into TIA Portal (V18 SP2 or higher).
+      The SINAMICS Startdrive has been optimized with regard to
+      user friendliness and consistent use of the TIA Portal benefits of
+      a common working environment for PLC, HMI and drives.
+      SINAMICS firmware V6.2 or higher is required for
+      SINAMICS S200.
+      The SINAMICS Startdrive Advanced license is required for the
+      Safety Integrated acceptance test.
+      The SINAMICS Startdrive commissioning tool is available for
+      free on the internet at:
+      www.siemens.com/startdrive
+      You can find more information on the SINAMICS Startdrive
+      commissioning tool in the Engineering tools section.
+
+
+
+
+       1/14       Siemens D 37.1 · November 2025
+                                                                          © Siemens 2025
+
+
+
+                                                                                                                                            System overview
+
+
+                                                                                                                      SINAMICS S200 servo drive system
+
+■ Technical specifications
+                                                                                                                                                                         1
+  General technical specifications
+                           SINAMICS S200 servo drive system
+                           Low Inertia                                     Medium Inertia                                  High Inertia
+                           for high dynamic performance                    for dynamic and smooth operational              for smooth operational performance
+                                                                           performance
+                           200 V ... 240 V 1 AC / 3 AC                     200 V ... 240 V 1 AC / 3 AC or                  380 V ... 480 V 3 AC
+                                                                           380 V ... 480 V 3 AC
+   SINAMICS S200 Basic servo converters
+   Line voltage and        • 200 V … 240 V 1 AC / 3 AC (–15 % / +10 %), • 200 V … 240 V 1 AC / 3 AC (–15 % / +10 %), –
+   power range               0.1 kW … 1 kW                                0.1 kW … 1 kW
+   Communication and       • PROFINET RT/IRT (PN) for PROFINET version (PN): Speed control (TO),                           –
+   control type              basic positioner control (EPOS)
+                           • Pulse Train Input version (PTI): Fast position control with pulse train input (Fast PTI)
+   Inputs and outputs      • PROFINET version (PN): 4 DI (incl. 2 fast DI), 1 DO                                           –
+                           • Pulse Train Input version (PTI): 6 DI, 4 DO
+   Frame sizes             • FSA, FSB, FSC                                                                                 –
+   Safety Integrated       –                                                                                               –
+   Basic Functions
+   Holding brake control   • External relay and power supply required                                                      –
+   Degree of protection    • IP20                                                                                          –
+   SINAMICS S200 servo converters
+   Line voltage and        • 200 V … 240 V 1 AC / 3 AC (–15 % / +10 %), • 200 V … 240 V 1 AC / 3 AC (–15 % / +10 %), • 380 V … 480 V 3 AC (–15 % / +10 %),
+   power range               0.1 kW … 1 kW                                0.1 kW … 1 kW                                0.4 kW … 7 kW
+                                                                        • 380 V … 480 V 3 AC (–15 % / +10 %),
+                                                                          0.2 kW … 1.5 kW
+   Communication and       • PROFINET RT/IRT (PN) for PROFINET version (PN): Speed control (TO), basic positioner control (EPOS)
+   control type            • Modbus RTU for Pulse Train Input version (PTI): Fast position control with pulse train input (Fast PTI), speed control (S),
+                             torque control (T), compound speed/torque control (S/T)
+   Inputs and outputs      • PROFINET version (PN): 4 DI (incl. 2 fast DI), 2 DO
+                           • Pulse Train Input version (PTI): 10 DI (incl. 2 fast DI), 6 DO, 2 AI, 2 AO
+   Frame sizes             • FSA, FSB, FSC                                                                                 • FSA, FSB, FSC, FSD
+   Safety Integrated       • Safe Torque Off (STO)
+   Basic Functions
+   Degree of protection    • IP20
+   Holding brake control   • Integrated holding brake control
+   SIMOTICS S-1FL2 servomotors
+   Shaft height            • 20, 30, 40, 40 Compact, 52                    • 30, 40, 40 Compact, 48                        • 45, 65, 90
+   Rated torque            • 0.16 ... 6.60 Nm (0.12 … 4.87 lbf-ft)         • 0.64 ... 4.60 Nm (0.47 … 3.39 lbf-ft)         • 1.27 ... 33.40 Nm (0.94 … 24.63 lbf-ft)
+   Rated power             • 0.05 ... 2.1 kW                               • 0.2 ... 1.45 kW                               • 0.4 ... 7 kW
+   Rated speed             • 3000 r/min                                                                                    • 3000 r/min for shaft height 45
+                                                                                                                           • 2000 r/min for shaft heights 65, 90
+   Max. speed              • 6500 r/min for shaft heights 20, 30, 40,      • 6500 r/min for shaft heights 30, 40,          • 4000 r/min for shaft height 45
+                             40 Compact                                      40 Compact                                    • 3000 r/min for shaft height 65
+                           • 6000 r/min for shaft height 52                • 6000 r/min for shaft height 48                • 2000 r/min, 2500 r/min or
+                                                                                                                             3000 r/min for shaft height 90
+   Encoder                 • Absolute encoder 17-bit singleturn
+                           • Absolute encoder 21-bit singleturn
+                           • Absolute encoder 21-bit singleturn + 12-bit multiturn
+   Degree of protection    • IP54 for shaft heights 20, 30, 40             • IP54 for shaft heights 30, 40                 • IP65, natural cooling, with shaft sealing
+                             Optional: IP65                                  Optional: IP65                                  ring
+                           • IP65, natural cooling, with shaft sealing     • IP65, natural cooling, with shaft sealing
+                             ring for shaft heights 40 Compact, 52           ring for shaft heights 40 Compact, 48
+   Connection technology   • Metal hybrid connector                   • Metal hybrid connector                             • Metal circular connector
+                             for shaft heights 20, 30, 40, 40 Compact   for shaft heights 30, 40, 40 Compact
+                           • Metal circular connector                 • Metal circular connector
+                             for shaft height 52                        for shaft height 48
+   MOTION-CONNECT 350 and 380 connection systems
+   Cable                   • Pre-assembled dual cables for power       • Pre-assembled dual cables for power   • Pre-assembled power cables
+                             and signals for shaft heights 20, 30, 40,   and signals for shaft heights 30, 40, • Pre-assembled encoder cables
+                             40 Compact                                  40 Compact                            • Pre-assembled brake cables
+                           • Pre-assembled power and signal cables • Pre-assembled power and signal cables
+                             for shaft height 52                         for shaft height 48
+   Length                  3 m (9.84 ft), 5 m (16.4 ft), 7 m (23.0 ft), 10 m (32.8 ft), 15 m (49.2 ft), 20 m (65.6 ft), 30 m (98,4 ft)
+   Outlet direction        Shaft heights 20, 30, 40, 40 Compact:           Shaft heights 30, 40, 40 Compact:               • Rotatable
+                           • Drive end (DE)                                • Drive end (DE)
+                           • Non drive end (NDE)                           • Non drive end (NDE)
+                           Shaft height 52:                                Shaft height 48:
+                           • Rotatable                                     • Rotatable
+
+                                                                                                                   Siemens D 37.1 · November 2025                1/15
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                    Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Low Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors".
+
+
+
+
+       Max. Rated          Static       Rated        Max.     Rated     Max.                                        Torque Moment of            Recom-           Weight 2)
+       speed power 1)      torque       torque 1)    torque1) current   current                                     constant inertia of rotor   mended
+                                                                                                                                                load to
+                                                                                                                                                motor inertia
+                                                                                                                                                ratio,
+                                                                                                                                                max.
+       nmax. PN at         M0 at    MN at    Mmax              IN at    Imax                                                  Jwithout Jwith                     mwithout mwith
+             T=100 K      T=100 K T=100 K                   T=100 K                                                       brake    brake                     brake   brake
+       r/min   kW (hp)     Nm           Nm           Nm        A        A         Article No.                       Nm/A      kg cm2 kg cm2                      kg      kg
+       SIMOTICS S-1FL2 Low Inertia servomotors –
+       For high dynamic performance
+       Shaft height 20 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.05 (0.07) 0.16         0.16         0.56      0.81     3.1       1FL2102-2AG ■ ■ - ■ ■ C 0 0.2               0.017    0.022    40×              0.29    0.46
+       6500    0.10 (0.14) 0.32         0.32         1.12      0.76     2.95      1FL2102-4AG ■ ■ - ■ ■ C 0 0.42              0.029    0.034    30×              0.39    0.56
+       Shaft height 20 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.05 (0.07) 0.16         0.16         0.56      0.84     3.4       1FL2102-2AF ■ ■ - ■ ■ C 0 0.19              0.017    0.022    40×              0.29    0.45
+       6500    0.10 (0.14) 0.32         0.32         1.12      0.81     2.9       1FL2102-4AF ■ ■ - ■ ■ C 0 0.4               0.029    0.034    30×              0.38    0.55
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.28     4.8       1FL2103-2AG ■ ■ - ■ ■ C 0 0.5               0.08     0.11     30×              0.79    1.14
+
+
+       6500    0.40 (0.54) 1.27         1.27         4.45      2.4      8.7       1FL2103-4AG ■ ■ - ■ ■ C 0 0.53              0.155    0.185                     1.16    1.5
+
+
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.3      4.8       1FL2103-2AF ■ ■ - ■ ■ C 0 0.49              0.08     0.11     30×              0.78    1.12
+       6500    0.40 (0.54) 1.27         1.27         4.45      1.3      4.8       1FL2103-4AF ■ ■ - ■ ■ C 0 0.98              0.155    0.185                     1.14    1.49
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.75 (1.02) 2.4          2.4          8         4.4      16        1FL2104-2AG ■ ■ - ■ ■ C 0 0.55              0.5      0.58     20×              2.7     3.5
+       6500    0.75 (1.02) 2.4          2.4          8.4       4.2      16        1FL2104-2BG ■ 1 - ■ ■ C 0 0.57              0.67     0.77                      2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          10.8      4.4      16        1FL2104-4AG ■ ■ - ■ ■ C 0 0.73              0.63     0.71                      3.3     4.1
+       6500    1.00 (1.36) 3.2          3.2          11.2      4.4      16        1FL2104-4BG ■ 1 - ■ ■ C 0 0.73              0.87     0.97                      2.4     3.2
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.75 (1.02) 2.4          2.4          8         2.1      7.6       1FL2104-2AF ■ ■ - ■ ■ C 0 1.14              0.5      0.58     20×              2.7     3.5
+       6500    0.75 (1.02) 2.4          2.4          8.4       2.4      9.3       1FL2104-2BF ■ 1 - ■ ■ C 0 1.0               0.67     0.77                      2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          10.8      3        10.9      1FL2104-4AF ■ ■ - ■ ■ C 0 1.07              0.63     0.71                      3.3     4.1
+       6500    1.00 (1.36) 3.2          3.2          11.2      3        10.9      1FL2104-4BF ■ 1 - ■ ■ C 0 1.07              0,87     0,97                      2.4     3.2
+       Shaft height 52 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6000    1.45 (2.04) 5            4.6          15.9      4.35     18        1FL2105-2AF ■ 1 - ■ ■ B 0 1.08              1.71     2.54     20×              5.5     6.4
+       6000    2.10 (2.72) 8            6.6          25.3      5.6      24        1FL2105-4AF ■ 1 - ■ ■ B 0 1.19              2.65     3.48     15×              7.8     8.7
+
+       Brake
+       Without                                                                                  0
+       Holding brake                                                                            1
+
+       Degree of protection
+       IP54                                                                                         0
+       IP65 (with shaft sealing ring)                                                               1
+
+       Shaft end, feather key
+       Plain shaft                                                                                      0
+       Shaft with feather key (half-key balancing)                                                      1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                   H
+       Absolute encoder 21-bit singleturn                                                                   S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                M
+
+       Connection technology
+       Metal circular connector                                                                                 B
+       Metal hybrid connector                                                                                   C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration.
+
+      For footnotes, see next page.
+
+        1/16         Siemens D 37.1 · November 2025
+                                                                      © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                            System overview
+
+
+                                              SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Low Inertia servomotors
+                                                                                                                                                                1
+SINAMICS S200 servo converters                   Line filter                                    Recommended standard fuse                  Recommended
+Further info in section                                                                                                                    circuit breaker
+"SINAMICS S200 servo converters".
+                                                                                                More information at
+                                                                                                www.siemens.com/sinamics-s200/ocpd
+Max. motor                               Frame With one of the recommended line filters,        IEC-compliant     UL/cUL-compliant         IEC/UL/cUL-
+power                                    size  IEC 61800-3 category C2 can be reached in                                                   compliant
+                                               combination with SINAMICS S200 for motor
+                                               cable lengths up to 30 m (98.5 ft).
+
+
+                                                 Line voltage    IN                             I     3NA3        I     Fuse type          3RV2
+
+kW (hp)      Article No.                         V               A      Article No.             A     Article No. A     Class              Article No.
+SINAMICS S200 and SINAMICS S200 Basic
+servo converters
+Line voltage 200 ... 240 V 1 AC / 3 AC
+0.10 (0.14) 6SL5 ■ 10-1BB10-1A ■ 0 FSA           1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 4          3NA3804     3     J                  3RV2011-1EA10
+                                                 3 AC 200 ... 240 5     6SL3203-0BE15-0VA0
+Line voltage 380 ... 480 V 3 AC
+0.20 (0.27) 6SL5 5 10-1BE10-2A ■ 0 FSA           3 AC 380 ... 480 5     6SL5550-0XE20-5CA0      4     3NA3804     3     J                  3RV2011-1CA10
+
+
+Line voltage 200 ... 240 V 1 AC / 3 AC
+0.20 (0.27) 6SL5 ■ 10-1BB10-2A ■ 0 FSA           1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 4          3NA3804     3     J                  3RV2011-1EA10
+                                                 3 AC 200 ... 240 5     6SL3203-0BE15-0VA0
+0.40 (0.54) 6SL5 ■ 10-1BB10-4A ■ 0 FSB           1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 6          3NA3801     6     J                  3RV2011-1HA10
+                                                 3 AC 200 ... 240 5     6SL3203-0BE15-0VA0                                                 3RV2011-1EA10
+Line voltage 380 ... 480 V 3 AC
+0.20 (0.27) 6SL5 5 10-1BE10-2A ■ 0 FSA           3 AC 380 ... 480 5     6SL5550-0XE20-5CA0      4     3NA3804     3     J                  3RV2011-1CA10
+0.40 (0.54) 6SL5 5 10-1BE10-4A ■ 0                                                                                                         3RV2021-1DA10
+Line voltage 200 ... 240 V 1 AC / 3 AC
+0.75 (1.02) 6SL5 ■ 10-1BB10-8A ■ 0 FSC           1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 16         3NA3805     15    J                  3RV2011-1KA10
+                                                 3 AC 200 ... 240 5     6SL3203-0BE15-0VA0                                                 3RV2011-1HA10
+1.00 (1.36) 6SL5 ■ 10-1BB11-0A ■ 0 FSC           1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 16         3NA3805     15    J                  3RV2011-1KA10
+                                                 3 AC 200 ... 240 5     6SL3203-0BE15-0VA0                                                 3RV2011-1JA10
+Line voltage 380 ... 480 V 3 AC
+0.75 (1.02) 6SL5 5 10-1BE10-8A ■ 0 FSB           3 AC 380 ... 480 5     6SL5550-0XE20-5CA0      10    3NA3803     10    J                  3RV2021-1EA10
+
+
+1.00 (1.36) 6SL5 5 10-1BE11-0A ■ 0                                                                                                         3RV2021-1FA10
+
+
+Line voltage 380 ... 480 V 3 AC
+1.75 (2.38) 6SL5 5 10-1BE11-5A ■ 0 FSC           3 AC 380 ... 480 12    6SL5550-0XE21-2CA0      16    3NA3805     15    J                  3RV2011-4AA10
+2.50 (3.40) 6SL5 5 10-1BE12-5A ■ 0                                                                                20                       3RV2011-4AA10
+
+Servo converter
+SINAMICS S200 5
+SINAMICS S200      6
+Basic
+
+Version
+Pulse Train Input (PTI)            A
+PROFINET (PN)                      F
+
+
+
+
+1) Rated torque, rated power and maximum torque listed in the table above       2) Motor weight with absolute encoder 17-bit singleturn.
+  allow for a production tolerance of 10 %.
+
+                                                                                                          Siemens D 37.1 · November 2025                 1/17
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                    Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Low Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors"
+
+
+
+       Max. Rated          Static       Rated        Max.     Rated     Max.                                        Torque Moment of             Recom-          Weight 2)
+       speed power 1)      torque       torque 1)    torque1) current   current                                     constant inertia of rotor    mended
+                                                                                                                                                 load to
+                                                                                                                                                 motor inertia
+                                                                                                                                                 ratio,
+                                                                                                                                                 max.
+       nmax. PN at         M0 at    MN at    Mmax              IN at    Imax                                                  Jwithout Jwith                     mwithout mwith
+             T=100 K      T=100 K T=100 K                   T=100 K                                                       brake    brake                     brake    brake
+                                                                                                                                     2       2
+       r/min   kW (hp)     Nm           Nm           Nm        A        A         Article No.                       Nm/A      kg cm kg cm                        kg      kg
+       SIMOTICS S-1FL2 Low Inertia servomotors –
+       For high dynamic performance
+       Shaft height 20 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.05 (0.07) 0.16         0.16         0.56      0.81     3.1       1FL2102-2AG ■ ■ - ■ ■ C 0 0.2               0.017    0.022     40×             0.29    0.46
+       6500    0.10 (0.14) 0.32         0.32         1.12      0.76     2.95      1FL2102-4AG ■ ■ - ■ ■ C 0 0.42              0.029    0.034     30×             0.39    0.56
+       Shaft height 20 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.05 (0.07) 0.16         0.16         0.56      0.84     3.4       1FL2102-2AF ■ ■ - ■ ■ C 0 0.19              0.017    0.022     40×             0.29    0.45
+       6500    0.10 (0.14) 0.32         0.32         1.12      0.81     2.9       1FL2102-4AF ■ ■ - ■ ■ C 0 0.4               0.029    0.034     30×             0.38    0.55
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.28     4.8       1FL2103-2AG ■ ■ - ■ ■ C 0 0.5               0.08     0.11      30×             0.79    1.14
+       6500    0.40 (0.54) 1.27         1.27         4.45      2.4      8.7       1FL2103-4AG ■ ■ - ■ ■ C 0 0.53              0.155    0.185                     1.16    1.5
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.3      4.8       1FL2103-2AF ■ ■ - ■ ■ C 0 0.49              0.08     0.11      30×             0.78    1.12
+       6500    0.40 (0.54) 1.27         1.27         4.45      1.3      4.8       1FL2103-4AF ■ ■ - ■ ■ C 0 0.98              0.155    0.185                     1.14    1.49
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.75 (1.02) 2.4          2.4          8         4.4      16        1FL2104-2AG ■ ■ - ■ ■ C 0 0.55              0.5      0.58      20×             2.7     3.5
+       6500    0.75 (1.02) 2.4          2.4          8.4       4.2      16        1FL2104-2BG ■ 1 - ■ ■ C 0 0.57              0.67     0.77                      2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          10.8      4.4      16        1FL2104-4AG ■ ■ - ■ ■ C 0 0.73              0.63     0.71                      3.3     4.1
+       6500    1.00 (1.36) 3.2          3.2          11.2      4.4      16        1FL2104-4BG ■ 1 - ■ ■ C 0 0.73              0.87     0.97                      2.4     3.2
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.75 (1.02) 2.4          2.4          8         2.1      7.6       1FL2104-2AF ■ ■ - ■ ■ C 0 1.14              0.5      0.58      20×             2.7     3.5
+       6500    0.75 (1.02) 2.4          2.4          8.4       2.4      9.3       1FL2104-2BF ■ 1 - ■ ■ C 0 1.0               0.67     0.77                      2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          10.8      3        10.9      1FL2104-4AF ■ ■ - ■ ■ C 0 1.07              0.63     0.71                      3.3     4.1
+       6500    1.00 (1.36) 3.2          3.2          11.2      3        10.9      1FL2104-4BF ■ 1 - ■ ■ C 0 1.07              0,87     0,97                      2.4     3.2
+       Shaft height 52 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6000    1.45 (2.04) 5            4.6          15.9      4.35     18        1FL2105-2AF ■ 1 - ■ ■ B 0 1.08              1.71     2.54      20×             5.5     6.4
+       6000    2.10 (2.72) 8            6.6          25.3      5.6      24        1FL2105-4AF ■ 1 - ■ ■ B 0 1.19              2.65     3.48      15×             7.8     8.7
+
+       Brake
+       Without                                                                                  0
+       Holding brake                                                                            1
+
+       Degree of protection
+       IP54                                                                                         0
+       IP65 (with shaft sealing ring)                                                               1
+
+       Shaft end, feather key
+       Plain shaft                                                                                      0
+       Shaft with feather key (half-key balancing)                                                      1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                   H
+       Absolute encoder 21-bit singleturn                                                                   S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                M
+
+       Connection technology
+       Metal circular connector                                                                                 B
+       Metal hybrid connector                                                                                   C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+      1) Rated torque, rated power and maximum torque listed in the table above            2) Motor weight with absolute encoder 17-bit singleturn.
+         allow for a production tolerance of 10 %.
+
+
+        1/18         Siemens D 37.1 · November 2025
+                                                                      © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                      System overview
+
+
+                                             SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Low Inertia servomotors
+                                                                                                                                                        1
+MOTION-CONNECT connection systems – Further info in section "MOTION-CONNECT 350 and 380 connection systems".
+Pre-assembled dual cables for power and communication           Pre-assembled power cables                     Pre-assembled cables for
+                                                                                                               communication
+                                                                                                               SINAMICS S200 – Absolute encoder on
+                                                                                                               the 1FL2 servomotor
+
+
+
+
+No. of cores ×                                                  No. of cores ×                                 No. of cores ×
+cross-section                                                   cross-section                                  cross-section
+mm2                                Article No.                  mm2               Article No.                  mm2              Article No.
+MOTION-CONNECT connection systems
+
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+
+
+–                                  –                            4 × 0.75 or         6FX3 ■ 02-5 ■ K32-1 ■ ■ 0 3 × 2 × 0.25 1) 6FX3 ■ 02-2XB11-1 ■ ■ 0
+                                                                4 × 0.75 / 2 × 0.38
+
+Connection system
+MOTION-CONNECT 350                       5                                              5                                             5
+MOTION-CONNECT 380                       8                                              8                                             8
+
+Brake cores
+Without                                          C                                              C
+With                                             D                                              D
+
+Outlet direction
+Drive end (DE)                                       D
+Non drive end (NDE)                                  N
+
+Length
+3m                                                       A D                                            A D                                    A D
+5m                                                       A F                                            A F                                    A F
+7m                                                       A H                                            A H                                    A H
+10 m                                                     B A                                            B A                                    B A
+15 m                                                     B F                                            B F                                    B F
+20 m                                                     C A                                            C A                                    C A
+30 m                                                     D A                                            D A                                    D A
+
+
+
+
+1) No. of cores × cross-section for encoder cable in mm2 for:
+    Length <20 m: 3 x 2 x 0.25
+    Length  20 m: 2 x 2 x 0.25 + 2 x 0.38
+
+                                                                                                      Siemens D 37.1 · November 2025          1/19
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                    Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Low Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors"
+
+
+
+       Max. Rated          Static       Rated        Max.     Rated     Max.                                        Torque Moment of             Recom-          Weight 2)
+       speed power 1)      torque       torque 1)    torque1) current   current                                     constant inertia of rotor    mended
+                                                                                                                                                 load to
+                                                                                                                                                 motor inertia
+                                                                                                                                                 ratio,
+                                                                                                                                                 max.
+       nmax. PN at         M0 at    MN at    Mmax              IN at    Imax                                                  Jwithout Jwith                     mwithout mwith
+             T=100 K      T=100 K T=100 K                   T=100 K                                                       brake    brake                     brake    brake
+                                                                                                                                     2       2
+       r/min   kW (hp)     Nm           Nm           Nm        A        A         Article No.                       Nm/A      kg cm kg cm                        kg      kg
+       SIMOTICS S-1FL2 Low Inertia servomotors –
+       For high dynamic performance
+       Shaft height 20 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.05 (0.07) 0.16         0.16         0.56      0.81     3.1       1FL2102-2AG ■ ■ - ■ ■ C 0 0.2               0.017    0.022     40×             0.29    0.46
+       6500    0.10 (0.14) 0.32         0.32         1.12      0.76     2.95      1FL2102-4AG ■ ■ - ■ ■ C 0 0.42              0.029    0.034     30×             0.39    0.56
+       Shaft height 20 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.05 (0.07) 0.16         0.16         0.56      0.84     3.4       1FL2102-2AF ■ ■ - ■ ■ C 0 0.19              0.017    0.022     40×             0.29    0.45
+       6500    0.10 (0.14) 0.32         0.32         1.12      0.81     2.9       1FL2102-4AF ■ ■ - ■ ■ C 0 0.4               0.029    0.034     30×             0.38    0.55
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.28     4.8       1FL2103-2AG ■ ■ - ■ ■ C 0 0.5               0.08     0.11      30×             0.79    1.14
+       6500    0.40 (0.54) 1.27         1.27         4.45      2.4      8.7       1FL2103-4AG ■ ■ - ■ ■ C 0 0.53              0.155    0.185                     1.16    1.5
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.3      4.8       1FL2103-2AF ■ ■ - ■ ■ C 0 0.49              0.08     0.11      30×             0.78    1.12
+       6500    0.40 (0.54) 1.27         1.27         4.45      1.3      4.8       1FL2103-4AF ■ ■ - ■ ■ C 0 0.98              0.155    0.185                     1.14    1.49
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.75 (1.02) 2.4          2.4          8         4.4      16        1FL2104-2AG ■ ■ - ■ ■ C 0 0.55              0.5      0.58      20×             2.7     3.5
+       6500    0.75 (1.02) 2.4          2.4          8.4       4.2      16        1FL2104-2BG ■ 1 - ■ ■ C 0 0.57              0.67     0.77                      2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          10.8      4.4      16        1FL2104-4AG ■ ■ - ■ ■ C 0 0.73              0.63     0.71                      3.3     4.1
+       6500    1.00 (1.36) 3.2          3.2          11.2      4.4      16        1FL2104-4BG ■ 1 - ■ ■ C 0 0.73              0.87     0.97                      2.4     3.2
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.75 (1.02) 2.4          2.4          8         2.1      7.6       1FL2104-2AF ■ ■ - ■ ■ C 0 1.14              0.5      0.58      20×             2.7     3.5
+       6500    0.75 (1.02) 2.4          2.4          8.4       2.4      9.3       1FL2104-2BF ■ 1 - ■ ■ C 0 1.0               0.67     0.77                      2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          10.8      3        10.9      1FL2104-4AF ■ ■ - ■ ■ C 0 1.07              0.63     0.71                      3.3     4.1
+       6500    1.00 (1.36) 3.2          3.2          11.2      3        10.9      1FL2104-4BF ■ 1 - ■ ■ C 0 1.07              0,87     0,97                      2.4     3.2
+       Shaft height 52 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6000    1.45 (2.04) 5            4.6          15.9      4.35     18        1FL2105-2AF ■ 1 - ■ ■ B 0 1.08              1.71     2.54      20×             5.5     6.4
+       6000    2.10 (2.72) 8            6.6          25.3      5.6      24        1FL2105-4AF ■ 1 - ■ ■ B 0 1.19              2.65     3.48      15×             7.8     8.7
+
+       Brake
+       Without                                                                                  0
+       Holding brake                                                                            1
+
+       Degree of protection
+       IP54                                                                                         0
+       IP65 (with shaft sealing ring)                                                               1
+
+       Shaft end, feather key
+       Plain shaft                                                                                      0
+       Shaft with feather key (half-key balancing)                                                      1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                   H
+       Absolute encoder 21-bit singleturn                                                                   S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                M
+
+       Connection technology
+       Metal circular connector                                                                                 B
+       Metal hybrid connector                                                                                   C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+      1) Rated torque, rated power and maximum torque listed in the table above            2) Motor weight with absolute encoder 17-bit singleturn.
+         allow for a production tolerance of 10 %.
+
+
+        1/20         Siemens D 37.1 · November 2025
+                                                                 © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                    System overview
+
+
+                                      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Low Inertia servomotors
+                                                                                                                                                       1
+MOTION-CONNECT connection systems (continued) – Further info in section "MOTION-CONNECT 350 and 380 connection systems".
+Pre-assembled cables for communication Connectors
+
+SINAMICS S200 – Brake on the 1FL2       Drive end (DE)       Non drive end (NDE) Motor side
+servomotor with holding brake           direction            direction
+
+
+
+
+No. of cores ×                          for                  for                   for                   for                    for
+cross-section                           hybrid connection    hybrid connection     power connection      encoder connection     brake
+mm2               Article No.           Article No.          Article No.           Article No.           Article No.            Article No.
+MOTION-CONNECT connection systems
+(continued)
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+
+–                 –                     –                    –                     6FX2003-0LL63         6FX2003-0DB63          –
+                                                                                                                                (in power connector)
+
+                                        MOTION-CONNECT connectors for SINAMICS S200 servo converters
+                                        Crimp contacts        Crimp contacts        Connectors converter side
+                                        "power and PE"        "signal and brake"
+                                                                                    for power connection IX signal connector,   for brake
+                                        (2000 pieces per      (2000 pieces per                           C coded for
+                                        reel)                 reel)
+                                                                                                         encoder connection
+                                        for hybrid connection for hybrid connection
+                                        6FX2003-7HP00        6FX2003-7HS00         –                     6FX2003-0DE61          –
+
+
+
+
+                                                                                                   Siemens D 37.1 · November 2025             1/21
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                   Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Medium Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors".
+
+
+
+
+       Max. Rated          Static       Rated        Max.     Rated     Max.                                        Torque Moment of             Recom-        Weight 2)
+       speed power 1)      torque       torque 1)    torque1) current   current                                     constant inertia of rotor    mended
+                                                                                                                                                 load to
+                                                                                                                                                 motor inertia
+                                                                                                                                                 ratio,
+                                                                                                                                                 max.
+       nmax. PN at         M0 at    MN at    Mmax              IN at    Imax                                                  Jwithout Jwith                    mwithout mwith
+             T=100 K      T=100 K T=100 K                   T=100 K                                                       brake    brake                    brake    brake
+                                                                                                                                     2       2
+       r/min   kW (hp)     Nm           Nm           Nm        A        A         Article No.                       Nm/A      kg cm kg cm                       kg      kg
+       SIMOTICS S-1FL2 Medium Inertia servomotors –
+       For dynamic and smooth operational performance
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.33     4.8       1FL2203-2AG ■ ■ - ■ ■ C 0 0.48              0.18     0.21      30×            0.76    1.11
+
+
+       6500    0.40 (0.54) 1.27         1.27         4.45      2.4      8.7       1FL2203-4AG ■ ■ - ■ ■ C 0 0.53              0.35     0.38                     1.11    1.46
+
+
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.20 (0.27) 0.64         0.64         2.24      1.3      4.8       1FL2203-2AF ■ ■ - ■ ■ C 0 0.49              0.18     0.21      30×            0.77    1.12
+       6500    0.40 (0.54) 1.27         1.27         4.45      1.3      4.8       1FL2203-4AF ■ ■ - ■ ■ C 0 0.98              0.35     0.38                     1.09    1.44
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500    0.75 (1.02) 2.4          2.4          7.5       4.4      14.2      1FL2204-2AG ■ ■ - ■ ■ C 0 0.55              1.23     1.31      15×            2.6     3.4
+       6500    0.75 (1.02) 2.4          2.4          8.4       4.4      16        1FL2204-2BG ■ 1 - ■ ■ C 0 0.55              1.27     1.37                     2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          11.3      4.4      16        1FL2204-4AG ■ ■ - ■ ■ C 0 0.73              1.61     1.69                     3.1     3.9
+       6500    1.00 (1.36) 3.2          3.2          11.3      4.4      16        1FL2204-4BG ■ 1 - ■ ■ C 0 0.73              1.67     1.77                     2.4     3.2
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500    0.75 (1.02) 2.4          2.4          7.5       2.25     7.1       1FL2204-2AF ■ ■ - ■ ■ C 0 1.07              1.23     1.31      15×            2.6     3.4
+       6500    0.75 (1.02) 2.4          2.4          8.4       2.5      9.3       1FL2204-2BF ■ 1 - ■ ■ C 0 0.96              1.27     1.37                     2.0     2.8
+       6500    1.00 (1.36) 3.2          3.2          10        3        9.9       1FL2204-4AF ■ ■ - ■ ■ C 0 1.07              1.61     1.69                     3.1     3.9
+       6500    1.00 (1.36) 3.2          3.2          11.2      3        10.9      1FL2204-4BF ■ 1 - ■ ■ C 0 1.07              1.67     1.77                     2.4     3.2
+       Shaft height 48 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6000    0.94 (1.36) 3.6          3            11.5      2.5      9.5       1FL2205-2AF ■ 1 - ■ ■ B 0 1.24              3.15     4.03      15×            3.6     4.7
+       6000    1.45 (2.04) 6            4.6          19.3      3.75     15.1      1FL2205-4AF ■ 1 - ■ ■ B 0 1.28              5.1      5.98                     5       6.1
+
+       Brake
+       Without                                                                                  0
+       Holding brake                                                                            1
+
+       Degree of protection
+       IP54                                                                                         0
+       IP65 (with shaft sealing ring)                                                               1
+
+       Shaft end, feather key
+       Plain shaft                                                                                      0
+       Shaft with feather key (half-key balancing)                                                      1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                   H
+       Absolute encoder 21-bit singleturn                                                                   S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                M
+
+       Connection technology
+       Metal circular connector                                                                                 B
+       Metal hybrid connector                                                                                   C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+
+      1) Rated torque, rated power and maximum torque listed in the table above           2) Motor weight with absolute encoder 17-bit singleturn.
+         allow for a production tolerance of 10 %.
+
+
+        1/22         Siemens D 37.1 · November 2025
+                                                                     © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                    System overview
+
+
+                                      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Medium Inertia servomotors
+                                                                                                                                                      1
+SINAMICS S200 servo converters                  Line filter                                 Recommended standard fuse            Recommended
+Further info in section                                                                                                          circuit breaker
+"SINAMICS S200 servo converters".
+                                                                                            More information at
+                                                                                            www.siemens.com/sinamics-s200/ocpd
+Max. motor                               Frame With one of the recommended line filters,    IEC-compliant   UL/cUL-compliant     IEC/UL/cUL-
+power                                    size  IEC 61800-3 category C2 can be reached in                                         compliant
+                                               combination with SINAMICS S200 for motor
+                                               cable lengths up to 30 m (98.5 ft).
+
+
+                                                Line voltage    IN                          I    3NA3       I    Fuse type       3RV2
+
+kW (hp)      Article No.                        V               A      Article No.          A    Article No. A   Class           Article No.
+SINAMICS S200 and SINAMICS S200 Basic
+servo converters
+Line voltage 200 ... 240 V 1 AC / 3 AC
+0.20 (0.27) 6SL5 ■ 10-1BB10-2A ■ 0 FSA          1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 4      3NA3804    3    J               3RV2011-1EA10
+                                                3 AC 200 ... 240 5     6SL3203-0BE15-0VA0
+0.40 (0.54) 6SL5 ■ 10-1BB10-4A ■ 0 FSB          1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 6      3NA3801    6    J               3RV2011-1HA10
+                                                3 AC 200 ... 240 5     6SL3203-0BE15-0VA0                                        3RV2011-1EA10
+Line voltage 380 ... 480 V 3 AC
+0.20 (0.27) 6SL5 5 10-1BE10-2A ■ 0 FSA          3 AC 380 ... 480 5     6SL5550-0XE20-5CA0   4    3NA3804    3    J               3RV2011-1CA10
+0.40 (0.54) 6SL5 5 10-1BE10-4A ■ 0                                                                                               3RV2011-1DA10
+Line voltage 200 ... 240 V 1 AC / 3 AC
+0.75 (1.02) 6SL5 ■ 10-1BB10-8A ■ 0 FSC          1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 16     3NA3805    15   J               3RV2011-1KA10
+                                                3 AC 200 ... 240 5     6SL3203-0BE15-0VA0                                        3RV2011-1HA10
+1.00 (1.36) 6SL5 ■ 10-1BB11-0A ■ 0 FSC          1 AC 200 ... 240 18    6SL5550-0XB21-8CA0 16     3NA3805    15   J               3RV2011-1KA10
+                                                3 AC 200 ... 240 5     6SL3203-0BE15-0VA0                                        3RV2011-1JA10
+Line voltage 380 ... 480 V 3 AC
+0.75 (1.02) 6SL5 5 10-1BE10-8A ■ 0 FSB          3 AC 380 ... 480 5     6SL5550-0XE20-5CA0   10   3NA3803    10   J               3RV2011-1EA10
+
+
+1.00 (1.36) 6SL5 5 10-1BE11-0A ■ 0                                                                                               3RV2011-1FA10
+
+
+Line voltage 380 ... 480 V 3 AC
+1.00 (1.36) 6SL5 5 10-1BE11-0A ■ 0 FSB          3 AC 380 ... 480 5     6SL3203-0BE15-0VA0   10   3NA3803    10   J               3RV2011-1FA10
+1.75 (2.38) 6SL5 5 10-1BE11-5A ■ 0 FSC          3 AC 380 ... 480 12    6SL5550-0XE21-2CA0   16   3NA3805    15                   3RV2011-4AA10
+
+Servo converter
+SINAMICS S200 5
+SINAMICS S200      6
+Basic
+
+Version
+Pulse Train Input (PTI)           A
+PROFINET (PN)                     F
+
+
+
+
+                                                                                                     Siemens D 37.1 · November 2025            1/23
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                      Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Medium Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors".
+
+
+
+       Max. Rated            Static     Rated        Max.     Rated     Max.                                           Torque Moment of             Recom-        Weight 2)
+       speed power 1)        torque     torque 1)    torque1) current   current                                        constant inertia of rotor    mended
+                                                                                                                                                    load to
+                                                                                                                                                    motor inertia
+                                                                                                                                                    ratio,
+                                                                                                                                                    max.
+       nmax. PN at           M0 at    MN at    Mmax            IN at    Imax                                                     Jwithout Jwith                    mwithout mwith
+             T=100 K        T=100 K T=100 K                 T=100 K                                                          brake    brake                    brake    brake
+                                                                                                                                        2       2
+       r/min      kW (hp)    Nm         Nm           Nm        A        A         Article No.                          Nm/A      kg cm kg cm                       kg      kg
+       SIMOTICS S-1FL2 Medium Inertia servomotors –
+       For dynamic and smooth operational performance
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500       0.20 (0.27) 0.64      0.64         2.24      1.33     4.8       1FL2203-2AG ■ ■ - ■ ■ C 0 0.48                 0.18     0.21      30×            0.76    1.11
+       6500       0.40 (0.54) 1.27      1.27         4.45      2.4      8.7       1FL2203-4AG ■ ■ - ■ ■ C 0 0.53                 0.35     0.38                     1.11    1.46
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500       0.20 (0.27) 0.64      0.64         2.24      1.3      4.8       1FL2203-2AF ■ ■ - ■ ■ C 0 0.49                 0.18     0.21      30×            0.77    1.12
+       6500       0.40 (0.54) 1.27      1.27         4.45      1.3      4.8       1FL2203-4AF ■ ■ - ■ ■ C 0 0.98                 0.35     0.38                     1.09    1.44
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500       0.75 (1.02) 2.4       2.4          7.5       4.4      14.2      1FL2204-2AG ■ ■ - ■ ■ C 0 0.55                 1.23     1.31      15×            2.6     3.4
+       6500       0.75 (1.02) 2.4       2.4          8.4       4.4      16        1FL2204-2BG ■ 1 - ■ ■ C 0 0.55                 1.27     1.37                     2.0     2.8
+       6500       1.00 (1.36) 3.2       3.2          11.3      4.4      16        1FL2204-4AG ■ ■ - ■ ■ C 0 0.73                 1.61     1.69                     3.1     3.9
+       6500       1.00 (1.36) 3.2       3.2          11.3      4.4      16        1FL2204-4BG ■ 1 - ■ ■ C 0 0.73                 1.67     1.77                     2.4     3.2
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500       0.75 (1.02) 2.4       2.4          7.5       2.25     7.1       1FL2204-2AF ■ ■ - ■ ■ C 0 1.07                 1.23     1.31      15×            2.6     3.4
+       6500       0.75 (1.02) 2.4       2.4          8.4       2.5      9.3       1FL2204-2BF ■ 1 - ■ ■ C 0 0.96                 1.27     1.37                     2.0     2.8
+       6500       1.00 (1.36) 3.2       3.2          10        3        9.9       1FL2204-4AF ■ ■ - ■ ■ C 0 1.07                 1.61     1.69                     3.1     3.9
+       6500       1.00 (1.36) 3.2       3.2          11.2      3        10.9      1FL2204-4BF ■ 1 - ■ ■ C 0 1.07                 1.67     1.77                     2.4     3.2
+       Shaft height 48 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6000       0.94 (1.36) 3.6       3            11.5      2.5      9.5       1FL2205-2AF ■ 1 - ■ ■ B 0 1.24                 3.15     4.03      15×            3.6     4.7
+       6000       1.45 (2.04) 6         4.6          19.3      3.75     15.1      1FL2205-4AF ■ 1 - ■ ■ B 0 1.28                 5.1      5.98                     5       6.1
+
+       Brake
+       Without                                                                                     0
+       Holding brake                                                                               1
+
+       Degree of protection
+       IP54                                                                                            0
+       IP65 (with shaft sealing ring)                                                                  1
+
+       Shaft end, feather key
+       Plain shaft                                                                                         0
+       Shaft with feather key (half-key balancing)                                                         1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                      H
+       Absolute encoder 21-bit singleturn                                                                      S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                   M
+
+       Connection technology
+       Metal circular connector                                                                                    B
+       Metal hybrid connector                                                                                      C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+
+      1)                                                                                  2)
+           Rated torque, rated power and maximum torque listed in the table above               Motor weight with absolute encoder 17-bit singleturn.
+           allow for a production tolerance of 10 %.
+
+
+           1/24         Siemens D 37.1 · November 2025
+                                                                      © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                      System overview
+
+
+                                        SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Medium Inertia servomotors
+                                                                                                                                                        1
+MOTION-CONNECT connection systems – Further info in section "MOTION-CONNECT 350 and 380 connection systems".
+Pre-assembled dual cables for power and communication           Pre-assembled power cables                     Pre-assembled cables for
+                                                                                                               communication
+                                                                                                               SINAMICS S200 – Absolute encoder on
+                                                                                                               the 1FL2 servomotor
+
+
+
+
+No. of cores ×                                                  No. of cores ×                                 No. of cores ×
+cross-section                                                   cross-section                                  cross-section
+mm2                                Article No.                  mm2               Article No.                  mm2              Article No.
+MOTION-CONNECT connection systems
+
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+
+
+4 × 0.75 / 3 × 2 × 0.25 1) or         6FX3 ■ 02-7 ■ ■ 01-1 ■ ■ 0 –                –                            –                –
+4 × 0.75 / 3 × 2 × 0.25 1) / 2 × 0.38
+
+
+
+
+–                                  –                            4 × 0.75 or         6FX3 ■ 02-5 ■ K32-1 ■ ■ 0 3 × 2 × 0.25 1) 6FX3 ■ 02-2XB11-1 ■ ■ 0
+                                                                4 × 0.75 / 2 × 0.38
+
+Connection system
+MOTION-CONNECT 350                       5                                              5                                             5
+MOTION-CONNECT 380                       8                                              8                                             8
+
+Brake cores
+Without                                          C                                              C
+With                                             D                                              D
+
+Outlet direction
+Drive end (DE)                                       D
+Non drive end (NDE)                                  N
+
+Length
+3m                                                       A D                                            A D                                    A D
+5m                                                       A F                                            A F                                    A F
+7m                                                       A H                                            A H                                    A H
+10 m                                                     B A                                            B A                                    B A
+15 m                                                     B F                                            B F                                    B F
+20 m                                                     C A                                            C A                                    C A
+30 m                                                     D A                                            D A                                    D A
+
+
+
+
+1) No. of cores × cross-section for encoder cable in mm2 for:
+    Length <20 m: 3 x 2 x 0.25
+    Length  20 m: 2 x 2 x 0.25 + 2 x 0.38
+
+                                                                                                       Siemens D 37.1 · November 2025         1/25
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                      Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Medium Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors".
+
+
+
+       Max. Rated            Static     Rated        Max.     Rated     Max.                                           Torque Moment of             Recom-        Weight 2)
+       speed power 1)        torque     torque 1)    torque1) current   current                                        constant inertia of rotor    mended
+                                                                                                                                                    load to
+                                                                                                                                                    motor inertia
+                                                                                                                                                    ratio,
+                                                                                                                                                    max.
+       nmax. PN at           M0 at    MN at    Mmax            IN at    Imax                                                     Jwithout Jwith                    mwithout mwith
+             T=100 K        T=100 K T=100 K                 T=100 K                                                          brake    brake                    brake    brake
+                                                                                                                                        2       2
+       r/min      kW (hp)    Nm         Nm           Nm        A        A         Article No.                          Nm/A      kg cm kg cm                       kg      kg
+       SIMOTICS S-1FL2 Medium Inertia servomotors –
+       For dynamic and smooth operational performance
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500       0.20 (0.27) 0.64      0.64         2.24      1.33     4.8       1FL2203-2AG ■ ■ - ■ ■ C 0 0.48                 0.18     0.21      30×            0.76    1.11
+       6500       0.40 (0.54) 1.27      1.27         4.45      2.4      8.7       1FL2203-4AG ■ ■ - ■ ■ C 0 0.53                 0.35     0.38                     1.11    1.46
+       Shaft height 30 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500       0.20 (0.27) 0.64      0.64         2.24      1.3      4.8       1FL2203-2AF ■ ■ - ■ ■ C 0 0.49                 0.18     0.21      30×            0.77    1.12
+       6500       0.40 (0.54) 1.27      1.27         4.45      1.3      4.8       1FL2203-4AF ■ ■ - ■ ■ C 0 0.98                 0.35     0.38                     1.09    1.44
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 200 ... 240 V 1 AC / 3 AC
+       6500       0.75 (1.02) 2.4       2.4          7.5       4.4      14.2      1FL2204-2AG ■ ■ - ■ ■ C 0 0.55                 1.23     1.31      15×            2.6     3.4
+       6500       0.75 (1.02) 2.4       2.4          8.4       4.4      16        1FL2204-2BG ■ 1 - ■ ■ C 0 0.55                 1.27     1.37                     2.0     2.8
+       6500       1.00 (1.36) 3.2       3.2          11.3      4.4      16        1FL2204-4AG ■ ■ - ■ ■ C 0 0.73                 1.61     1.69                     3.1     3.9
+       6500       1.00 (1.36) 3.2       3.2          11.3      4.4      16        1FL2204-4BG ■ 1 - ■ ■ C 0 0.73                 1.67     1.77                     2.4     3.2
+       Shaft height 40 or 40 Compact – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6500       0.75 (1.02) 2.4       2.4          7.5       2.25     7.1       1FL2204-2AF ■ ■ - ■ ■ C 0 1.07                 1.23     1.31      15×            2.6     3.4
+       6500       0.75 (1.02) 2.4       2.4          8.4       2.5      9.3       1FL2204-2BF ■ 1 - ■ ■ C 0 0.96                 1.27     1.37                     2.0     2.8
+       6500       1.00 (1.36) 3.2       3.2          10        3        9.9       1FL2204-4AF ■ ■ - ■ ■ C 0 1.07                 1.61     1.69                     3.1     3.9
+       6500       1.00 (1.36) 3.2       3.2          11.2      3        10.9      1FL2204-4BF ■ 1 - ■ ■ C 0 1.07                 1.67     1.77                     2.4     3.2
+       Shaft height 48 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       6000       0.94 (1.36) 3.6       3            11.5      2.5      9.5       1FL2205-2AF ■ 1 - ■ ■ B 0 1.24                 3.15     4.03      15×            3.6     4.7
+       6000       1.45 (2.04) 6         4.6          19.3      3.75     15.1      1FL2205-4AF ■ 1 - ■ ■ B 0 1.28                 5.1      5.98                     5       6.1
+
+       Brake
+       Without                                                                                     0
+       Holding brake                                                                               1
+
+       Degree of protection
+       IP54                                                                                            0
+       IP65 (with shaft sealing ring)                                                                  1
+
+       Shaft end, feather key
+       Plain shaft                                                                                         0
+       Shaft with feather key (half-key balancing)                                                         1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                      H
+       Absolute encoder 21-bit singleturn                                                                      S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                   M
+
+       Connection technology
+       Metal circular connector                                                                                    B
+       Metal hybrid connector                                                                                      C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+
+      1)                                                                                  2)
+           Rated torque, rated power and maximum torque listed in the table above               Motor weight with absolute encoder 17-bit singleturn.
+           allow for a production tolerance of 10 %.
+
+
+           1/26         Siemens D 37.1 · November 2025
+                                                                 © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                    System overview
+
+
+                                    SINAMICS S200 servo drive system with SIMOTICS S-1FL2 Medium Inertia servomotors
+                                                                                                                                                       1
+MOTION-CONNECT connection systems (continued) – Further info in section "MOTION-CONNECT 350 and 380 connection systems".
+Pre-assembled cables for communication Connectors
+
+SINAMICS S200 – Brake on the 1FL2       Drive end (DE)       Non drive end (NDE) Motor side
+servomotor with holding brake           direction            direction
+
+
+
+
+No. of cores ×                          for                  for                   for                   for                    for
+cross-section                           hybrid connection    hybrid connection     power connection      encoder connection     brake
+mm2               Article No.           Article No.          Article No.           Article No.           Article No.            Article No.
+MOTION-CONNECT connection systems
+(continued)
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+
+–                 –                     6FX2003-3HD00        6FX2003-3HN00         –                     –                      –
+
+
+
+
+–                 –                     –                    –                     6FX2003-0LL63         6FX2003-0DB63          –
+                                                                                                                                (in power connector)
+
+                                        MOTION-CONNECT connectors for SINAMICS S200 servo converters
+                                        Crimp contacts        Crimp contacts        Connectors converter side
+                                        "power and PE"        "signal and brake"
+                                                                                    for power connection IX signal connector,   for brake
+                                        (2000 pieces per      (2000 pieces per                           C coded for
+                                        reel)                 reel)
+                                                                                                         encoder connection
+                                        for hybrid connection for hybrid connection
+                                        6FX2003-7HP00        6FX2003-7HS00         –                     6FX2003-0DE61          –
+
+
+
+
+                                                                                                   Siemens D 37.1 · November 2025             1/27
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                   Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 High Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors".
+
+
+
+
+       Max. Rated          Static       Rated        Max.     Rated     Max.                                        Torque Moment of             Recom-        Weight 2)
+       speed power 1)      torque       torque 1)    torque1) current   current                                     constant inertia of rotor    mended
+                                                                                                                                                 load to
+                                                                                                                                                 motor inertia
+                                                                                                                                                 ratio,
+                                                                                                                                                 max.
+       nmax. PN at         M0 at    MN at    Mmax              IN at    Imax                                                  Jwithout Jwith                    mwithout mwith
+             T=100 K      T=100 K T=100 K                   T=100 K                                                       brake    brake                    brake    brake
+                                                                                                                                     2       2
+       r/min   kW (hp)     Nm           Nm           Nm        A        A         Article No.                       Nm/A      kg cm kg cm                       kg      kg
+       SIMOTICS S-1FL2 High Inertia servomotors –
+       For smooth operational performance
+       Shaft height 45 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       4000    0.40 (0.54) 1.45         1.27         4.445     1.2      4.2       1FL2304-2AF ■ 1 - ■ ■ B 0 1.12              2.69     3.05      10×            3.5     4.9
+       4000    0.75 (1.02) 3.02         2.39         8.365     2.1      7.3       1FL2304-4AF ■ 1 - ■ ■ B 0 1.21              5.18     5.54                     5.4     6.8
+       Shaft height 65 – Rated speed nN 2000 r/min – Line voltage 380 ... 480 V 3 AC
+       3000    0.75 (1.02) 3.7          3.58         12        2.5      8.4       1FL2306-1AC ■ 1 - ■ ■ B 0 1.48              7.962    9.57      10×            5.9     8.9
+       3000    1.00 (1.36) 5            4.78         17        3        10.7      1FL2306-2AC ■ 1 - ■ ■ B 0 1.67              11.65    13.26     5×             7.3     10.3
+       3000    1.50 (2.04) 8            7.16         22        4.6      14.1      1FL2306-4AC ■ 1 - ■ ■ B 0 1.63              15.287 16.9                       8.6     11.6
+       3000    1.75 (2.38) 8.8          8.4          30        5.3      19        1FL2306-6AC ■ 1 - ■ ■ B 0 1.66              22.612 24.22                      11.1    14.1
+       3000    2.00 (2.72) 13.3         9.6          33.425    5.9      20.7      1FL2306-7AC ■ 1 - ■ ■ B 0 1.71              29.938 31.55                      13.7    16.7
+       Shaft height 90 – Rated speed nN 2000 r/min – Line voltage 380 ... 480 V 3 AC
+       3000    2.50 (3.40) 12.6         11.9         37.5      7.8      25.2      1FL2310-0AC ■ 1 - ■ ■ B 0 1.62              47.409 56.78       5×             15.4    21.4
+       3000    3.50 (4.76) 18.1         16.7         55        11       36.2      1FL2310-2AC ■ 1 - ■ ■ B 0 1.65              69.095 78.47                      19.4    25.4
+       2500    5.00 (6.80) 25.2         23.9         70        12.6     36.9      1FL2310-4AC ■ 1 - ■ ■ B 0 2                 90.827 100.2                      23.7    29.7
+       2000    7.00 (9.52) 35.2         33.4         90        13.2     35.6      1FL2310-6AC ■ 1 - ■ ■ B 0 2.67              134.292 143.66                    31.9    37.9
+
+       Brake
+       Without                                                                                  0
+       Holding brake                                                                            1
+
+       Degree of protection
+       IP54                                                                                         0
+       IP65 (with shaft sealing ring)                                                               1
+
+       Shaft end, feather key
+       Plain shaft                                                                                      0
+       Shaft with feather key (half-key balancing)                                                      1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                   H
+       Absolute encoder 21-bit singleturn                                                                   S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                M
+
+       Connection technology
+       Metal circular connector                                                                                 B
+       Metal hybrid connector                                                                                   C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+
+      1) Rated torque, rated power and maximum torque listed in the table above           2) Motor weight with absolute encoder 17-bit singleturn.
+         allow for a production tolerance of 10 %.
+
+
+        1/28         Siemens D 37.1 · November 2025
+                                                                  © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                 System overview
+
+
+                                       SINAMICS S200 servo drive system with SIMOTICS S-1FL2 High Inertia servomotors
+                                                                                                                                                   1
+SINAMICS S200 servo converters               Line filter                                 Recommended standard fuse            Recommended
+Further info in section                                                                                                       circuit breaker
+"SINAMICS S200 servo converters".
+                                                                                         More information at
+                                                                                         www.siemens.com/sinamics-s200/ocpd
+Max. motor                            Frame With one of the recommended line filters,    IEC-compliant   UL/cUL-compliant     IEC/UL/cUL-
+power                                 size  IEC 61800-3 category C2 can be reached in                                         compliant
+                                            combination with SINAMICS S200 for motor
+                                            cable lengths up to 30 m (98.5 ft).
+
+
+                                             Line voltage    IN                          I    3NA3       I    Fuse type       3RV2
+
+kW (hp)      Article No.                     V               A      Article No.          A    Article No. A   Class           Article No.
+SINAMICS S200 servo converters
+
+Line voltage 380 ... 480 V 3 AC
+0.40 (0.54) 6SL5 5 10-1BE10-4A ■ 0 FSA       3 AC 380 ... 480 5     6SL5550-0XE20-5CA0   4    3NA3804    3    J               3RV2011-1DA10
+0.75 (1.02) 6SL5 5 10-1BE10-8A ■ 0 FSB                                                   10   3NA3803    10                   3RV2011-1EA10
+Line voltage 380 ... 480 V 3 AC
+0.75 (1.02) 6SL5 5 10-1BE10-8A ■ 0 FSB       3 AC 380 ... 480 5     6SL5550-0XE20-5CA0   10   3NA3803    10   J               3RV2011-1EA10
+1.00 (1.36) 6SL5 5 10-1BE11-0A ■ 0                                                                                            3RV2011-1FA10
+1.75 (2.38) 6SL5 5 10-1BE11-5A ■ 0 FSC       3 AC 380 ... 480 12    6SL5550-0XE21-2CA0   16   3NA3805    15                   3RV2011-4AA10
+
+
+2.50 (3.40) 6SL5 5 10-1BE12-5A ■ 0                                                                                            3RV2011-4AA10
+Line voltage 380 ... 480 V 3 AC
+2.50 (3.40) 6SL5 5 10-1BE12-5A ■ 0 FSC       3 AC 380 ... 480 12    6SL5550-0XE21-2CA0   16   3NA3805    20   J               3RV2011-4AA10
+3.50 (4.76) 6SL5 5 10-1BE13-5A ■ 0 FSD       3 AC 380 ... 480 20    6SL5550-0XE22-0CA0   20   3NA3807    25                   3RV2021-4BA10
+5.00 (6.80) 6SL5 5 10-1BE15-0A ■ 0                                                                                            3RV2021-4BA10
+7.00 (9.52) 6SL5 5 10-1BE17-0A ■ 0                                                       25   3NA3810                         3RV2021-4DA10
+
+Servo converter
+SINAMICS S200 5
+SINAMICS S200      6
+Basic
+
+Version
+Pulse Train Input (PTI)           A
+PROFINET (PN)                     F
+
+
+
+
+                                                                                                  Siemens D 37.1 · November 2025            1/29
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                      Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 High Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors".
+
+
+
+       Max. Rated            Static     Rated        Max.     Rated     Max.                                           Torque Moment of             Recom-        Weight 2)
+       speed power 1)        torque     torque 1)    torque1) current   current                                        constant inertia of rotor    mended
+                                                                                                                                                    load to
+                                                                                                                                                    motor inertia
+                                                                                                                                                    ratio,
+                                                                                                                                                    max.
+       nmax. PN at           M0 at    MN at    Mmax            IN at    Imax                                                     Jwithout Jwith                    mwithout mwith
+             T=100 K        T=100 K T=100 K                 T=100 K                                                          brake    brake                    brake    brake
+                                                                                                                                        2       2
+       r/min      kW (hp)    Nm         Nm           Nm        A        A         Article No.                          Nm/A      kg cm kg cm                       kg      kg
+       SIMOTICS S-1FL2 High Inertia servomotors –
+       For smooth operational performance
+       Shaft height 45 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       4000       0.40 (0.54) 1.45      1.27         4.445     1.2      4.2       1FL2304-2AF ■ 1 - ■ ■ B 0 1.12                 2.69     3.05      10×            3.5     4.9
+       4000       0.75 (1.02) 3.02      2.39         8.365     2.1      7.3       1FL2304-4AF ■ 1 - ■ ■ B 0 1.21                 5.18     5.54                     5.4     6.8
+       Shaft height 65 – Rated speed nN 2000 r/min – Line voltage 380 ... 480 V 3 AC
+       3000       0.75 (1.02) 3.7       3.58         12        2.5      8.4       1FL2306-1AC ■ 1 - ■ ■ B 0 1.48                 7.962    9.57      10×            5.9     8.9
+       3000       1.00(1.36) 5          4.78         17        3        10.7      1FL2306-2AC ■ 1 - ■ ■ B 0 1.67                 11.65    13.26     5×             7.3     10.3
+       3000       1.50 (2.04) 8         7.16         22        4.6      14.1      1FL2306-4AC ■ 1 - ■ ■ B 0 1.63                 15.287 16.9                       8.6     11.6
+       3000       1.75 (2.38) 8.8       8.4          30        5.3      19        1FL2306-6AC ■ 1 - ■ ■ B 0 1.66                 22.612 24.22                      11.1    14.1
+       3000       2.00 (2.72) 13.3      9.6          33.425    5.9      20.7      1FL2306-7AC ■ 1 - ■ ■ B 0 1.71                 29.938 31.55                      13.7    16.7
+       Shaft height 90 – Rated speed nN 2000 r/min – Line voltage 380 ... 480 V 3 AC
+       3000       2.50 (3.40) 12.6      11.9         37.5      7.8      25.2      1FL2310-0AC ■ 1 - ■ ■ B 0 1.62                 47.409 56.78       5×             15.4    21.4
+       3000       3.50 (4.76) 18.1      16.7         55        11       36.2      1FL2310-2AC ■ 1 - ■ ■ B 0 1.65                 69.095 78.47                      19.4    25.4
+       2500       5.00 (6.80) 25.2      23.9         70        12.6     36.9      1FL2310-4AC ■ 1 - ■ ■ B 0 2                    90.827 100.2                      23.7    29.7
+       2000       7.00 (9.52) 35.2      33.4         90        13.2     35.6      1FL2310-6AC ■ 1 - ■ ■ B 0 2.67                 134.292 143.66                    31.9    37.9
+
+       Brake
+       Without                                                                                     0
+       Holding brake                                                                               1
+
+       Degree of protection
+       IP54                                                                                            0
+       IP65 (with shaft sealing ring)                                                                  1
+
+       Shaft end, feather key
+       Plain shaft                                                                                         0
+       Shaft with feather key (half-key balancing)                                                         1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                      H
+       Absolute encoder 21-bit singleturn                                                                      S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                   M
+
+       Connection technology
+       Metal circular connector                                                                                    B
+       Metal hybrid connector                                                                                      C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+
+      1)                                                                                  2)
+           Rated torque, rated power and maximum torque listed in the table above               Motor weight with absolute encoder 17-bit singleturn.
+           allow for a production tolerance of 10 %.
+
+           1/30         Siemens D 37.1 · November 2025
+                                                                      © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                    System overview
+
+
+                                             SINAMICS S200 servo drive system with SIMOTICS S-1FL2 High Inertia servomotors
+                                                                                                                                                     1
+MOTION-CONNECT connection systems – Further info in section "MOTION-CONNECT 350 and 380 connection systems".
+Pre-assembled dual cables for power and communication           Pre-assembled power cables                   Pre-assembled cables for
+                                                                                                             communication
+                                                                                                             SINAMICS S200 – Absolute encoder on
+                                                                                                             the 1FL2 servomotor
+
+
+
+
+No. of cores ×                                                  No. of cores ×                               No. of cores ×
+cross-section                                                   cross-section                                cross-section
+mm2                                Article No.                  mm2              Article No.                 mm2              Article No.
+MOTION-CONNECT connection systems
+
+
+
+–                                  –                            4 × 0.75         6FX3 ■ 02-5 C L01-1 ■ ■ 0 3 × 2 × 0.25 1) 6FX3 ■ 02-2XB12-1 ■ ■ 0
+
+
+
+–                                  –                            4 × 0.75         6FX3 ■ 02-5 C L01-1 ■ ■ 0 3 × 2 × 0.25 1) 6FX3 ■ 02-2XB12-1 ■ ■ 0
+
+
+
+
+–                                  –                            4 × 1.5          6FX3 ■ 02-5 C L02-1 ■ ■ 0 3 × 2 × 0.25 1) 6FX3 ■ 02-2XB12-1 ■ ■ 0
+                                                                4 × 2.5          6FX3 ■ 02-5 C L12-1 ■ ■ 0
+
+
+
+
+Connection system
+MOTION-CONNECT 350                                                                     5                                            5
+MOTION-CONNECT 380                                                                     8                                            8
+
+Brake cores
+Without                                                                                        C
+With                                                                                           D
+
+Length
+3m                                                                                                    A D                                   A D
+5m                                                                                                    A F                                   A F
+7m                                                                                                    A H                                   A H
+10 m                                                                                                  B A                                   B A
+15 m                                                                                                  B F                                   B F
+20 m                                                                                                  C A                                   C A
+30 m                                                                                                  D A                                   D A
+
+
+
+
+1) No. of cores × cross-section for encoder cable in mm2 for:
+    Length <20 m: 3 x 2 x 0.25
+    Length  20 m: 2 x 2 x 0.25 + 2 x 0.38
+
+                                                                                                     Siemens D 37.1 · November 2025         1/31
+                                                                               © Siemens 2025
+
+
+
+      System overview                                                                                                                   Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 High Inertia servomotors
+1   ■ Selection and ordering data
+       SIMOTICS S-1FL2 servomotors – Further info in section "SIMOTICS S-1FL2 servomotors".
+
+
+
+       Max. Rated          Static       Rated        Max.     Rated     Max.                                        Torque Moment of             Recom-        Weight 2)
+       speed power 1)      torque       torque 1)    torque1) current   current                                     constant inertia of rotor    mended
+                                                                                                                                                 load to
+                                                                                                                                                 motor inertia
+                                                                                                                                                 ratio,
+                                                                                                                                                 max.
+       nmax. PN at         M0 at    MN at    Mmax              IN at    Imax                                                  Jwithout Jwith                    mwithout mwith
+             T=100 K      T=100 K T=100 K                   T=100 K                                                       brake    brake                    brake    brake
+                                                                                                                                     2       2
+       r/min   kW (hp)     Nm           Nm           Nm        A        A         Article No.                       Nm/A      kg cm kg cm                       kg      kg
+       SIMOTICS S-1FL2 High Inertia servomotors –
+       For smooth operational performance
+       Shaft height 45 – Rated speed nN 3000 r/min – Line voltage 380 ... 480 V 3 AC
+       4000    0.40 (0.54) 1.45         1.27         4.445     1.2      4.2       1FL2304-2AF ■ 1 - ■ ■ B 0 1.12              2.69     3.05      10×            3.5     4.9
+       4000    0.75 (1.02) 3.02         2.39         8.365     2.1      7.3       1FL2304-4AF ■ 1 - ■ ■ B 0 1.21              5.18     5.54                     5.4     6.8
+       Shaft height 65 – Rated speed nN 2000 r/min – Line voltage 380 ... 480 V 3 AC
+       3000    0.75 (1.02) 3.7          3.58         12        2.5      8.4       1FL2306-1AC ■ 1 - ■ ■ B 0 1.48              7.962    9.57      10×            5.9     8.9
+       3000    1.00 (1.36) 5            4.78         17        3        10.7      1FL2306-2AC ■ 1 - ■ ■ B 0 1.67              11.65    13.26     5×             7.3     10.3
+       3000    1.50 (2.04) 8            7.16         22        4.6      14.1      1FL2306-4AC ■ 1 - ■ ■ B 0 1.63              15.287 16.9                       8.6     11.6
+       3000    1.75 (2.38) 8.8          8.4          30        5.3      19        1FL2306-6AC ■ 1 - ■ ■ B 0 1.66              22.612 24.22                      11.1    14.1
+       3000    2 (2.72)    13.3         9.6          33.425    5.9      20.7      1FL2306-7AC ■ 1 - ■ ■ B 0 1.71              29.938 31.55                      13.7    16.7
+       Shaft height 90 – Rated speed nN 2000 r/min – Line voltage 380 ... 480 V 3 AC
+       3000    2.50 (3.40) 12.6         11.9         37.5      7.8      25.2      1FL2310-0AC ■ 1 - ■ ■ B 0 1.62              47.409 56.78       5×             15.4    21.4
+       3000    3.50 (4.76) 18.1         16.7         55        11       36.2      1FL2310-2AC ■ 1 - ■ ■ B 0 1.65              69.095 78.47                      19.4    25.4
+       2500    5.00 (6.80) 25.2         23.9         70        12.6     36.9      1FL2310-4AC ■ 1 - ■ ■ B 0 2                 90.827 100.2                      23.7    29.7
+       2000    7.00 (9.52) 35.2         33.4         90        13.2     35.6      1FL2310-6AC ■ 1 - ■ ■ B 0 2.67              134.292 143.66                    31.9    37.9
+
+       Brake
+       Without                                                                                  0
+       Holding brake                                                                            1
+
+       Degree of protection
+       IP54                                                                                         0
+       IP65 (with shaft sealing ring)                                                               1
+
+       Shaft end, feather key
+       Plain shaft                                                                                      0
+       Shaft with feather key (half-key balancing)                                                      1
+
+       Encoder
+       Absolute encoder 17-bit singleturn                                                                   H
+       Absolute encoder 21-bit singleturn                                                                   S
+       Absolute encoder 21-bit singleturn + 12-bit multiturn                                                M
+
+       Connection technology
+       Metal circular connector                                                                                 B
+       Metal hybrid connector                                                                                   C
+
+      In addition, the Siemens Product Configurator can be used on the internet: www.siemens.com/sinamics-s200/configuration
+
+
+
+
+      1) Rated torque, rated power and maximum torque listed in the table above           2) Motor weight with absolute encoder 17-bit singleturn.
+         allow for a production tolerance of 10 %.
+
+        1/32         Siemens D 37.1 · November 2025
+                                                              © Siemens 2025
+
+
+Clicking to SiePortal                                                                                                 System overview
+
+
+                                      SINAMICS S200 servo drive system with SIMOTICS S-1FL2 High Inertia servomotors
+                                                                                                                                                   1
+MOTION-CONNECT connection systems (continued) – Further info in section "MOTION-CONNECT 350 and 380 connection systems".
+Pre-assembled cables for communication    Connectors
+
+SINAMICS S200 – Brake on the 1FL2         Drive end (DE)      Non drive end (NDE) Motor side
+servomotor with holding brake             direction           direction
+
+
+
+
+No. of cores ×                            for                 for                 for                  for                    for
+cross-section                             hybrid connection   hybrid connection   power connection     encoder connection     brake
+mm2               Article No.             Article No.         Article No.         Article No.          Article No.            Article No.
+MOTION-CONNECT connection systems
+(continued)
+
+
+2 × 0.75          6FX3 ■ 02-5BL03-1 ■ ■ 0 –                   –                   6FX2003-0LL13        6FX2003-0DB13          6FX2003-0LL53
+
+
+
+2 × 0.75          6FX3 ■ 02-5BL03-1 ■ ■ 0 –                   –                   6FX2003-0LL13        6FX2003-0DB13          6FX2003-0LL53
+
+
+
+
+2 × 0.75          6FX3 ■ 02-5BL03-1 ■ ■ 0 –                   –                   6FX2003-0LL13        6FX2003-0DB13          6FX2003-0LL53
+
+
+
+
+Connection system                                                                 MOTION-CONNECT connectors for SINAMICS S200 servo converters
+MOTION-CONNECT 350 5                                                              Connectors converter side
+MOTION-CONNECT 380 8                                                              for power connection IX signal connector,   for brake
+                                                                                                       C coded for
+                                                                                                       encoder connection
+Length
+3m                                  A D                                           –                    6FX2003-0DE61          –
+5m                                  A F
+7m                                  A H
+10 m                                B A
+15 m                                B F
+20 m                                C A
+30 m                                D A
+
+
+
+
+                                                                                                Siemens D 37.1 · November 2025              1/33
+                                                                          © Siemens 2025
+
+
+
+      System overview                                                                                                      Clicking to SiePortal
+
+
+
+      SINAMICS S200 servo drive system
+1   ■ Accessories
+      Accessories for SINAMICS S200 Basic and                                       Recommended SIMATIC S7 controller
+      SINAMICS S200 servo converters
+                                                                                    More information about SIMATIC S7-1500 and SIMATIC S7-1500
+       Description                                       Article No.                T-CPU controllers is available in Catalog ST 70 and on the
+       SINAMICS SD card                                                             internet at: www.siemens.com/simatic-s7-1500
+       8 GB
+       Parameter assignments, firmware and licenses
+                                                                                    Spare parts for SINAMICS S200 Basic and
+       for a converter can be stored on the memory                                  SINAMICS S200 servo converters
+       card.                                                                        Description                                     Article No.
+       • Empty                                           6SL5970-0AA00-0AA0
+       • With firmware V6.2                              6SL5570-0GC00-0AA0         Shield connection kit                             6SL5566-0AB00-0AA0
+                                                                                    including several shield plates and fixing screws
+       • With firmware V6.3                              6SL5570-0GD00-0AA0
+       • With firmware V6.4                              6SL5570-0GE00-0AA0         Terminal kits
+       • With firmware V6.4 and SINAMICS OPC             6SL5570-0GE00-0AA0-Z       • for SINAMICS S200                             6SL5568-0XX00-0AA0
+         UA Single Extended license 1)                   H80                        • for SINAMICS S200 Basic                       6SL5668-0XX00-0AA0
+       SINAMICS UPC UA Single Extended license           6SL5977-0AA00-1GA0         Replacement fans
+       for SINAMICS S200 1)                                                         • for SINAMICS S200, 400 V version, FSC         6SL5560-0CE00-0AA0
+       • Certificate of License (CoL)                                               • for SINAMICS S200, 400 V version, FSD         6SL5560-0DE00-0AA0
+         in electronic form
+       SINAMICS SDI Pro 5.5"                             6SL4950-0AH35-2AA0         Starter kit
+       Powerful and user-friendly operator panel for the
+       next generation of SINAMICS converters                                       Description                                     Article No.
+       SINAMICS S200, SINAMICS S210 (6SL5...) and
+       SINAMICS G220                                                                SINAMICS S200 starter kit                           6SL5990-0AE50-0AA0
+                                                                                    PROFINET version
+       SINAMICS Smart Adapter                            6SL4950-0AJ00-0AA0         Scope of delivery:
+       Wi-Fi solution for the next generation of                                    • SINAMICS S200 servo converter,
+       SINAMICS converters SINAMICS S200,
+       SINAMICS S210 (6SL5...) and SINAMICS G220                                      PROFINET version, 200 V, 400 W
+                                                                                    • SIMOTICS S-1FL2 Low Inertia servomotor, shaft
+       Connecting cables and connectors for SIMATIC S7 controller and                 height 30, 400 W, IP65 degree of protection,
+       SINAMICS S200 Basic / SINAMICS S200, Pulse Train Input version (PTI)           without holding brake, shaft with feather key,
+                                                                                      with absolute encoder 21-bit singleturn
+       Connector for setpoint cable                      6SL3260-2NA00-0VA0         • Pre-assembled dual motor connection cable,
+       50-pin MDR connector                                                           drive end, 3 m (9.84 ft)
+       Setpoint cable with connector                     6SL3260-4NA00-1VB0         • Pre-assembled PROFINET I/O cable,
+       MDR 50-pin connector,                                                          1 m (3.28 ft)
+       free pins to controller side, length: 1 m                                    The delivery quantity is limited to three units per
+                                                                                    customer.
+       Setpoint cable with connectors on both sides 6SL5562-0XX00-0AD0
+       and separate terminal block
+       MDR 50-pin connector,
+                                                                                    Training cases
+       terminal block to controller side, length: 0.5 m                             Description                                     Article No.
+       Connecting cables and connectors for SIMATIC S7 controller and               SINAMICS S200 training case                        6AG1067-1AA42-0AA0
+       SINAMICS S200 Basic / SINAMICS S200, PROFINET version                        PROFINET version
+       PROFINET I/O connector                            6SL3260-2MA00-0VA0         Scope of delivery:
+       20-pin                                                                       • 2 × SINAMICS S200 servo converter,
+                                                                                      PROFINET version, 200 V, 100 W
+       PROFINET I/O cable                               6SL5562-1XX00-0AC0          • 1 × SIMOTICS S-1FL2 Low Inertia servomotor,
+       with 20-pin MDR connector, length: 1 m (3.28 ft)                               absolute encoder 21-bit singleturn
+       PROFINET I/O adapter                              6SL5562-1XX00-0AD0         • 1 × SIMOTICS S-1FL2 Low Inertia servomotor,
+       for 20-pin MDR connector                                                       absolute encoder 21-bit singleturn +
+                                                                                      12-bit multiturn
+       Pre-assembled PROFINET cable                      6XV1871-5BH10              • 2 × Pre-assembled dual motor
+       with two RJ45 180° plugs, length: 1 m (3.28 ft)                                connection cable
+                                                                                    • Rail, prepared for installation of a controller,
+       RJ45 data plug-in connector                       6GK1901-1BB10-2AA0           e.g. SIMATIC S7-1500 (controller not included
+       with 180° (straight) cable outlet                                              in scope of delivery)
+       Standard PROFINET cable                           6XV1840-2AH10              • SIMATIC ET 200SP, PROFINET Interface Module
+       4-core, sold by the meter, not assembled                                     The SINAMICS S200 training case is supplied as
+                                                                                    a trolley with a hood.
+       PROFINET patch cable
+       For the networking of concatenated converters                                SINAMICS S200 training case                         6AG1067-1AA43-0AA0
+       Industrial Ethernet TP cord, CAT 6 A, twisted pair                           Pulse Train Input version (PTI)
+       line 4 × 2 cores, pre-assembled with two RJ45                                Scope of delivery:
+       connectors                                                                   • 1 × SINAMICS S200 servo converter, Pulse
+       • 0.3 m (0.98 ft)                                  6XV1870-3QE30               Train Input version (PTI), 200 V, 100 W
+       • 0.5 m (1.64 ft)                                  6XV1870-3QE50             • 1 × SIMOTICS S-1FL2 Low Inertia servomotor,
+                                                                                      absolute encoder 21-bit singleturn + 12-bit
+      For further information about PROFINET cables refer on the                      multiturn
+      internet at: www.siemens.com/simatic-net                                      • 1 × Pre-assembled dual motor connection
+                                                                                      cable
+                                                                                    • 1 × SIMATIC S7-1200, compact CPU, CPU
+                                                                                      1211C, DC/DC/DC
+                                                                                    • 1 × SIMATIC S7-1200, Communication Board
+                                                                                      CB 1241, RS485
+                                                                                    The SINAMICS S200 training case Pulse Train
+                                                                                    Input version (PTI) is supplied as a trolley with a
+                                                                                    hood.
+
+      1)
+           OPC UA server with information model for inventory management and pro-
+           cess data acquisition will be available soon with an V6.4 HF.
+
+           1/34      Siemens D 37.1 · November 2025
+                                                                        © Siemens 2025
+
+
+
+                                                                                                                        System overview
+
+
+                                                                                                       SINAMICS S200 servo drive system
+
+■ More information
+                                                                                                                                                 1
+  Identification link according to IEC 61406 for SINAMICS S200                  The ID serves as a connection to the administration shell with
+                                                                                which modules of the digital twin can be provided.
+  The ID link contains the article and serial number of the product.
+  As a QR code, it replaces the previous data matrix code on the                Further documentation, such as the operating instructions, is
+  nameplate and takes you with the URL directly to a product                    available free on the internet at:
+  information page on the internet with access to the technical                 www.siemens.com/sinamics-s200/documentation
+  documentation, data sheet, certificates, FAQs, product                        Detailed information on the SINAMICS S200 drive system,
+  notifications, and catalogs. Paper package inserts become                     including the latest technical documentation (brochures,
+  superfluous since the information is available electronically                 tutorials, dimensional drawings, certificates, manuals and
+  directly via the QR code, even years later. In this way, we are               operating instructions), is available on the internet at:
+  making a valuable contribution to the preservation of our                     www.siemens.com/sinamics-s200
+  environment. You don't need an additional app. Simply scan the
+  QR code with your smartphone or tablet. According to                          and is also available via the Siemens Product Configurator on
+  IEC 61406, the QR code of an ID link is marked with a frame and               the internet.
+  a triangle at the bottom right. With their globally unique identifi-          The Siemens Product Configurator can be found in SiePortal at
+  ers, Siemens products are ready for Industry 4.0.                             the following address:
+                                                                                www.siemens.com/sinamics-s200/configuration
+                                                                                                                  SINAMICS S200 starter kit
+
+■ Selection and ordering data
+   Description                                           Article No.
+   SINAMICS S200 starter kit                             6SL5990-0AE50-0AA0
+   PROFINET version
+   Scope of delivery:
+   • SINAMICS S200 servo converter,
+     PROFINET version, 200 V, 400 W
+   • SIMOTICS S-1FL2 Low Inertia servomotor, shaft
+     height 30, 400 W, IP65 degree of protection,
+     without holding brake, shaft with feather key,
+     with absolute encoder 21-bit singleturn
+   • Pre-assembled dual motor connection cable,
+     drive end, 3 m (9.84 ft)
+   • Pre-assembled PROFINET I/O cable,
+     1 m (3.28 ft)
+   The delivery quantity is limited to three units per
+   customer.
+
+
+
+
+                                                                                                      Siemens D 37.1 · November 2025     1/35
+                                                                              © Siemens 2025
+
+
+
+      System overview
+
+
+      Recommended SIMATIC S7 controller
+1   ■ Selection and ordering data
+      Recommended controller for SINAMICS S200 pulse train (PTI) version
+       SIMATIC S7-1200 Basic Controller for SINAMICS S200 pulse train (PTI) version
+       Compact CPU expandable with                      Digital   of which high-speed Work memory            CPU
+                                                        outputs   outputs
+       Signal board or com- Communica- Signal
+                                                                  (Pulse Train Output)
+       munication board     tion modules Modules
+                                                                                                                                  Article No.
+       1                     3              –           4         4 (100 kHz)             50 KB              CPU 1211C DC/DC/DC   6ES7211-1AE40-0XB0
+                                            2           6         4 (100 kHz)             75 KB              CPU 1212C DC/DC/DC   6ES7212-1AE40-0XB0
+                                            8           10        4 (100 kHz)             100 KB             CPU 1214C DC/DC/DC   6ES7214-1AG40-0XB0
+                                                                                          125 KB             CPU 1215C DC/DC/DC   6ES7215-1AG40-0XB0
+                                                                  4 (1 MHz)               150 KB             CPU 1217C DC/DC/DC   6ES7217-1AG40-0XB0
+
+      One SIMATIC S7-1200 CPU can control up to 4 SINAMICS S200 axes. Each axis requires 2 high-speed digital outputs for the pulse
+      train interface. The SIMATIC S7-1500 compact CPUs can also be connected to SINAMICS S200 via “pulse train”.
+       Expansion for control of more than 2 axes
+       Signal boards, 0.1 A, 200 kHz, can be plugged directly into the CPU.
+       One axis requires 2 high-speed digital outputs for controlling.
+       Digital outputs       Input voltage Type         Article No.
+       2                     5 V DC         SB 1223     6ES7223-3AD30-0XB0
+                             24 V DC                    6ES7223-3BD30-0XB0
+       4                     5 V DC         SB 1222     6ES7222-1AD30-0XB0
+                             24 V DC                    6ES7222-1BD30-0XB0
+
+      Recommended controller for SINAMICS S200 PROFINET (PN) version
+       Version           Integrated interfaces                            CPU             Max.      Work     CPU
+                                                                          Processing      number    memory
+                         PROFINET IO IRT PROFINET PROFIBUS DP
+                                                                          times for bit   of axes
+                                                                          operations                                              Article No.
+       SIMATIC S7-1200 Basic Controller for SINAMICS S200 PROFINET (PN) version
+       Standard CPUs 1 × PN IO           –         –             85 ns        2                     50 KB    CPU 1211C DC/DC/DC   6ES7211-1AE40-0XB0
+                                         –         –             85 ns        2                     75 KB    CPU 1212C DC/DC/DC   6ES7212-1AE40-0XB0
+                                         –         –             85 ns        2                     100 KB   CPU 1214C DC/DC/DC   6ES7214-1AG40-0XB0
+                      1 × PN IO          –         –             85 ns        2                     125 KB   CPU 1215C DC/DC/DC   6ES7215-1AG40-0XB0
+                      (2-port switch)    –         –             85 ns        2                     150 KB   CPU 1217C DC/DC/DC   6ES7217-1AG40-0XB0
+       SIMATIC S7-1500 Advanced Controller for SINAMICS S200 PROFINET (PN) version
+       Standard CPUs 1 × PN IO IRT     –           –            60 ns        10                     150 KB   CPU 1511-1 PN        6ES7511-1AK02-0AB0
+                       (2-port switch) –           –            40 ns        10                     300 KB   CPU 1513-1 PN        6ES7513-1AL02-0AB0
+                                       1 × PN      –            30 ns        30                     500 KB   CPU 1515-2 PN        6ES7515-2AM02-0AB0
+                                       1 × PN      1 × DP       10 ns        30                     1 MB     CPU 1516-3 PN/DP     6ES7516-3AN02-0AB0
+                                       1 × PN      1 × DP       2 ns         96                     2 MB     CPU 1517-3 PN/DP     6ES7517-3AP00-0AB0
+                                       2 × PN      1 × DP       1 ns         128                    4 MB     CPU 1518-4 PN/DP     6ES7518-4AP00-0AB0
+       Compact CPUs 1 × PN IO IRT      –           –            60 ns        10                     175 KB   CPU 1511C-1 PN       6ES7511-1CK01-0AB0
+                       (2-port switch) –           –            48 ns        10                     250 KB   CPU 1512C-1 PN       6ES7512-1CK01-0AB0
+       Technology CPUs 1 × PN IO IRT   –           –            60 ns        10                     225 KB   CPU 1511T-1 PN       6ES7511-1TK01-0AB0
+                       (2-port switch) 1 × PN      –            30 ns        30                     750 KB   CPU 1515T-2 PN       6ES7515-2TM01-0AB0
+                                       1 × PN      1 × DP       10 ns        80                     1.5 MB   CPU 1516T-3 PN/DP    6ES7516-3TN00-0AB0
+                                       1 × PN      1 × DP       2 ns         128                    3 MB     CPU 1517T-3 PN/DP    6ES7517-3TP00-0AB0
+                                       2 × PN      1 × DP       1 ns         192                    9 MB     CPU 1518T-4 PN/DP    6ES7518-4TP00-0AB0
+       Fail-safe       1 × PN IO IRT   –           –            60 ns        10                     225 KB   CPU 1511F-1 PN       6ES7511-1FK02-0AB0
+       CPUs            (2-port switch) –           –            40 ns        10                     450 KB   CPU 1513F-1 PN       6ES7513-1FL02-0AB0
+                                       1 × PN      –            30 ns        30                     750 KB   CPU 1515F-2 PN       6ES7515-2FM02-0AB0
+                                       1 × PN      1 × DP       10 ns        30                     1.5 MB   CPU 1516F-3 PN/DP    6ES7516-3FN02-0AB0
+                                       1 × PN      1 × DP       2 ns         96                     3 MB     CPU 1517F-3 PN/DP    6ES7517-3FP00-0AB0
+                                       2 × PN      1 × DP       1 ns         128                    6 MB     CPU 1518F-4 PN/DP    6ES7518-4FP00-0AB0
+       Fail-safe       1 × PN IO IRT   –           –            60 ns        10                     225 KB   CPU 1511TF-1 PN      6ES7511-1UK01-0AB0
+       Technology CPUs (2-port switch) 1 × PN      –            30 ns        14                     750 KB   CPU 1515TF-2 PN      6ES7515-2UM01-0AB0
+                                       1 × PN      1 × DP       10 ns        80                     1.5 MB   CPU 1516TF-3 PN/DP   6ES7516-3UN00-0AB0
+                                       1 × PN      1 × DP       2 ns         128                    3 MB     CPU 1517TF-3 PN/DP   6ES7517-3UP00-0AB0
+                                       2 × PN      1 × DP       1 ns         192                    9 MB     CPU 1518TF-4 PN/DP   6ES7518-4UP00-0AB0
+
+      For SINAMICS S200 PROFINET (PN) version, the AC/DC/RLY and DC/DC/RLY versions of SIMATIC S7-1200 are also possible
+      (CPU 1211C, CPU 1212C, CPU 1214C and CPU 1215C).
+      SINAMICS S200 as a PROFINET I/O device with PROFIdrive supports technology objects and function blocks of SIMATIC S7-1200,
+      SIMATIC S7-1500 and SIMATIC S7-1500 Technology CPU for speed and positioning control.
+      For further information about SIMATIC controllers please refer to Catalog ST 70 or to web page:
+      www.siemens.com/simatic-controller
+
+
+        1/36         Siemens D 37.1 · November 2025
+
