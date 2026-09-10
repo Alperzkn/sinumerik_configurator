@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { specsToSizingInput } from "@/lib/sizing/specs-input";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { modifyConfiguration } from "@/lib/ai/modify-engine";
-import type { UserSpecsInput } from "@/lib/sizing";
 import { toast } from "@/components/ui/toast";
 import { FeedbackPill } from "./feedback-pill";
 
@@ -41,23 +41,7 @@ export function AiModifyPane({ onApplied }: AiModifyPaneProps) {
     setLastMessage({ role: "user", content: requestText });
     setInput("");
 
-    const parseNum = (s: string) => {
-      const m = s.match(/([\d.]+)/);
-      return m ? parseFloat(m[1]) : undefined;
-    };
-    const baselineSpecs: UserSpecsInput = {
-      spindlePowerKw: parseNum(machineSpecs.spindlePower),
-      spindleMaxRpm: parseNum(machineSpecs.spindleSpeed),
-      movingMassKg: parseNum(machineSpecs.movingMass),
-      rapidTraverseMpm: parseNum(machineSpecs.rapidTraverse),
-      axisTravel: machineSpecs.axisTravel,
-      machineSize: machineSpecs.machineSize as UserSpecsInput["machineSize"],
-      material: machineSpecs.material,
-      ioModule: machineSpecs.ioModule,
-      handheldUnit: machineSpecs.handheldUnit,
-      cableLengthMeters: machineSpecs.cableLengthMeters,
-      safetyLevel: (machineSpecs.safetyLevel || "") as UserSpecsInput["safetyLevel"],
-    };
+    const baselineSpecs = specsToSizingInput(machineSpecs);
 
     try {
       const result = await modifyConfiguration(configuration, requestText, baselineSpecs);

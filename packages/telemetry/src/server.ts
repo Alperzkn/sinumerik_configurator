@@ -54,6 +54,33 @@ export function redact(text: string | undefined | null): { text: string | null; 
   return { text: after, redacted: after !== before };
 }
 
+/**
+ * Apply `redact()` to every string leaf of an arbitrary JSON value.
+ * Conversation history and the model's raw / parsed reply routinely echo
+ * the user's own words, so scrubbing only `user_message` left the same
+ * PII in the other columns. Returns the scrubbed copy and whether any
+ * leaf changed.
+ */
+export function redactDeep(value: unknown): { value: unknown; redacted: boolean } {
+  let hit = false;
+  const walk = (v: unknown, depth: number): unknown => {
+    if (depth > 12) return v;
+    if (typeof v === "string") {
+      const r = redact(v);
+      if (r.redacted) hit = true;
+      return r.text;
+    }
+    if (Array.isArray(v)) return v.map((x) => walk(x, depth + 1));
+    if (v && typeof v === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[k] = walk(x, depth + 1);
+      return out;
+    }
+    return v;
+  };
+  return { value: walk(value, 0), redacted: hit };
+}
+
 // ── Schema-shaped row types ──────────────────────────────────────
 
 export interface AiTraceRow {
@@ -105,9 +132,20 @@ export interface UserActionRow {
  * caller can pass it back to the client (the client uses it to
  * attach feedback later via /api/events/feedback).
  */
-export async function logAiTrace(row: AiTraceRow): Promise<string | null> {
+export async function logAiTrace(input: AiTraceRow): Promise<string | null> {
   const sb = client();
   if (!sb) return null;
+  // Scrub every free-text column, not just user_message / system_prompt.
+  const conv = redactDeep(input.conversation ?? null);
+  const rawR = redactDeep(input.raw_response ?? null);
+  const parsedR = redactDeep(input.parsed_response ?? null);
+  const row: AiTraceRow = {
+    ...input,
+    conversation: conv.value,
+    raw_response: rawR.value,
+    parsed_response: parsedR.value,
+    redacted: Boolean(input.redacted) || conv.redacted || rawR.redacted || parsedR.redacted,
+  };
   try {
     const { data, error } = await sb
       .from("ai_traces")
@@ -250,13 +288,18 @@ export interface SessionTimelineEntry {
   payload: Record<string, unknown>;
 }
 
+const TIMELINE_CAP = 500;
+
 export async function getSessionTimeline(sessionId: string): Promise<SessionTimelineEntry[]> {
   const sb = client();
   if (!sb) return [];
+  // session_id is client-supplied on the public write path, so a single
+  // session can hold an unbounded number of rows. Cap each source at the
+  // most recent TIMELINE_CAP entries; the UI sorts ascending afterwards.
   const [traces, configs, actions] = await Promise.all([
-    sb.from("ai_traces").select("*").eq("session_id", sessionId).order("created_at"),
-    sb.from("configurations").select("*").eq("session_id", sessionId).order("created_at"),
-    sb.from("user_actions").select("*").eq("session_id", sessionId).order("created_at"),
+    sb.from("ai_traces").select("*").eq("session_id", sessionId).order("created_at", { ascending: false }).limit(TIMELINE_CAP),
+    sb.from("configurations").select("*").eq("session_id", sessionId).order("created_at", { ascending: false }).limit(TIMELINE_CAP),
+    sb.from("user_actions").select("*").eq("session_id", sessionId).order("created_at", { ascending: false }).limit(TIMELINE_CAP),
   ]);
 
   const entries: SessionTimelineEntry[] = [];

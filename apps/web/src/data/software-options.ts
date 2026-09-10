@@ -311,6 +311,19 @@ export const softwareOptions: SoftwareOption[] = [
     exportAvailable: true,
   },
   {
+    id: "opt-R05",
+    orderCode: "R05",
+    articleNumber: "6FC5800-0BR05-0YB0",
+    name: "Run MyRobot /Direct Control ROBX AR",
+    description:
+      "Transformation for articulated arm robots. Only usable together with Run MyRobot /Direct Control. Contains Lock MyCycles (P54) and Run MyCC /AXCO (M81).",
+    category: "transformation",
+    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+    exportAvailable: false,
+    exportRestriction: "Run MyRobot /Direct Control ROBX AR is not available in the export version.",
+    requirements: ["M15", "M43", "S00"],
+  },
+  {
     id: "opt-M15",
     orderCode: "M15",
     articleNumber: "6FC5800-0BM15-0YB0",

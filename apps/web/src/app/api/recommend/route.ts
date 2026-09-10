@@ -3,6 +3,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { retrieveCatalogContext } from "@/lib/ai/catalog-retriever";
 import { extractJson } from "@/lib/ai/extract-json";
 import { logAiTrace, redact } from "@sinumerik/telemetry";
+import { buildSystemPrompt } from "@/lib/ai/prompt-builder";
+import { AI_ROUTE_LIMIT, boundedString, rateLimit } from "@/lib/server/request-guards";
+
+/** Caps on client-supplied text — a machine description never needs more. */
+const MAX_MESSAGE_CHARS = 20_000;
+const MAX_HISTORY_MESSAGES = 20;
 
 // Vercel Pro caps function duration at 300s. With max_tokens at 16k
 // and big system prompts, generation can run 90-180s; give plenty of
@@ -28,10 +34,32 @@ export async function POST(request: Request) {
   const traceRowId = request.headers.get("x-trace-row-id") ?? "";
   const startedAt = Date.now();
 
+  const limited = rateLimit(request, "recommend", AI_ROUTE_LIMIT);
+  if (limited) return limited;
+
   try {
-    const body = await request.json();
-    const { systemPrompt, conversationHistory } = body;
-    userMessage = body.userMessage || "";
+    const body = (await request.json()) as {
+      userMessage?: unknown;
+      conversationHistory?: unknown;
+    };
+    // The system prompt is built HERE, never taken from the client: the
+    // route would otherwise be an open proxy where anyone could rewrite
+    // the instructions and run arbitrary prompts on our API key.
+    const systemPrompt = buildSystemPrompt();
+    userMessage = boundedString(body.userMessage, MAX_MESSAGE_CHARS);
+    const conversationHistory = (Array.isArray(body.conversationHistory) ? body.conversationHistory : [])
+      .filter(
+        (m): m is { role: "user" | "assistant"; content: string } =>
+          !!m &&
+          typeof m === "object" &&
+          ((m as { role?: unknown }).role === "user" || (m as { role?: unknown }).role === "assistant") &&
+          typeof (m as { content?: unknown }).content === "string",
+      )
+      .slice(-MAX_HISTORY_MESSAGES)
+      .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_MESSAGE_CHARS) }));
+    if (!userMessage.trim() && conversationHistory.length === 0) {
+      return NextResponse.json({ error: "bad_request", message: "Describe the machine first." }, { status: 400 });
+    }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey || apiKey === "your-api-key-here") {
@@ -42,7 +70,7 @@ export async function POST(request: Request) {
         traceRowId,
         kind: "recommend",
         model: null,
-        systemPrompt: typeof systemPrompt === "string" ? systemPrompt : null,
+        systemPrompt,
         userMessage,
         conversationHistory,
         latencyMs: Date.now() - startedAt,
@@ -60,17 +88,13 @@ export async function POST(request: Request) {
 
     const anthropic = new Anthropic({ apiKey });
 
-    const allText = [
-      ...(conversationHistory || []).map((m: { content: string }) => m.content),
-      userMessage,
-    ].join(" ");
+    const allText = [...conversationHistory.map((m) => m.content), userMessage].join(" ");
     const catalogContext = retrieveCatalogContext(allText, null);
     const fullSystemPrompt = systemPrompt + catalogContext;
 
     const messages: Anthropic.MessageParam[] = [];
-    const historyMsgs = (conversationHistory || []) as { role: string; content: string }[];
-    for (const msg of historyMsgs) {
-      const role = msg.role as "user" | "assistant";
+    for (const msg of conversationHistory) {
+      const role = msg.role;
       if (messages.length > 0 && messages[messages.length - 1].role === role) {
         messages[messages.length - 1].content += "\n\n" + msg.content;
       } else {

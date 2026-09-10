@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { specsToSizingInput } from "@/lib/sizing/specs-input";
 import { useState } from "react";
 import {
   ClipboardPaste,
@@ -29,7 +30,6 @@ import {
 import { buildConfigFromTemplate } from "@/lib/ai/build-from-template";
 import { SaveLoadDialog } from "./save-load-dialog";
 import { ShareConfigDialog } from "./share-config-dialog";
-import type { UserSpecsInput } from "@/lib/sizing";
 import { startNewTrace, trackAction } from "@/lib/telemetry/client";
 
 interface TemplateCard {
@@ -141,25 +141,6 @@ export function MachineDescriptionStep() {
   );
   const useTemplateFlow = hasTemplate && !hasSpecsFilled && !hasNotes;
 
-  const parseNumeric = (s: string | undefined) => {
-    if (!s) return undefined;
-    const m = s.match(/([\d.]+)/);
-    return m ? parseFloat(m[1]) : undefined;
-  };
-
-  const specsToSizingInput = (s: typeof machineSpecs): UserSpecsInput => ({
-    spindlePowerKw: parseNumeric(s.spindlePower),
-    spindleMaxRpm: parseNumeric(s.spindleSpeed),
-    movingMassKg: parseNumeric(s.movingMass),
-    rapidTraverseMpm: parseNumeric(s.rapidTraverse),
-    axisTravel: s.axisTravel,
-    machineSize: (s.machineSize || "") as UserSpecsInput["machineSize"],
-    material: s.material,
-    ioModule: s.ioModule,
-    handheldUnit: s.handheldUnit,
-    cableLengthMeters: s.cableLengthMeters,
-    safetyLevel: (s.safetyLevel || "") as UserSpecsInput["safetyLevel"],
-  });
 
   const handleProceed = async () => {
     // Begin a fresh telemetry trace for this configuration journey.

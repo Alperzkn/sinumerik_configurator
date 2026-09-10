@@ -1,4 +1,4 @@
-import type { GeneratedConfiguration, DriveComponent, Motor } from "@/types/catalog";
+import type { GeneratedConfiguration } from "@/types/catalog";
 import {
   applySwap,
   addSoftwareOption,
@@ -91,8 +91,7 @@ export async function modifyConfiguration(
   /** Current user-provided mechanical specs — used as baseline for re-sizing */
   baselineSpecs?: UserSpecsInput
 ): Promise<ModifyResult> {
-  const summary = buildCurrentConfigSummary(current);
-  const systemPrompt = buildModifyPrompt(summary);
+  const configSummary = buildCurrentConfigSummary(current);
 
   const tHeaders = telemetryHeaders();
   const { traceRowId, ...telHeaderObj } = tHeaders;
@@ -100,7 +99,7 @@ export async function modifyConfiguration(
   const response = await fetch("/api/modify", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...telHeaderObj },
-    body: JSON.stringify({ systemPrompt, userMessage: userRequest }),
+    body: JSON.stringify({ configSummary, userMessage: userRequest }),
   });
 
   if (!response.ok) {
@@ -306,7 +305,8 @@ function normaliseInstruction(raw: Record<string, unknown>): ModifyInstruction {
   };
 }
 
-function buildModifyPrompt(currentSummary: string): string {
+/** Server-side only (see /api/modify) — builds the instruction framing around the config summary. */
+export function buildModifyPrompt(currentSummary: string): string {
   return `You are a SINUMERIK ONE configuration modifier. You translate a natural-language modification request into a structured JSON instruction that a deterministic apply layer will execute.
 
 CURRENT CONFIGURATION (ground truth — do NOT echo these values back as the change):
@@ -827,5 +827,3 @@ function parseNumeric(s?: string): number | undefined {
   return m ? parseFloat(m[1]) : undefined;
 }
 
-// Hint to find drives by ID prefix — utility kept for clarity in callers
-export type _UnusedDriveTypes = DriveComponent | Motor;

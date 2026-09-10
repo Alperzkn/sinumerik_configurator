@@ -1,5 +1,5 @@
 import type { AiMessage, MachineType } from "@/types/catalog";
-import { buildSystemPrompt, buildUserMessage } from "./prompt-builder";
+import { buildUserMessage } from "./prompt-builder";
 import { telemetryHeaders } from "@/lib/telemetry/client";
 
 /**
@@ -174,7 +174,6 @@ export async function getAiRecommendation(
       method: "POST",
       headers: { "Content-Type": "application/json", ...telHeaderObj },
       body: JSON.stringify({
-        systemPrompt: buildSystemPrompt(),
         userMessage,
         conversationHistory: history,
       }),

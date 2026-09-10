@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -116,13 +116,16 @@ export function SoftwareOptionDialog({
   const [filterCategory, setFilterCategory] = useState<string>("");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  useEffect(() => {
+  // Reset filters each time the dialog opens (state adjusted during render).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setSearch("");
       setFilterCategory("");
       setQuantities({});
     }
-  }, [open]);
+  }
 
   const groups = useMemo(() => groupOptions(catalogOptions), [catalogOptions]);
 

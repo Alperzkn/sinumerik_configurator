@@ -56,9 +56,32 @@ export const MOTOR_MODULE_SPECS: Record<string, { power: number; current: number
   "6SL3120-1TE32-0AA4": { power: 107, current: 200, voltage: "DC 510-720V" },
 };
 
-const MOTOR_MODULE_POWER: Record<string, number> = Object.fromEntries(
-  Object.entries(MOTOR_MODULE_SPECS).map(([k, v]) => [k, v.power])
-);
+/**
+ * SINAMICS S210 single-axis converters (paired with 1FK2 via OCC).
+ * Source: D32 catalog selection tables. S210 has an integrated infeed,
+ * so a configuration that only uses S210 needs NO S120 Line Module.
+ */
+export const S210_CONVERTER_SPECS: Record<string, { power: number; frame: string; voltage: string }> = {
+  "6SL5310-1BB10-1CF0": { power: 0.1, frame: "FSA", voltage: "1AC 230V" },
+  "6SL5310-1BB10-2CF0": { power: 0.2, frame: "FSA", voltage: "1AC 230V" },
+  "6SL5310-1BB10-4CF0": { power: 0.4, frame: "FSB", voltage: "1AC 230V" },
+  "6SL5310-1BB10-8CF0": { power: 0.75, frame: "FSC", voltage: "1AC 230V" },
+  "6SL5310-1BE11-0DF1": { power: 1.0, frame: "FSA", voltage: "3AC 400V" },
+  "6SL5310-1BE11-5DF1": { power: 1.5, frame: "FSB", voltage: "3AC 400V" },
+  "6SL5310-1BE12-0DF1": { power: 2.0, frame: "FSB", voltage: "3AC 400V" },
+  "6SL5310-1BE13-5DF1": { power: 3.5, frame: "FSC", voltage: "3AC 400V" },
+  "6SL5310-1BE15-0DF1": { power: 5.0, frame: "FSC", voltage: "3AC 400V" },
+};
+
+/** True for SINAMICS S210 converter articles (integrated infeed, no Line Module). */
+export function isS210Converter(article: string | undefined): boolean {
+  return !!article && article.startsWith("6SL5310-");
+}
+
+const MOTOR_MODULE_POWER: Record<string, number> = Object.fromEntries([
+  ...Object.entries(MOTOR_MODULE_SPECS).map(([k, v]) => [k, v.power] as const),
+  ...Object.entries(S210_CONVERTER_SPECS).map(([k, v]) => [k, v.power] as const),
+]);
 
 // Motor specs lookup (feed + spindle) — keyed by article number prefix.
 // Source: Siemens D21.4 catalog selection tables.
@@ -331,15 +354,39 @@ export const MOTOR_TO_MM: Record<string, string> = Object.fromEntries(
   Object.entries(MOTOR_SPECS).map(([art, spec]) => [art, spec.motorModule])
 );
 
+/**
+ * Look up motor specs by article number.
+ *
+ *  1. exact key
+ *  2. the longest catalog trunk that is a prefix of the article
+ *     ("1FT2104-4AF71-1AA1" → "1FT2104-4AF")
+ *  3. a single catalog key that the (partial) article is a prefix of
+ *     ("1FT7062-5AC7" → "1FT7062-5AC71-1DA1")
+ *
+ * Anything ambiguous returns undefined instead of silently picking the
+ * first entry with the same 7-character prefix — that used to return
+ * the 0.4 kW 1FT2104-4AF for a 1.0 kW 1FT2104-6AF request.
+ */
 export function getMotorSpecs(articleNumber: string): MotorSpecs | undefined {
-  // Try exact match first
-  if (MOTOR_SPECS[articleNumber]) return MOTOR_SPECS[articleNumber];
-  // Try prefix match (first 7 chars like "1FT7062")
-  const prefix = articleNumber.substring(0, 7);
-  for (const key of Object.keys(MOTOR_SPECS)) {
-    if (key.startsWith(prefix)) return MOTOR_SPECS[key];
-  }
+  const art = articleNumber.trim().toUpperCase();
+  if (!art) return undefined;
+  if (MOTOR_SPECS[art]) return MOTOR_SPECS[art];
+  const keys = Object.keys(MOTOR_SPECS);
+  const trunks = keys.filter((k) => art.startsWith(k)).sort((a, b) => b.length - a.length);
+  if (trunks.length) return MOTOR_SPECS[trunks[0]];
+  const extensions = keys.filter((k) => k.startsWith(art));
+  if (extensions.length === 1) return MOTOR_SPECS[extensions[0]];
   return undefined;
+}
+
+/** Line Module catalog entry for an article, or undefined. */
+export function getLineModuleByArticle(article: string): LineModuleOption | undefined {
+  return LINE_MODULES.find((lm) => lm.articleNumber === article);
+}
+
+/** The Active Line Module whose Active Interface Module has this article, or undefined. */
+export function getLineModuleForInterfaceModule(article: string): LineModuleOption | undefined {
+  return LINE_MODULES.find((lm) => lm.interfaceModule === article);
 }
 
 /**
@@ -462,7 +509,7 @@ export function getMatchingMcp(panelSizeInch: number): typeof MCP_PANEL_MATCHING
 export function checkDriveCliqPorts(
   controlUnitId: string,
   totalMotorModules: number,
-  hasNx: boolean = false
+  _hasNx: boolean = false
 ): { ok: boolean; message?: string } {
   const portMap: Record<string, number> = {
     PPU_1740: 4,

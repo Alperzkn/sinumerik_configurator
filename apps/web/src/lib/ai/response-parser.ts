@@ -18,8 +18,14 @@ import type { AiRawResponse } from "./recommendation-engine";
 import {
   selectLineModule,
   getMatchingMcp,
+  isS210Converter,
   MOTOR_MODULE_SPECS,
+  S210_CONVERTER_SPECS,
 } from "@/lib/validation/drive-system-rules";
+import { runCompatibilityRules } from "@/data/compatibility-rules";
+
+/** The AI occasionally emits an object (or a string) where an array is expected. */
+const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
 import { resolveFeedAxisMlfbs, resolveFullMotorMlfb } from "@/lib/mlfb/per-axis";
 
@@ -134,7 +140,7 @@ export function parseAiResponse(
   if (!catalogData || raw.needsClarification) return null;
 
   const warnings: CompatibilityWarning[] = [];
-  const notes: string[] = raw.notes ? [...raw.notes] : [];
+  const notes: string[] = asArray<string>(raw.notes).filter((n) => typeof n === "string");
 
   // ─── 1. Control unit ───
   const controlUnitId = (raw.controlUnit?.id || "NCU_1740") as ControlUnitVariant;
@@ -157,11 +163,18 @@ export function parseAiResponse(
   // ─── 3. Technology packages ───
   const technologyPackages: TechnologyPackage[] = [];
   const includedOptionCodes = new Set<string>();
-  for (const pkg of raw.technologyPackages || []) {
+  for (const pkg of asArray<{ id?: string }>(raw.technologyPackages)) {
+    if (!pkg?.id) continue;
     const found = findTechPackage(pkg.id);
     if (found) {
       technologyPackages.push(found);
       found.includedOptions.forEach((opt) => includedOptionCodes.add(opt));
+    } else {
+      warnings.push({
+        severity: "warning",
+        message: `Technology package "${pkg.id}" suggested by the AI is not in the catalog and was dropped.`,
+        affectedComponents: [pkg.id],
+      });
     }
   }
 
@@ -174,7 +187,8 @@ export function parseAiResponse(
 
   const softwareOptions: SoftwareOption[] = [];
   const optionQuantities: Record<string, number> = {};
-  for (const opt of raw.additionalOptions || []) {
+  for (const opt of asArray<{ orderCode?: string; name?: string; quantity?: number }>(raw.additionalOptions)) {
+    if (!opt?.orderCode) continue;
     if (includedOptionCodes.has(opt.orderCode)) continue;
     if (isSafetyCode(opt.orderCode)) {
       reroutedSafetyCodes.push(opt.orderCode.toUpperCase());
@@ -184,6 +198,12 @@ export function parseAiResponse(
     if (found) {
       softwareOptions.push(found);
       optionQuantities[found.id] = opt.quantity || 1;
+    } else {
+      warnings.push({
+        severity: "warning",
+        message: `Option ${opt.orderCode}${opt.name ? ` (${opt.name})` : ""} suggested by the AI is not in the catalog and was dropped.`,
+        affectedComponents: [opt.orderCode],
+      });
     }
   }
 
@@ -263,21 +283,38 @@ export function parseAiResponse(
 
   // Feed Motor Module (deterministically chosen from feed motor)
   const feedMotorModuleArticle = sized.feed?.specs.motorModule;
+  const feedIsS210 = isS210Converter(feedMotorModuleArticle);
   if (feedAxisCount > 0 && feedMotorModuleArticle) {
     const mmSpecs = MOTOR_MODULE_SPECS[feedMotorModuleArticle];
-    const feedMm: DriveComponent = {
-      id: `feed-mm-${feedMotorModuleArticle}`,
-      articleNumber: feedMotorModuleArticle,
-      name: `Motor Module ${feedMotorModuleArticle}`,
-      driveFamily: family as DriveComponent["driveFamily"],
-      componentType: "motor_module_single",
-      ratedCurrent: mmSpecs ? `${mmSpecs.current}A` : undefined,
-      ratedPower: mmSpecs ? `${mmSpecs.power}kW` : undefined,
-      compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
-      description: mmSpecs
-        ? `Single Motor Module booksize | ${mmSpecs.current}A rated | ${mmSpecs.power}kW | ${mmSpecs.voltage} | paired with ${sized.feed?.article}`
-        : `Feed axis Motor Module`,
-    };
+    const s210 = S210_CONVERTER_SPECS[feedMotorModuleArticle];
+    const feedMm: DriveComponent = feedIsS210
+      ? {
+          // SINAMICS S210: one single-axis converter per 1FK2 motor, own infeed.
+          id: `feed-mm-${feedMotorModuleArticle}`,
+          articleNumber: feedMotorModuleArticle,
+          name: `SINAMICS S210 converter ${s210 ? `${s210.frame} ${s210.voltage}` : feedMotorModuleArticle}`,
+          driveFamily: "S210",
+          componentType: "motor_module_single",
+          ratedPower: s210 ? `${s210.power}kW` : undefined,
+          frameType: s210?.frame,
+          compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+          description: s210
+            ? `Single-axis servo converter with integrated infeed | ${s210.power}kW | ${s210.voltage} | paired with ${sized.feed?.article} via OCC`
+            : `Single-axis servo converter paired with ${sized.feed?.article}`,
+        }
+      : {
+          id: `feed-mm-${feedMotorModuleArticle}`,
+          articleNumber: feedMotorModuleArticle,
+          name: `Motor Module ${feedMotorModuleArticle}`,
+          driveFamily: family as DriveComponent["driveFamily"],
+          componentType: "motor_module_single",
+          ratedCurrent: mmSpecs ? `${mmSpecs.current}A` : undefined,
+          ratedPower: mmSpecs ? `${mmSpecs.power}kW` : undefined,
+          compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+          description: mmSpecs
+            ? `Single Motor Module booksize | ${mmSpecs.current}A rated | ${mmSpecs.power}kW | ${mmSpecs.voltage} | paired with ${sized.feed?.article}`
+            : `Feed axis Motor Module`,
+        };
     drives.push(feedMm);
     driveQuantities[feedMm.id] = feedAxisCount;
   }
@@ -303,14 +340,27 @@ export function parseAiResponse(
     driveQuantities[spindleMm.id] = spindleCount;
   }
 
-  // Line Module (deterministic from motor module articles + counts)
-  const lm = selectLineModule(
-    feedMotorModuleArticle || "",
-    feedAxisCount,
-    spindleMotorModuleArticle,
-    spindleCount,
-    preferActiveLineModule
-  );
+  // Line Module (deterministic from motor module articles + counts).
+  // S210 converters bring their own infeed, so they neither need a Line
+  // Module nor count towards its sizing.
+  const spindleIsS210 = isS210Converter(spindleMotorModuleArticle);
+  const s120FeedCount = feedIsS210 ? 0 : feedAxisCount;
+  const s120SpindleCount = spindleIsS210 ? 0 : spindleCount;
+  const needsLineModule =
+    (s120FeedCount > 0 && !!feedMotorModuleArticle) || (s120SpindleCount > 0 && !!spindleMotorModuleArticle);
+  if (!needsLineModule && (feedIsS210 || spindleIsS210)) {
+    notes.push("SINAMICS S210 converters have an integrated infeed — no Line Module or Active Interface Module is required.");
+  }
+  const lm = needsLineModule
+    ? selectLineModule(
+        feedIsS210 ? "" : feedMotorModuleArticle || "",
+        s120FeedCount,
+        spindleIsS210 ? undefined : spindleMotorModuleArticle,
+        s120SpindleCount,
+        preferActiveLineModule
+      )
+    : null;
+  if (lm) {
   const lineDrive: DriveComponent = {
     id: `line-module-${lm.articleNumber}`,
     articleNumber: lm.articleNumber,
@@ -338,6 +388,7 @@ export function parseAiResponse(
     drives.push(ifm);
     driveQuantities[ifm.id] = 1;
   }
+  }
 
   // ─── 7. Motors — from sizing engine ───
   const motors: Motor[] = [];
@@ -350,8 +401,8 @@ export function parseAiResponse(
     // preferences, resolve each axis to its own full MLFB. The BOM
     // displays one row per axis. Falls back to legacy "qty N" when no
     // axis-level info is available.
-    const axisNames = prefs?.axisNames ?? [];
-    const brakeAxes = prefs?.brakeAxes ?? [];
+    const axisNames = asArray<string>(prefs?.axisNames).filter((a) => typeof a === "string");
+    const brakeAxes = asArray<string>(prefs?.brakeAxes).filter((a) => typeof a === "string");
     let perAxisMlfbs;
     if (axisNames.length > 0) {
       // Truncate / pad to the architecturally-determined feedAxisCount
@@ -496,7 +547,7 @@ export function parseAiResponse(
     );
   } else {
     safetyCodes = new Set<string>([
-      ...(raw.safety?.options || []).map((c) => c.toUpperCase()),
+      ...asArray<string>(raw.safety?.options).filter((c) => typeof c === "string").map((c) => c.toUpperCase()),
       ...reroutedSafetyCodes,
     ]);
   }
@@ -562,14 +613,8 @@ export function parseAiResponse(
       "standard",
   };
 
-  return config;
-}
+  // ─── 13. Catalog compatibility rules (axis/channel limits, export scope, safety deps, …) ───
+  config.warnings.push(...runCompatibilityRules(config));
 
-/**
- * Kept for API compatibility — sizing now runs inside parseAiResponse
- * whenever userSpecs are passed in, so this wrapper is a no-op that returns
- * an empty array. Left exported so callers don't break during migration.
- */
-export function validateAgainstUserSpecs(): CompatibilityWarning[] {
-  return [];
+  return config;
 }

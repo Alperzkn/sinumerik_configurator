@@ -3,6 +3,8 @@ import type { SwapCategory } from "@/components/configurator/component-swap-dial
 import {
   MOTOR_MODULE_SPECS,
   getMotorSpecs,
+  getLineModuleByArticle,
+  isS210Converter,
   selectLineModule,
   getMatchingMcp,
 } from "@/lib/validation/drive-system-rules";
@@ -161,7 +163,7 @@ function swapSpindleMotor(config: GeneratedConfiguration, article: string, shaft
     series: article.substring(0, 5),
     name: `${specs?.family || "Spindle motor"} SH${specs?.shaftHeight || shaftHeight || "?"}`,
     articleNumber: article,
-    motorType: "main_spindle_async",
+    motorType: specs?.kind === "spindle_sync" ? "main_spindle_sync" : "main_spindle_async",
     connectionType: "standard",
     compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
     description: `${specs?.family || "Main spindle motor"} ${specs?.variant || ""}`.trim(),
@@ -215,23 +217,40 @@ function swapMotorModule(config: GeneratedConfiguration, kind: "feed" | "spindle
   }
 }
 
-function swapLineModule(config: GeneratedConfiguration, article: string) {
-  const existing = config.drives.findIndex(
-    (d) =>
-      d.componentType === "line_module_active" ||
-      d.componentType === "line_module_smart" ||
-      d.componentType === "line_module_basic"
-  );
+const isLineModule = (d: DriveComponent) =>
+  d.componentType === "line_module_active" ||
+  d.componentType === "line_module_smart" ||
+  d.componentType === "line_module_basic";
 
-  const isActive = article.includes("7TE");
+/** Drop the Line Module and any Active Interface Module (S210-only configs need neither). */
+function removeLineModule(config: GeneratedConfiguration) {
+  for (const d of config.drives) {
+    if (isLineModule(d) || d.componentType === "interface_module") delete config.driveQuantities[d.id];
+  }
+  config.drives = config.drives.filter((d) => !isLineModule(d) && d.componentType !== "interface_module");
+}
+
+/**
+ * Replace the Line Module and keep the mandatory Active Interface Module
+ * in sync: an Active Line Module always needs its Clean Power Filter,
+ * a Smart/Basic one never does.
+ */
+function swapLineModule(config: GeneratedConfiguration, article: string) {
+  const catalog = getLineModuleByArticle(article);
+  const existing = config.drives.findIndex(isLineModule);
+
+  const type = catalog?.type ?? (article.includes("7TE") ? "active" : article.includes("1TE") ? "basic" : "smart");
   const updated: DriveComponent = {
     id: `line-module-${article}`,
     articleNumber: article,
-    name: `Line Module ${article}`,
+    name: catalog?.name ?? `Line Module ${article}`,
     driveFamily: "S120_booksize",
-    componentType: isActive ? "line_module_active" : article.includes("1TE") ? "line_module_basic" : "line_module_smart",
+    componentType: type === "active" ? "line_module_active" : type === "basic" ? "line_module_basic" : "line_module_smart",
+    ratedPower: catalog ? `${catalog.ratedPower}kW` : undefined,
     compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
-    description: "Shared DC bus power supply",
+    description: catalog
+      ? `Shared DC bus power supply — ${catalog.ratedPower}kW rated, sized for feed+spindle motor total`
+      : "Shared DC bus power supply",
   };
 
   if (existing >= 0) {
@@ -241,6 +260,26 @@ function swapLineModule(config: GeneratedConfiguration, article: string) {
     config.drives.push(updated);
   }
   config.driveQuantities[updated.id] = 1;
+
+  // Interface module: remove any stale one, then add the matching one if required.
+  for (const d of config.drives) {
+    if (d.componentType === "interface_module") delete config.driveQuantities[d.id];
+  }
+  config.drives = config.drives.filter((d) => d.componentType !== "interface_module");
+  if (catalog?.interfaceModule) {
+    const lmIndex = config.drives.findIndex(isLineModule);
+    const ifm: DriveComponent = {
+      id: `interface-module-${catalog.interfaceModule}`,
+      articleNumber: catalog.interfaceModule,
+      name: "Active Interface Module",
+      driveFamily: "S120_booksize",
+      componentType: "interface_module",
+      compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+      description: "Required for Active Line Module operation (Clean Power Filter)",
+    };
+    config.drives.splice(lmIndex + 1, 0, ifm);
+    config.driveQuantities[ifm.id] = 1;
+  }
 }
 
 function swapControlUnit(config: GeneratedConfiguration, article: string) {
@@ -606,13 +645,17 @@ function autoSizeLineModule(config: GeneratedConfiguration) {
   const feedQty = feedMm ? config.driveQuantities[feedMm.id] || 1 : 0;
   const spindleQty = spindleMm ? config.driveQuantities[spindleMm.id] || 1 : 0;
 
-  const lineModule = config.drives.find(
-    (d) =>
-      d.componentType === "line_module_active" ||
-      d.componentType === "line_module_smart" ||
-      d.componentType === "line_module_basic"
-  );
+  const lineModule = config.drives.find(isLineModule);
   const preferActive = lineModule?.componentType === "line_module_active";
+
+  // S210 converters carry their own infeed. If every motor module is an
+  // S210 unit there is nothing for a Line Module to feed.
+  const s120Feed = feedMm && !isS210Converter(feedMm.articleNumber);
+  const s120Spindle = spindleMm && !isS210Converter(spindleMm.articleNumber);
+  if (!s120Feed && !s120Spindle) {
+    removeLineModule(config);
+    return;
+  }
 
   const correctLm = selectLineModule(
     feedMm?.articleNumber || "",

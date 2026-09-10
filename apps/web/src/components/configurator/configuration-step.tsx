@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { buildSlimBom } from "@/lib/export/bom";
 import { useEffect, useState } from "react";
 import {
   Save,
@@ -80,14 +81,18 @@ export function ConfigurationStep() {
   // when a configuration has just been generated, unless the user has
   // already acknowledged it on this device. A "Re-read" link below the
   // header re-opens it in dismissible mode.
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  // Lazy initialiser covers the first arrival; the render-time check
+  // below covers a configuration that appears while this step is mounted.
+  const [showDisclaimer, setShowDisclaimer] = useState(
+    () => !!configuration && !hasAcknowledgedDisclaimer()
+  );
   const [showDisclaimerDismissible, setShowDisclaimerDismissible] =
     useState(false);
-  useEffect(() => {
-    if (configuration && !hasAcknowledgedDisclaimer()) {
-      setShowDisclaimer(true);
-    }
-  }, [configuration]);
+  const [prevConfiguration, setPrevConfiguration] = useState(configuration);
+  if (configuration !== prevConfiguration) {
+    setPrevConfiguration(configuration);
+    if (configuration && !hasAcknowledgedDisclaimer()) setShowDisclaimer(true);
+  }
 
   // Log the BOM to telemetry the first time we see a configuration on this
   // step. Includes a slim BOM-items list (mlfb, qty, name, category) so the
@@ -95,62 +100,7 @@ export function ConfigurationStep() {
   // GeneratedConfiguration tree.
   useEffect(() => {
     if (!configuration || configRowId) return;
-    const bomItems: Array<{ mlfb: string; qty: number; name: string; category: string }> = [];
-    bomItems.push({
-      mlfb: configuration.controlUnit.articleNumber,
-      qty: 1,
-      name: configuration.controlUnit.name,
-      category: "Control Unit",
-    });
-    bomItems.push({
-      mlfb: configuration.cncSoftware.articleNumber,
-      qty: 1,
-      name: configuration.cncSoftware.description,
-      category: "CNC Software",
-    });
-    for (const pkg of configuration.technologyPackages) {
-      bomItems.push({ mlfb: pkg.articleNumber, qty: 1, name: pkg.name, category: "Tech Package" });
-    }
-    for (const opt of configuration.softwareOptions) {
-      bomItems.push({
-        mlfb: opt.articleNumber,
-        qty: configuration.optionQuantities[opt.id] || 1,
-        name: opt.name,
-        category: "Software Option",
-      });
-    }
-    for (const drive of configuration.drives) {
-      bomItems.push({
-        mlfb: drive.articleNumber,
-        qty: configuration.driveQuantities[drive.id] || 1,
-        name: drive.name,
-        category: "Drive",
-      });
-    }
-    for (const motor of configuration.motors) {
-      bomItems.push({
-        mlfb: motor.articleNumber || motor.series,
-        qty: configuration.motorQuantities[motor.id] || 1,
-        name: motor.name,
-        category: "Motor",
-      });
-    }
-    for (const hmi of configuration.hmiComponents) {
-      bomItems.push({ mlfb: hmi.articleNumber, qty: 1, name: hmi.name, category: "HMI" });
-    }
-    for (const sf of configuration.safetyFunctions.filter((s) => !s.isBasicScope)) {
-      bomItems.push({
-        mlfb: sf.articleNumber || "",
-        qty: 1,
-        name: sf.name,
-        category: "Safety",
-      });
-    }
-    for (const c of configuration.cables || []) {
-      if (c.quantity > 0) {
-        bomItems.push({ mlfb: c.articleNumber, qty: c.quantity, name: c.name, category: "Cable" });
-      }
-    }
+    const bomItems = buildSlimBom(configuration);
 
     let cancelled = false;
     void telemetryLogConfiguration({

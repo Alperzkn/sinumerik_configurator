@@ -1,6 +1,33 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { ADMIN_COOKIE, adminTokenConfigured } from "@/lib/auth";
+import { ADMIN_COOKIE, adminTokenConfigured, isValidAdminToken } from "@/lib/auth";
+
+/**
+ * Best-effort brute-force throttle: per-client-IP attempt counter held in
+ * process memory (resets on cold start; fine for a single-owner tool).
+ */
+const MAX_ATTEMPTS = 10;
+const WINDOW_MS = 15 * 60 * 1000;
+const attempts = new Map<string, { count: number; resetAt: number }>();
+
+function clientIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function throttled(ip: string): boolean {
+  const now = Date.now();
+  const entry = attempts.get(ip);
+  if (!entry || entry.resetAt < now) {
+    attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > MAX_ATTEMPTS;
+}
 
 /**
  * POST /api/login   { token: string }
@@ -18,6 +45,14 @@ export async function POST(request: Request) {
     );
   }
 
+  const ip = clientIp(request);
+  if (throttled(ip)) {
+    return NextResponse.json(
+      { ok: false, error: "Too many attempts. Try again in 15 minutes." },
+      { status: 429 },
+    );
+  }
+
   let body: { token?: unknown };
   try {
     body = await request.json();
@@ -26,9 +61,10 @@ export async function POST(request: Request) {
   }
 
   const submitted = typeof body.token === "string" ? body.token : "";
-  if (!submitted || submitted !== process.env.ADMIN_TOKEN) {
+  if (!isValidAdminToken(submitted)) {
     return NextResponse.json({ ok: false, error: "Invalid token" }, { status: 401 });
   }
+  attempts.delete(ip);
 
   const store = await cookies();
   store.set(ADMIN_COOKIE, submitted, {

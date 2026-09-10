@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { specsToSizingInput } from "@/lib/sizing/specs-input";
 import { useEffect, useCallback, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,31 +15,10 @@ import {
 } from "@/lib/ai/recommendation-engine";
 import { parseAiResponse, setCatalogData } from "@/lib/ai/response-parser";
 import { InterpretationCard } from "./interpretation-card";
-import type { UserSpecsInput } from "@/lib/sizing";
 import type { AiMessage, MachineType } from "@/types/catalog";
 import type { MachineSpecsState } from "@/store/configurator-store";
 
-function parseNumeric(s: string | undefined): number | undefined {
-  if (!s) return undefined;
-  const m = s.match(/([\d.]+)/);
-  return m ? parseFloat(m[1]) : undefined;
-}
 
-function specsToSizingInput(specs: MachineSpecsState): UserSpecsInput {
-  return {
-    spindlePowerKw: parseNumeric(specs.spindlePower),
-    spindleMaxRpm: parseNumeric(specs.spindleSpeed),
-    movingMassKg: parseNumeric(specs.movingMass),
-    rapidTraverseMpm: parseNumeric(specs.rapidTraverse),
-    axisTravel: specs.axisTravel,
-    machineSize: (specs.machineSize || "") as UserSpecsInput["machineSize"],
-    material: specs.material,
-    ioModule: specs.ioModule,
-    handheldUnit: specs.handheldUnit,
-    cableLengthMeters: specs.cableLengthMeters,
-    safetyLevel: (specs.safetyLevel || "") as UserSpecsInput["safetyLevel"],
-  };
-}
 
 /**
  * User-facing copy for AI failures. Branches on AiServiceError.code so

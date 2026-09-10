@@ -90,10 +90,14 @@ export const compatibilityRules: CompatibilityRule[] = [
       "Ensures that Safety Integrated F-PLC (S60) is present when safety axis options (K01-K09) or multi-axis safety (S61) are selected.",
     check: (config: GeneratedConfiguration): CompatibilityWarning | null => {
       const safetyAxisCodes = ["K01", "K02", "K03", "K04", "K05", "K06", "K07", "K08", "K09", "S61"];
-      const hasS60 = config.softwareOptions.some((opt) => opt.orderCode === "S60");
-      const safetyCodes = config.softwareOptions
-        .filter((opt) => safetyAxisCodes.includes(opt.orderCode))
-        .map((opt) => opt.orderCode);
+      // Safety codes canonically live in safetyFunctions; older configs may
+      // still carry them as software options — check both.
+      const codes = [
+        ...config.softwareOptions.map((opt) => opt.orderCode),
+        ...config.safetyFunctions.filter((s) => !s.isBasicScope).map((s) => s.orderCode ?? ""),
+      ].map((c) => c.toUpperCase());
+      const hasS60 = codes.includes("S60");
+      const safetyCodes = [...new Set(codes.filter((c) => safetyAxisCodes.includes(c)))];
 
       if (safetyCodes.length > 0 && !hasS60) {
         return {
@@ -219,29 +223,30 @@ export const compatibilityRules: CompatibilityRule[] = [
       return null;
     },
   },
-  {
-    id: "nx-expansion-check",
-    name: "NX Expansion Module Check",
-    description:
-      "Warns if the number of drive axes may exceed available DRIVE-CLiQ ports and no NX expansion is configured.",
-    check: (config: GeneratedConfiguration): CompatibilityWarning | null => {
-      const driveCliqPorts = config.controlUnit.driveCliqPorts;
-      const totalDriveAxes = config.drives.length;
-
-      if (totalDriveAxes > driveCliqPorts && config.controlUnit.maxNX > 0) {
-        const hasNX = config.drives.some(
-          (d) => d.name.toLowerCase().includes("nx") || d.componentType === "interface_module"
-        );
-        if (!hasNX) {
-          return {
-            severity: "warning",
-            message: `Configuration has ${totalDriveAxes} drive components but only ${driveCliqPorts} DRIVE-CLiQ ports on the ${config.controlUnit.name}. An NX expansion module may be required.`,
-            affectedComponents: [config.controlUnit.id],
-            suggestion: `Add an NX expansion module (up to ${config.controlUnit.maxNX} supported) to provide additional DRIVE-CLiQ ports.`,
-          };
-        }
-      }
-      return null;
-    },
-  },
 ];
+
+/**
+ * Run every rule against a configuration and return the warnings that are
+ * not already present (matched by message). Used after AI generation and
+ * after every mutation so the BOM never silently carries an invalid combo.
+ */
+export function runCompatibilityRules(
+  config: GeneratedConfiguration,
+  existing: CompatibilityWarning[] = config.warnings ?? []
+): CompatibilityWarning[] {
+  const seen = new Set(existing.map((w) => w.message));
+  const out: CompatibilityWarning[] = [];
+  for (const rule of compatibilityRules) {
+    let w: CompatibilityWarning | null = null;
+    try {
+      w = rule.check(config);
+    } catch {
+      continue; // a rule must never break BOM generation
+    }
+    if (w && !seen.has(w.message)) {
+      seen.add(w.message);
+      out.push(w);
+    }
+  }
+  return out;
+}

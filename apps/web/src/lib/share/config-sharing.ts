@@ -1,4 +1,5 @@
 import type { GeneratedConfiguration, MachineType } from "@/types/catalog";
+import { buildBom } from "@/lib/export/bom";
 import type { MachineSpecsState } from "@/store/configurator-store";
 
 /**
@@ -86,69 +87,13 @@ export function serializeConfigAsShareableText(
   lines.push("| # | MLFB | Qty | Description | Category |");
   lines.push("|---|------|-----|-------------|----------|");
 
-  const rows: Array<{ mlfb: string; qty: number; name: string; category: string; orderCode?: string }> = [];
-  rows.push({
-    mlfb: cfg.controlUnit.articleNumber,
-    qty: 1,
-    name: cfg.controlUnit.name,
-    category: "Control Unit",
-  });
-  rows.push({
-    mlfb: cfg.cncSoftware.articleNumber,
-    qty: 1,
-    name: cfg.cncSoftware.description,
-    category: "CNC Software",
-  });
-  for (const pkg of cfg.technologyPackages) {
-    rows.push({ mlfb: pkg.articleNumber, qty: 1, name: pkg.name, category: "Tech Package", orderCode: pkg.orderCode });
-  }
-  for (const opt of cfg.softwareOptions) {
-    rows.push({
-      mlfb: opt.articleNumber,
-      qty: cfg.optionQuantities[opt.id] || 1,
-      name: opt.name,
-      category: "Software Option",
-      orderCode: opt.orderCode,
-    });
-  }
-  for (const drive of cfg.drives) {
-    rows.push({
-      mlfb: drive.articleNumber,
-      qty: cfg.driveQuantities[drive.id] || 1,
-      name: drive.name,
-      category: "Drive",
-    });
-  }
-  for (const motor of cfg.motors) {
-    rows.push({
-      mlfb: motor.articleNumber || motor.series,
-      qty: cfg.motorQuantities[motor.id] || 1,
-      name: motor.name,
-      category: "Motor",
-    });
-  }
-  for (const hmi of cfg.hmiComponents) {
-    rows.push({ mlfb: hmi.articleNumber, qty: 1, name: hmi.name, category: "HMI" });
-  }
-  for (const sf of cfg.safetyFunctions.filter((s) => !s.isBasicScope)) {
-    rows.push({
-      mlfb: sf.articleNumber || "—",
-      qty: 1,
-      name: sf.name,
-      category: "Safety",
-      orderCode: sf.orderCode,
-    });
-  }
-  for (const cable of cfg.cables || []) {
-    if (cable.quantity > 0) {
-      rows.push({
-        mlfb: cable.articleNumber,
-        qty: cable.quantity,
-        name: cable.name,
-        category: "Cable",
-      });
-    }
-  }
+  const rows = buildBom(cfg).map((l) => ({
+    mlfb: l.articleNumber,
+    qty: l.quantity,
+    name: l.name,
+    category: l.category,
+    orderCode: l.orderCode,
+  }));
 
   rows.forEach((r, i) => {
     const description = r.orderCode ? `${r.name} (${r.orderCode})` : r.name;

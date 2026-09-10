@@ -2,6 +2,11 @@ import { NextResponse, after } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { extractJson } from "@/lib/ai/extract-json";
 import { logAiTrace, redact } from "@sinumerik/telemetry";
+import { buildModifyPrompt } from "@/lib/ai/modify-engine";
+import { AI_ROUTE_LIMIT, boundedString, rateLimit } from "@/lib/server/request-guards";
+
+const MAX_SUMMARY_CHARS = 30_000;
+const MAX_REQUEST_CHARS = 5_000;
 
 export const maxDuration = 300;
 
@@ -26,10 +31,22 @@ export async function POST(request: Request) {
   let systemPrompt = "";
   let userMessage = "";
 
+  const limited = rateLimit(request, "modify", AI_ROUTE_LIMIT);
+  if (limited) return limited;
+
   try {
-    const body = await request.json();
-    systemPrompt = typeof body.systemPrompt === "string" ? body.systemPrompt : "";
-    userMessage = typeof body.userMessage === "string" ? body.userMessage : "";
+    const body = (await request.json()) as { configSummary?: unknown; userMessage?: unknown };
+    // The client sends only the current-configuration summary (data);
+    // the instruction framing around it is assembled server-side.
+    const configSummary = boundedString(body.configSummary, MAX_SUMMARY_CHARS);
+    userMessage = boundedString(body.userMessage, MAX_REQUEST_CHARS);
+    if (!configSummary.trim() || !userMessage.trim()) {
+      return NextResponse.json(
+        { error: "bad_request", message: "A configuration and a change request are required." },
+        { status: 400 },
+      );
+    }
+    systemPrompt = buildModifyPrompt(configSummary);
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey || apiKey === "your-api-key-here") {

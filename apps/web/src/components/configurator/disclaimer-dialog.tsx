@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertTriangle, ShieldAlert } from "lucide-react";
 import {
   Dialog,
@@ -49,10 +49,12 @@ export function DisclaimerDialog({
 }: DisclaimerDialogProps) {
   const [checked, setChecked] = useState(false);
 
-  // Reset the checkbox each time the dialog re-opens
-  useEffect(() => {
+  // Reset the checkbox each time the dialog re-opens (state adjusted during render)
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setChecked(false);
-  }, [open]);
+  }
 
   const handleAcknowledge = () => {
     acknowledgeDisclaimer();
@@ -196,10 +198,10 @@ export function DisclaimerDialog({
  * opt-out that survives across sessions.
  */
 function TelemetryNotice() {
-  const [disabled, setDisabled] = useState<boolean>(false);
-  useEffect(() => {
-    setDisabled(isTelemetryDisabled());
-  }, []);
+  // Lazy initialiser: this notice only mounts inside the (client-only)
+  // disclaimer dialog, so reading localStorage here cannot cause a
+  // hydration mismatch.
+  const [disabled, setDisabled] = useState<boolean>(() => isTelemetryDisabled());
   const toggle = () => {
     const next = !disabled;
     setTelemetryDisabled(next);

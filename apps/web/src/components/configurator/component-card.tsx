@@ -85,7 +85,7 @@ export function ComponentCard({
                 e.stopPropagation();
                 onSwap();
               }}
-              className="opacity-0 group-hover:opacity-100 transition-opacity rounded-md border bg-background hover:bg-accent px-2 py-1 text-[10px] font-medium"
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity rounded-md border bg-background hover:bg-accent px-2 py-1 text-[10px] font-medium"
               title="Swap component"
             >
               Swap
@@ -98,7 +98,7 @@ export function ComponentCard({
                 e.stopPropagation();
                 onRemove();
               }}
-              className="opacity-0 group-hover:opacity-100 transition-opacity rounded-md border border-destructive/30 bg-background hover:bg-destructive/10 text-destructive px-2 py-1 text-[10px] font-medium"
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity rounded-md border border-destructive/30 bg-background hover:bg-destructive/10 text-destructive px-2 py-1 text-[10px] font-medium"
               title="Remove"
             >
               Remove

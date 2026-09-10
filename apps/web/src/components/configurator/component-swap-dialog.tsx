@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -138,14 +138,15 @@ export function ComponentSwapDialog({
   onSelect,
 }: ComponentSwapDialogProps) {
   const [search, setSearch] = useState("");
-  const [options, setOptions] = useState<SwapOption[]>([]);
+  // Catalog list is a pure function of the category — derive, don't sync.
+  const options = useMemo(() => (open ? getOptions(category) : []), [open, category]);
 
-  useEffect(() => {
-    if (open) {
-      setOptions(getOptions(category));
-      setSearch("");
-    }
-  }, [open, category]);
+  // Clear the search box each time the dialog opens (state adjusted during render).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setSearch("");
+  }
 
   const filtered = options.filter(
     (o) =>
