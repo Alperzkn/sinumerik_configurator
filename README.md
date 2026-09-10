@@ -17,6 +17,12 @@ numbers (MLFBs) — every component traceable to a catalog page.
 - **[Telemetry](docs/TELEMETRY.md)** — operational notes for the
   admin app: env vars, Supabase migration, Vercel deployment,
   adding new tracked events.
+- **Architecture diagrams** (interactive HTML, open in any browser):
+  [`docs/diagrams/how-it-works.html`](docs/diagrams/how-it-works.html)
+  for non-technical readers and
+  [`docs/diagrams/technical-architecture.html`](docs/diagrams/technical-architecture.html)
+  for developers. Built with [archify](https://github.com/tt-a1i/archify)
+  from the `.architecture.json` sources next to them.
 - **`docs/workflow.excalidraw`** — one-page diagram of the data
   flow. Open at [excalidraw.com](https://excalidraw.com).
 

@@ -389,6 +389,9 @@ order.
 
 ## Where to go next
 
+- **One-page picture of how it works** — open
+  `docs/diagrams/how-it-works.html` in a browser (no install needed).
+
 - **For developers** — see [ARCHITECTURE.md](ARCHITECTURE.md) for
   the monorepo layout, AI prompt structure, MLFB compositional
   grammar, telemetry pipeline, and admin dashboard.

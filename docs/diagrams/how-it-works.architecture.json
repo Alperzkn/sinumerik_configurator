@@ -1,0 +1,356 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SINUMERIK Configurator — how it works",
+    "output": "docs/diagrams/how-it-works.html",
+    "quality_profile": "showcase",
+    "locale": "en",
+    "views": [
+      {
+        "id": "build",
+        "label": "Build a new machine",
+        "focus": [
+          "you",
+          "describe",
+          "ai",
+          "rules",
+          "catalog",
+          "bom"
+        ],
+        "note": "You describe the machine, the AI decides its shape, the rule engine fills in every Siemens part from the catalogs."
+      },
+      {
+        "id": "outputs",
+        "label": "What you get",
+        "focus": [
+          "bom",
+          "modify",
+          "exports",
+          "review"
+        ],
+        "note": "A bill of materials with real article numbers you can change in plain English, export, and hand to an engineer."
+      },
+      {
+        "id": "convert",
+        "label": "Convert an 808D list",
+        "focus": [
+          "you",
+          "converter",
+          "catalog",
+          "exports"
+        ],
+        "note": "An existing 808D ADVANCED parts list is re-selected line by line from the 828D Smart catalogue — no AI in the product choice."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "you",
+      "type": "external",
+      "label": "You",
+      "sublabel": "sales or application engineer",
+      "pos": [
+        20,
+        170
+      ],
+      "size": [
+        120,
+        56
+      ]
+    },
+    {
+      "id": "describe",
+      "type": "frontend",
+      "label": "Describe the machine",
+      "sublabel": "template or plain text + specs",
+      "pos": [
+        170,
+        170
+      ],
+      "size": [
+        160,
+        58
+      ]
+    },
+    {
+      "id": "ai",
+      "type": "cloud",
+      "label": "AI architect",
+      "sublabel": "Claude picks the shape",
+      "tag": "no part numbers",
+      "pos": [
+        360,
+        60
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "rules",
+      "type": "backend",
+      "label": "Sizing rules",
+      "sublabel": "motors, drives, cables",
+      "tag": "deterministic",
+      "pos": [
+        360,
+        170
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "catalog",
+      "type": "database",
+      "label": "Siemens catalogs",
+      "sublabel": "NC63 · D21.4 · D32",
+      "pos": [
+        360,
+        280
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "bom",
+      "type": "frontend",
+      "label": "Bill of materials",
+      "sublabel": "real article numbers",
+      "pos": [
+        550,
+        170
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "modify",
+      "type": "frontend",
+      "label": "Change in plain English",
+      "sublabel": "\"make the spindle 30 kW\"",
+      "pos": [
+        550,
+        60
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "exports",
+      "type": "external",
+      "label": "Excel · PDF · share",
+      "sublabel": "or copy to clipboard",
+      "pos": [
+        750,
+        170
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "review",
+      "type": "security",
+      "label": "Engineer review",
+      "sublabel": "always before ordering",
+      "pos": [
+        550,
+        280
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "converter",
+      "type": "backend",
+      "label": "808D → 828D Smart",
+      "sublabel": "old parts list → new list",
+      "tag": "rule-based",
+      "pos": [
+        170,
+        390
+      ],
+      "size": [
+        170,
+        58
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Inside the configurator",
+      "wraps": [
+        "describe",
+        "ai",
+        "rules",
+        "catalog",
+        "bom",
+        "modify",
+        "converter"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "you-describe",
+      "from": "you",
+      "to": "describe",
+      "label": "machine description",
+      "variant": "emphasis",
+      "labelDy": -22
+    },
+    {
+      "id": "describe-ai",
+      "from": "describe",
+      "to": "ai",
+      "label": "what kind of machine?"
+    },
+    {
+      "id": "ai-rules",
+      "from": "ai",
+      "to": "rules",
+      "label": "architecture",
+      "variant": "emphasis",
+      "labelDy": 24
+    },
+    {
+      "id": "catalog-rules",
+      "from": "catalog",
+      "to": "rules",
+      "label": "verified data",
+      "labelDy": -24
+    },
+    {
+      "id": "rules-bom",
+      "from": "rules",
+      "to": "bom",
+      "label": "complete parts list",
+      "variant": "emphasis",
+      "labelDy": -23
+    },
+    {
+      "id": "bom-modify",
+      "from": "bom",
+      "to": "modify",
+      "label": "request",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "modify-ai",
+      "from": "modify",
+      "to": "ai",
+      "label": "change set",
+      "variant": "dashed",
+      "labelAt": [
+        530,
+        48
+      ]
+    },
+    {
+      "id": "bom-exports",
+      "from": "bom",
+      "to": "exports",
+      "label": "export",
+      "variant": "emphasis"
+    },
+    {
+      "id": "bom-review",
+      "from": "bom",
+      "to": "review",
+      "label": "check",
+      "variant": "security",
+      "labelDy": 24
+    },
+    {
+      "id": "you-converter",
+      "from": "you",
+      "to": "converter",
+      "label": "808D list (paste / Excel)",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          80,
+          419
+        ]
+      ],
+      "labelAt": [
+        125,
+        462
+      ]
+    },
+    {
+      "id": "converter-catalog",
+      "from": "converter",
+      "to": "catalog",
+      "label": "828D Smart PDF rules",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "converter-exports",
+      "from": "converter",
+      "to": "exports",
+      "label": "828D Smart list",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          825,
+          419
+        ]
+      ],
+      "labelAt": [
+        600,
+        432
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "What the AI does",
+      "items": [
+        "Reads your description",
+        "Picks control unit, options, drives, safety",
+        "Never invents a part number"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Where the numbers come from",
+      "items": [
+        "Local copy of the Siemens catalogs",
+        "Sizing is fixed rules, not guesses",
+        "Each line shows its catalog + basis"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "What you get",
+      "items": [
+        "A starting-point BOM, not an order",
+        "Excel, PDF, shareable text",
+        "Warnings for an engineer to check"
+      ]
+    }
+  ]
+}

@@ -13,6 +13,14 @@ telemetry, and the admin dashboard.
 
 ## 1. The big picture
 
+> Interactive versions of this picture live in `docs/diagrams/`:
+> `how-it-works.html` (non-technical) and `technical-architecture.html`
+> (developer view). They are generated with
+> [archify](https://github.com/tt-a1i/archify) from the
+> `*.architecture.json` files in the same folder — edit the JSON, then run
+> `node bin/archify.mjs deliver architecture <json> <html> --quality showcase`
+> from an archify checkout.
+
 ```mermaid
 flowchart LR
     User[User] -->|machine description + specs| Web[Next.js web app]

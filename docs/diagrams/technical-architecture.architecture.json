@@ -1,0 +1,516 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SINUMERIK Configurator — technical architecture",
+    "output": "docs/diagrams/technical-architecture.html",
+    "quality_profile": "showcase",
+    "locale": "en",
+    "views": [
+      {
+        "id": "recommend",
+        "label": "AI recommend path",
+        "focus": [
+          "wizard",
+          "aiRoutes",
+          "claude",
+          "parser",
+          "sizing",
+          "catalog",
+          "compat"
+        ],
+        "note": "Wizard → /api/recommend (server-built prompt) → Claude → response-parser → sizing rules → compatibility rules → store."
+      },
+      {
+        "id": "exports",
+        "label": "Exports and import",
+        "focus": [
+          "wizard",
+          "exportLib",
+          "catalog"
+        ],
+        "note": "One BOM flattener (lib/export/bom.ts) feeds clipboard, xlsx, PDF, share text and telemetry; bom-import matches Excel rows."
+      },
+      {
+        "id": "converter",
+        "label": "808D converter",
+        "focus": [
+          "convertPage",
+          "convertEngine",
+          "aiRoutes"
+        ],
+        "note": "Rule-based engine in lib/convert-808d; the optional AI reader only turns messy text into rows."
+      },
+      {
+        "id": "telemetry",
+        "label": "Telemetry",
+        "focus": [
+          "exportLib",
+          "aiRoutes",
+          "telemetry",
+          "supabase",
+          "admin"
+        ],
+        "note": "Anonymous traces, configurations and actions are redacted server-side and read by the separate admin app."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "wizard",
+      "type": "frontend",
+      "label": "Wizard UI",
+      "sublabel": "Next.js 16 · React 19 · Zustand",
+      "pos": [
+        60,
+        186
+      ],
+      "size": [
+        160,
+        58
+      ]
+    },
+    {
+      "id": "convertPage",
+      "type": "frontend",
+      "label": "/convert page",
+      "sublabel": "components/converter/*",
+      "pos": [
+        60,
+        378
+      ],
+      "size": [
+        160,
+        58
+      ]
+    },
+    {
+      "id": "parser",
+      "type": "backend",
+      "label": "response-parser",
+      "sublabel": "AI JSON → typed config",
+      "pos": [
+        270,
+        90
+      ],
+      "size": [
+        170,
+        58
+      ]
+    },
+    {
+      "id": "sizing",
+      "type": "backend",
+      "label": "sizing + drive rules",
+      "sublabel": "MLFB builder · line modules",
+      "pos": [
+        270,
+        186
+      ],
+      "size": [
+        170,
+        58
+      ]
+    },
+    {
+      "id": "compat",
+      "type": "security",
+      "label": "compatibility-rules",
+      "sublabel": "limits · export · safety deps",
+      "pos": [
+        270,
+        282
+      ],
+      "size": [
+        170,
+        58
+      ]
+    },
+    {
+      "id": "convertEngine",
+      "type": "backend",
+      "label": "convert-808d engine",
+      "sublabel": "catalog.ts (828D Smart) · engine.ts",
+      "pos": [
+        270,
+        378
+      ],
+      "size": [
+        170,
+        58
+      ]
+    },
+    {
+      "id": "catalog",
+      "type": "database",
+      "label": "Catalog data (TS)",
+      "sublabel": "NC63 · D21.4 · D32 · MOTOR_SPECS",
+      "pos": [
+        490,
+        186
+      ],
+      "size": [
+        170,
+        58
+      ]
+    },
+    {
+      "id": "exportLib",
+      "type": "backend",
+      "label": "export + import",
+      "sublabel": "bom.ts · xlsx · pdf · share · import",
+      "pos": [
+        490,
+        282
+      ],
+      "size": [
+        170,
+        58
+      ]
+    },
+    {
+      "id": "aiRoutes",
+      "type": "backend",
+      "label": "AI routes",
+      "sublabel": "recommend · modify · convert/parse",
+      "pos": [
+        710,
+        90
+      ],
+      "size": [
+        180,
+        58
+      ]
+    },
+    {
+      "id": "telemetry",
+      "type": "backend",
+      "label": "Telemetry",
+      "sublabel": "/api/events/* · @sinumerik/telemetry",
+      "pos": [
+        710,
+        282
+      ],
+      "size": [
+        180,
+        58
+      ]
+    },
+    {
+      "id": "claude",
+      "type": "cloud",
+      "label": "Claude API",
+      "sublabel": "@anthropic-ai/sdk",
+      "pos": [
+        710,
+        474
+      ],
+      "size": [
+        180,
+        58
+      ]
+    },
+    {
+      "id": "supabase",
+      "type": "database",
+      "label": "Supabase",
+      "sublabel": "traces · configurations · actions",
+      "pos": [
+        490,
+        474
+      ],
+      "size": [
+        170,
+        58
+      ]
+    },
+    {
+      "id": "admin",
+      "type": "frontend",
+      "label": "Admin app",
+      "sublabel": "apps/admin · token login",
+      "pos": [
+        270,
+        474
+      ],
+      "size": [
+        170,
+        58
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Browser bundle (apps/web)",
+      "wraps": [
+        "wizard",
+        "convertPage",
+        "parser",
+        "sizing",
+        "compat",
+        "convertEngine",
+        "catalog",
+        "exportLib"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Vercel server routes",
+      "wraps": [
+        "aiRoutes",
+        "telemetry"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "External services",
+      "wraps": [
+        "claude",
+        "supabase"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "wizard-aiRoutes",
+      "from": "wizard",
+      "to": "aiRoutes",
+      "label": "POST description → architecture JSON",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          140,
+          40
+        ],
+        [
+          800,
+          40
+        ]
+      ],
+      "labelAt": [
+        470,
+        32
+      ]
+    },
+    {
+      "id": "aiRoutes-claude",
+      "from": "aiRoutes",
+      "to": "claude",
+      "label": "Claude call",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "right",
+      "via": [
+        [
+          930,
+          119
+        ],
+        [
+          930,
+          503
+        ]
+      ],
+      "labelAt": [
+        930,
+        300
+      ]
+    },
+    {
+      "id": "aiRoutes-telemetry",
+      "from": "aiRoutes",
+      "to": "telemetry",
+      "label": "ai_traces",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        835,
+        162
+      ]
+    },
+    {
+      "id": "parser-wizard",
+      "from": "parser",
+      "to": "wizard",
+      "label": "config + warnings → store",
+      "variant": "emphasis",
+      "fromSide": "left",
+      "toSide": "right",
+      "via": [
+        [
+          245,
+          119
+        ],
+        [
+          245,
+          215
+        ]
+      ],
+      "labelAt": [
+        232,
+        166
+      ]
+    },
+    {
+      "id": "parser-sizing",
+      "from": "parser",
+      "to": "sizing",
+      "label": "axis counts + specs",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        455,
+        156
+      ]
+    },
+    {
+      "id": "catalog-sizing",
+      "from": "catalog",
+      "to": "sizing",
+      "label": "MOTOR_SPECS · line modules",
+      "fromSide": "left",
+      "toSide": "right",
+      "labelAt": [
+        465,
+        176
+      ]
+    },
+    {
+      "id": "sizing-compat",
+      "from": "sizing",
+      "to": "compat",
+      "label": "config",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        385,
+        262
+      ]
+    },
+    {
+      "id": "wizard-export",
+      "from": "wizard",
+      "to": "exportLib",
+      "label": "BOM export / import",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "via": [
+        [
+          140,
+          364
+        ],
+        [
+          575,
+          364
+        ]
+      ],
+      "labelAt": [
+        372,
+        352
+      ]
+    },
+    {
+      "id": "catalog-export",
+      "from": "catalog",
+      "to": "exportLib",
+      "label": "article matching",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        630,
+        262
+      ]
+    },
+    {
+      "id": "export-telemetry",
+      "from": "exportLib",
+      "to": "telemetry",
+      "label": "slim BOM + actions",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        685,
+        266
+      ]
+    },
+    {
+      "id": "telemetry-supabase",
+      "from": "telemetry",
+      "to": "supabase",
+      "label": "service-role insert",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          800,
+          430
+        ],
+        [
+          575,
+          430
+        ]
+      ],
+      "labelAt": [
+        690,
+        416
+      ]
+    },
+    {
+      "id": "supabase-admin",
+      "from": "supabase",
+      "to": "admin",
+      "label": "read-only",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "right",
+      "labelAt": [
+        465,
+        540
+      ]
+    },
+    {
+      "id": "convertPage-engine",
+      "from": "convertPage",
+      "to": "convertEngine",
+      "label": "InputRow[]",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        250,
+        452
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Split of responsibilities",
+      "items": [
+        "AI: architecture only — never a part number",
+        "Rules: every MLFB, sizing, cables, compatibility"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Hardening",
+      "items": [
+        "Server-built prompts, capped inputs, 20 calls/10 min/IP",
+        "Telemetry redaction over every string leaf"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Repo layout",
+      "items": [
+        "apps/web (configurator + /convert) · apps/admin",
+        "packages/telemetry — Supabase client + redaction"
+      ]
+    }
+  ]
+}
