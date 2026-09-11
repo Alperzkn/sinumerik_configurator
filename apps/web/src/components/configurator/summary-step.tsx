@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { buildBom } from "@/lib/export/bom";
-import { BomBasisPill, BOM_BASIS_LABEL } from "./bom-basis-pill";
+import { BomBasisPill, BomBasisLegend, BOM_BASIS_LABEL } from "./bom-basis-pill";
 import { SaveLoadDialog } from "./save-load-dialog";
 import { ShareConfigDialog } from "./share-config-dialog";
 import { trackAction } from "@/lib/telemetry/client";
@@ -346,6 +346,8 @@ export function SummaryStep() {
         </table>
         </div>
       </div>
+
+      <BomBasisLegend />
 
       {/* Notes */}
       {configuration.notes.length > 0 && (
