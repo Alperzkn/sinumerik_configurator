@@ -1,23 +1,11 @@
-import type { BomBasis } from "@/types/catalog";
+import type { BomBasis, BomItem } from "@/types/catalog";
 import { cn } from "@/lib/utils";
 
-export const BOM_BASIS_LABEL: Record<BomBasis, string> = {
-  catalog: "Catalog",
-  composed: "Composed",
-  trunk_only: "Trunk only",
-  order_code: "Order code",
-};
-
-/** Plain-language meaning of each basis, shown in the tooltip and the legend under the BOM. */
-export const BOM_BASIS_HELP: Record<BomBasis, string> = {
-  catalog: "Article number taken exactly as printed in the Siemens catalog. Ready to order.",
-  composed: "Article number built by the app: a catalog motor plus the option digits for this axis (brake, encoder, shaft). Please double-check before ordering.",
-  trunk_only: "Only the first part of the article number is known; your Siemens partner completes it at order time.",
-  order_code: "Software option with no article number of its own. Order it by the option code shown in brackets.",
-};
-
-const ALL_BASES: BomBasis[] = ["catalog", "composed", "trunk_only", "order_code"];
-
+/**
+ * Same chips as the 808D → 828D Smart converter (components/converter/basis-pill):
+ * colours, shape and vocabulary. A catalog line carries the catalog name in the
+ * chip ("NC63", "D37.1") the way the converter's chip says "PDF p.27".
+ */
 const STYLE: Record<BomBasis, string> = {
   catalog: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
   composed: "bg-primary/12 text-primary border-primary/30",
@@ -25,8 +13,30 @@ const STYLE: Record<BomBasis, string> = {
   order_code: "bg-sky-500/12 text-sky-700 dark:text-sky-300 border-sky-500/30",
 };
 
-/** Provenance pill for a BOM line — same visual language as the 808D converter. */
-export function BomBasisPill({ basis, className }: { basis: BomBasis; className?: string }) {
+export const BOM_BASIS_LABEL: Record<BomBasis, string> = {
+  catalog: "Catalog",
+  composed: "Derived",
+  trunk_only: "Review",
+  order_code: "Order code",
+};
+
+export const BOM_BASIS_HELP: Record<BomBasis, string> = {
+  catalog: "article number listed in the named Siemens catalog — ready to order",
+  composed: "built from the catalog's motor code pattern (brake, encoder, shaft digits for this axis) — double-check before ordering",
+  trunk_only: "needs a manual decision — only the first part of the number is known, your Siemens partner completes it",
+  order_code: "software option without its own article number — ordered by the code in brackets",
+};
+
+const LEGEND: BomBasis[] = ["catalog", "composed", "trunk_only", "order_code"];
+
+/** Chip text for a line: the catalog name for catalog lines, else the generic word. */
+export function bomBasisLabel(line: Pick<BomItem, "basis" | "source">): string {
+  const basis = line.basis ?? "catalog";
+  if (basis === "catalog" && line.source) return line.source;
+  return BOM_BASIS_LABEL[basis];
+}
+
+export function BomBasisPill({ basis, label, className }: { basis: BomBasis; label?: string; className?: string }) {
   return (
     <span
       title={BOM_BASIS_HELP[basis]}
@@ -36,27 +46,28 @@ export function BomBasisPill({ basis, className }: { basis: BomBasis; className?
         className,
       )}
     >
-      {BOM_BASIS_LABEL[basis]}
+      {label ?? BOM_BASIS_LABEL[basis]}
     </span>
   );
 }
 
-/** One line per basis, so a reader can decode the pills without hovering. */
+/** The converter's "Selection rules" legend, for the main BOM. */
 export function BomBasisLegend({ className }: { className?: string }) {
   return (
-    <div className={cn("rounded-lg border bg-muted/20 px-4 py-3", className)}>
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">What the Basis chips mean</h3>
-      <ul className="space-y-1.5">
-        {ALL_BASES.map((b) => (
-          <li key={b} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-            <BomBasisPill basis={b} className="mt-0.5" />
-            <span>{BOM_BASIS_HELP[b]}</span>
-          </li>
+    <section className={cn("rounded-lg border bg-card", className)}>
+      <h3 className="border-b px-3.5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        Selection rules
+      </h3>
+      <dl className="grid grid-cols-[auto_1fr] items-start gap-x-2.5 gap-y-2 p-3.5 text-xs text-muted-foreground">
+        {LEGEND.map((k) => (
+          <div key={k} className="contents">
+            <dt>
+              <BomBasisPill basis={k} label={k === "catalog" ? "NC63 / D21.4 / …" : undefined} />
+            </dt>
+            <dd className="leading-snug">{BOM_BASIS_HELP[k]}</dd>
+          </div>
         ))}
-      </ul>
-      <p className="mt-2 text-[11px] text-muted-foreground/80">
-        The grey code next to a chip is the source of the line (catalog edition or sizing rule).
-      </p>
-    </div>
+      </dl>
+    </section>
   );
 }

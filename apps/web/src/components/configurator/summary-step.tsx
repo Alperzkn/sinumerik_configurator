@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useConfiguratorStore } from "@/store/configurator-store";
 import { buildBom } from "@/lib/export/bom";
-import { BomBasisPill, BomBasisLegend, BOM_BASIS_LABEL } from "./bom-basis-pill";
+import { BomBasisPill, BomBasisLegend, BOM_BASIS_LABEL, bomBasisLabel } from "./bom-basis-pill";
 import { SaveLoadDialog } from "./save-load-dialog";
 import { ShareConfigDialog } from "./share-config-dialog";
 import { trackAction } from "@/lib/telemetry/client";
@@ -332,8 +332,8 @@ export function SummaryStep() {
                   )}
                 </td>
                 <td className="py-2 px-3 whitespace-nowrap">
-                  <BomBasisPill basis={line.basis ?? "catalog"} />
-                  {line.source && (
+                  <BomBasisPill basis={line.basis ?? "catalog"} label={bomBasisLabel(line)} />
+                  {line.source && line.basis && line.basis !== "catalog" && (
                     <span className="ml-1.5 font-mono text-[10px] text-muted-foreground">{line.source}</span>
                   )}
                 </td>
