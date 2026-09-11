@@ -220,6 +220,39 @@ export const TEMPLATE_ARCHITECTURES: Partial<Record<MachineType, AiRawResponse>>
   },
 };
 
+TEMPLATE_ARCHITECTURES.router = {
+  controlUnit: { id: "NCU_1740", reason: "5 axes/spindles (X1, X2 gantry, Y1, Z1 + spindle) within NCU 1740 capacity" },
+  cncSoftware: { variant: "export", swVersion: "6.25 SP1" },
+  technologyPackages: [
+    { id: "S42", reason: "Dynamics 3 Axis Milling: Advanced/Top Surface for smooth contouring on wood and composites" },
+  ],
+  additionalOptions: [
+    { orderCode: "A02", name: "2 additional axes/spindles", quantity: 1, reason: "5 total − 3 base = 2 additional licences" },
+    { orderCode: "M02", name: "Gantry axes", quantity: 1, reason: "X1/X2 portal drive needs one gantry pair licence" },
+  ],
+  driveArchitecture: {
+    family: "S120_booksize",
+    feedAxisCount: 4,
+    spindleCount: 1,
+    preferActiveLineModule: false,
+    highSpeedSpindle: true,
+    reason: "Gantry router: 4 servo axes (two on the gantry) and one high-speed routing spindle",
+  },
+  hmi: { type: "thin_client", panelSizeInch: 15, reason: "15\" Thin Client next to the machine" },
+  safety: { options: [], reason: "Basic safety (STO, SS1, SBC) unless the customer asks for safe speed monitoring" },
+  totalAxes: 5,
+  totalChannels: 1,
+  userPreferences: {
+    axisNames: ["X1", "X2", "Y1", "Z1"],
+    brakeAxes: ["Z1"],
+    gantryPairs: [["X1", "X2"]],
+  },
+  notes: [
+    "Gantry router: X1/X2 run as a synchronized pair (gantry licence), Z1 carries a holding brake, spindle sized for high-speed routing.",
+  ],
+  estimatedComplexity: "standard",
+};
+
 export function getTemplateArchitecture(
   template: MachineType | null,
   family: ControlSystemFamily = "sinumerik_one"

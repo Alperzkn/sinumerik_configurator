@@ -16,6 +16,8 @@ export interface FeedRequirement {
   familyHint?: string;
   /** Drive platforms allowed for this control system (default: all). */
   platforms?: DrivePlatform[];
+  /** Rated power the user asked for (kW): motors below it are skipped. */
+  minPowerKw?: number;
   /**
    * Soft cap on the motor's rated current (A). Used for 828D so the default
    * sizing lands on a SINAMICS S120 Combi feed power unit (9 A); ignored
@@ -118,16 +120,23 @@ export function selectFeedMotor(req: FeedRequirement): FeedSelection {
     }
   }
 
+  // A stated motor size is a floor on rated power (and, when the mass was
+  // only a default, the torque requirement must not push the selection far
+  // beyond the size the user named).
+  const minPower = req.minPowerKw ?? 0;
+  const powerOk = (s: MotorSpecs) => parseNum(s.ratedPower) >= minPower;
+
   // Prefer cooling type based on mass: heavy → forced, light/medium → natural
   let pool = feedMotors.filter(
     ([, s]) =>
+      powerOk(s) &&
       parseNum(s.ratedTorque) >= minTorque &&
       (isHeavyDuty ? s.cooling === "forced" : s.cooling === "natural")
   );
 
   // Fallback: allow any cooling if preferred pool is empty
   if (pool.length === 0) {
-    pool = feedMotors.filter(([, s]) => parseNum(s.ratedTorque) >= minTorque);
+    pool = feedMotors.filter(([, s]) => powerOk(s) && parseNum(s.ratedTorque) >= minTorque);
   }
 
   // Soft current cap (828D Combi): keep it only when it still leaves a candidate.

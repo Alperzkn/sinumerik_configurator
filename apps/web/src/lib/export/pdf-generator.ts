@@ -406,6 +406,7 @@ const TEMPLATE_LABEL: Record<MachineType, string> = {
   laser: "Laser machining system",
   punching: "Punching / nibbling machine",
   robot: "Robot motion controller",
+  router: "Gantry router",
   custom: "Custom machine",
 };
 

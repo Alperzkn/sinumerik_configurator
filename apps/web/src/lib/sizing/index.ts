@@ -25,6 +25,8 @@ export interface UserSpecsInput {
   spindleCount?: number;
   /** User-entered spindle power in kW (optional) */
   spindlePowerKw?: number;
+  /** Feed-motor rated power the user asked for (kW) — a floor for the selection. */
+  feedPowerKw?: number;
   /** User-entered required spindle max speed in rpm (optional) */
   spindleMaxRpm?: number;
   /** User-entered moving mass per axis in kg (optional) */
@@ -114,6 +116,7 @@ const DEFAULTS_BY_TEMPLATE: Partial<Record<
   "laser":      { spindleKw: 3.7, spindleRpm: 3000, massKg: 200, rapidMpm: 100 },
   "punching":   { spindleKw: 7.5, spindleRpm: 3000, massKg: 300, rapidMpm: 80 },
   "robot":      { spindleKw: 3.7, spindleRpm: 3000, massKg: 100, rapidMpm: 60 },
+  "router":     { spindleKw: 7.5, spindleRpm: 18000, massKg: 150, rapidMpm: 40 },
 };
 
 export interface SizingInput {
@@ -253,6 +256,7 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
     rapidTraverseMpm: rapidMpm,
     axisKind: userSpecs.machineSize === "very_large" ? "gantry" : "horizontal",
     familyHint: userSpecs.feedMotorFamily,
+    minPowerKw: userSpecs.feedPowerKw,
     platforms: platformsForFamily(input.controlFamily),
     // 828D: the S120 Combi feed power units are 9 A — prefer motors that fit
     // when the mass / rapid inputs were only defaults.

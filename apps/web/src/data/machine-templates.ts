@@ -126,6 +126,23 @@ export const machineTemplates: MachineTemplate[] = [
       "Punching/nibbling machine with X, Y axes for sheet positioning. The M33 (punching/nibbling) option enables automatic path segmentation. Consider position switching (M07) for ram control.",
   },
   {
+    id: "tpl-router",
+    type: "router",
+    name: "Gantry Router",
+    description:
+      "Portal router for wood, composites and plastics: X1/X2 gantry pair, Y and a braked vertical Z axis with a high-speed routing spindle.",
+    icon: "Hammer",
+    typicalAxes: 4,
+    typicalSpindles: 1,
+    defaultControlUnit: "NCU_1740",
+    defaultPackages: ["S42"],
+    defaultSafetyOptions: [],
+    defaultDriveFamily: "S120_booksize",
+    defaultMotorTypes: ["feed_servo_sync", "main_spindle_sync"],
+    promptHint:
+      "Gantry router with two synchronized X axes (gantry pair), one Y axis on the bridge, one vertical Z axis with holding brake and one high-speed spindle (18 000-24 000 rpm). Small servo motors (1-3 kW) are typical.",
+  },
+  {
     id: "tpl-robot",
     type: "robot",
     name: "Robot Cell (6-Axis)",

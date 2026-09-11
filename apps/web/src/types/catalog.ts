@@ -42,6 +42,7 @@ export type MachineType =
   | "laser"
   | "punching"
   | "robot"
+  | "router"
   | "custom";
 
 export type SoftwareVariant = "export" | "full_scope";

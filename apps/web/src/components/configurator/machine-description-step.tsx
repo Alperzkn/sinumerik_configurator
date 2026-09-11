@@ -19,6 +19,7 @@ import {
   Pencil,
   Cpu,
   Sparkles,
+  Hammer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -94,6 +95,14 @@ const templates: TemplateCard[] = [
     Icon: Grid3x3,
     description: "Sheet metal punching and nibbling",
     axes: "X, Y + Tool",
+  },
+  {
+    type: "router",
+    name: "Gantry Router",
+    Icon: Hammer,
+    description: "Wood / composite routing with an X1-X2 portal, Y and braked Z",
+    axes: "X1, X2, Y1, Z1 + Spindle",
+    badge: "Gantry",
   },
   {
     type: "robot",

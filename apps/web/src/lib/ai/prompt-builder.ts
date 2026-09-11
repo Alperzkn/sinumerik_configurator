@@ -188,6 +188,7 @@ Respond with a JSON object describing the ARCHITECTURE. Always include "controlS
     "cableLengthMeters": 7,
     "axisNames": ["X1", "Y1", "X2", "Y2"],
     "brakeAxes": ["X1", "X2"],
+    "gantryPairs": [["X1", "X2"]],
     "feedPowerKw": 3,
     "spindlePowerKw": 11,
     "spindleMaxRpm": 8000,
@@ -202,6 +203,9 @@ Respond with a JSON object describing the ARCHITECTURE. Always include "controlS
 ### \`userPreferences\` rules (CRITICAL)
 - Only include fields the user *explicitly* mentioned. Do not invent.
 - \`axisNames\`: use the user's exact labels (X1, Y, A, B, C, etc.). DO NOT silently rename — if a user says "Y1, Y2" you keep "Y1, Y2" even if Z would be more conventional. If their naming truly doesn't make sense, set \`needsClarification: true\` and ask.
+- \`brakeAxes\`: EVERY vertical axis (Z, Z1, Z2, W) MUST be listed with a holding brake unless the user explicitly refuses one — a vertical axis without a brake drops when power is removed. Also list any axis the user asked to brake.
+- \`gantryPairs\`: whenever the user describes a gantry / portal / bridge machine, or names the same axis letter twice (X1 and X2, Y1 and Y2), list each leading/following pair. The configurator adds the gantry licence (SINUMERIK ONE option M02, 828D option 0AS51) per pair — never silently drop a gantry.
+- \`feedPowerKw\`: when the user names a feed-motor size ("1.5 kW motors would be enough"), put it here; the sizing engine will not pick a bigger class than needed.
 - \`feedMotorFamily\` / \`spindleMotorFamily\`: must be one of the supported families with verified catalog data:
   • Feed servos: **1FT2** (D21.4 2023, default for new SINUMERIK ONE / S120 booksize), **1FK2** (D32 2026, default for SINUMERIK ONE Compact / S210 OCC), **1FT7** (D21.4, established compact servo), **1FK7** (D21.4 2017 ed., legacy compact — used for retrofits and existing fleets).
   • Spindles: **1PH8** (D21.4 main spindle, only verified family).
@@ -264,6 +268,7 @@ export function buildUserMessage(
       laser: "Laser Cutting Machine",
       punching: "Punching/Nibbling Machine",
       robot: "Robot Cell (6-axis articulated arm)",
+      router: "Gantry Router (wood / composites, X1-X2 gantry, Y, Z, high-speed spindle)",
       custom: "Custom Machine",
     };
     message += `Machine Type: ${templateLabels[template]}\n\n`;

@@ -55,6 +55,20 @@ and a one-sentence reason, and everything downstream (PPU, SD card,
 licences, drives) follows that choice. A concrete choice plus a template
 still builds instantly without AI.
 
+### Rules the configurator applies on its own
+
+Whatever the AI or a template proposes, these are enforced afterwards:
+
+- every vertical axis (Z, Z1, W…) gets a holding brake;
+- duplicated axis letters (X1 and X2) or a described gantry add the gantry
+  licence (M02 on ONE, 0AS51 on 828D) per pair;
+- a stated feed-motor size ("1.5 kW motors are enough") becomes a floor for
+  the motor selection instead of the machine-class default;
+- axis counts recompute the axis licences.
+
+The "Gantry Router" template starts from exactly this shape: X1/X2 pair,
+Y1, braked Z1 and a high-speed spindle.
+
 ### Key specs
 
 The form now asks for the few inputs that actually change the result:

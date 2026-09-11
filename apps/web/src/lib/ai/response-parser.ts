@@ -160,6 +160,44 @@ function resolveFamily(
   return cu?.family ?? "sinumerik_one";
 }
 
+/** Default axis labels when the AI / template gave none, so every axis gets its own MLFB. */
+function defaultAxisNames(template: string | null | undefined, count: number): string[] {
+  const pool =
+    template === "cnc_lathe" || template === "mill_turn"
+      ? ["X", "Z", "Y", "C", "B", "A", "U", "V", "W"]
+      : template === "router"
+        ? ["X1", "X2", "Y1", "Z1", "A", "C", "U", "V", "W"]
+        : ["X", "Y", "Z", "A", "C", "B", "U", "V", "W"];
+  return pool.slice(0, Math.max(0, Math.min(count, pool.length)));
+}
+
+/** Vertical axes carry a holding brake unless the user explicitly said otherwise. */
+const isVerticalAxis = (axis: string) => /^(Z|W)\d*$/i.test(axis.trim());
+
+/**
+ * Gantry pairs: what the AI reported plus any axis letter that appears twice
+ * (X1 + X2, Y1 + Y2) — a portal machine must never lose its gantry licence.
+ */
+function detectGantryPairs(axisNames: string[], reported: unknown): string[][] {
+  const pairs: string[][] = asArray<unknown>(reported)
+    .filter((p): p is string[] => Array.isArray(p) && p.length === 2 && p.every((x) => typeof x === "string"))
+    .map((p) => p.map((x) => x.trim()));
+  const byLetter = new Map<string, string[]>();
+  for (const a of axisNames) {
+    const m = a.trim().match(/^([A-Z])\d+$/i);
+    if (!m) continue;
+    const key = m[1].toUpperCase();
+    byLetter.set(key, [...(byLetter.get(key) ?? []), a.trim()]);
+  }
+  for (const names of byLetter.values()) {
+    for (let i = 0; i + 1 < names.length; i += 2) {
+      const pair = [names[i], names[i + 1]];
+      if (!pairs.some((p) => p.includes(pair[0]) || p.includes(pair[1]))) pairs.push(pair);
+    }
+  }
+  return pairs;
+}
+
 /**
  * SINUMERIK ONE ships 3 axes/spindles in the base scope; every further one
  * needs an A-option. When the user typed explicit axis counts we recompute
@@ -353,6 +391,9 @@ export function parseAiResponse(
   // Only apply when the user didn't give us a real mass.
   if (prefs?.feedPowerKw && !sizingSpecs.movingMassKg && !prefs.movingMassKg) {
     sizingSpecs.movingMassKg = prefs.feedPowerKw * 100;
+  }
+  if (prefs?.feedPowerKw && !sizingSpecs.feedPowerKw) {
+    sizingSpecs.feedPowerKw = prefs.feedPowerKw;
   }
 
   // Run deterministic sizing against user specs
@@ -563,8 +604,15 @@ export function parseAiResponse(
     // preferences, resolve each axis to its own full MLFB. The BOM
     // displays one row per axis. Falls back to legacy "qty N" when no
     // axis-level info is available.
-    const axisNames = asArray<string>(prefs?.axisNames).filter((a) => typeof a === "string");
+    const namedAxes = asArray<string>(prefs?.axisNames).filter((a) => typeof a === "string");
+    const axisNames = namedAxes.length > 0 ? namedAxes : defaultAxisNames(template, feedAxisCount);
     const brakeAxes = asArray<string>(prefs?.brakeAxes).filter((a) => typeof a === "string");
+    // Rule: vertical axes always get a holding brake.
+    const verticalWithoutBrake = axisNames.filter((a) => isVerticalAxis(a) && !brakeAxes.some((b) => b.toLowerCase() === a.toLowerCase()));
+    if (verticalWithoutBrake.length > 0) {
+      brakeAxes.push(...verticalWithoutBrake);
+      notes.push(`Holding brake added on vertical axis ${verticalWithoutBrake.join(", ")} — a vertical axis must not drop when power is removed.`);
+    }
     let perAxisMlfbs;
     if (axisNames.length > 0) {
       // Truncate / pad to the architecturally-determined feedAxisCount
@@ -663,6 +711,24 @@ export function parseAiResponse(
 
     for (const w of sized.spindle.warnings) {
       warnings.push({ severity: "warning", message: w, affectedComponents: [sized.spindle.article] });
+    }
+  }
+
+  // ─── 7b. Gantry pairs → gantry licence (ONE M02 / 828D 0AS51) ───
+  {
+    const names = asArray<string>(prefs?.axisNames).filter((a) => typeof a === "string");
+    const gantryPairs = detectGantryPairs(names.length ? names : defaultAxisNames(template, feedAxisCount), prefs?.gantryPairs);
+    if (gantryPairs.length > 0) {
+      const code = is828 ? "0AS51" : "M02";
+      const opt = findOption(code);
+      if (opt) {
+        if (!softwareOptions.some((o) => o.id === opt.id)) softwareOptions.push(opt);
+        optionQuantities[opt.id] = gantryPairs.length;
+        notes.push(`Gantry: ${gantryPairs.map((p) => p.join("/")).join(", ")} run as synchronized pair(s) — option ${code} × ${gantryPairs.length}.`);
+      }
+      if (family === "828d_smart" && gantryPairs.length > 1) {
+        warnings.push({ severity: "warning", message: "828D Smart supports at most one gantry pair (NC 82 ch.2).", affectedComponents: ["0AS51"] });
+      }
     }
   }
 

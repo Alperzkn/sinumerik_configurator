@@ -112,6 +112,11 @@ export interface AiRawResponse {
     axisNames?: string[];
     /** Subset of axisNames that should have integrated holding brakes */
     brakeAxes?: string[];
+    /**
+     * Pairs of axes that move as a gantry / portal (leading + following axis),
+     * e.g. [["X1", "X2"]]. The configurator adds the gantry licence per pair.
+     */
+    gantryPairs?: string[][];
 
     /**
      * Mechanical specs the user mentioned in free-text (e.g. "3 kW
