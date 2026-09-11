@@ -513,6 +513,36 @@ export function selectLineModule(
 //   = 1 (NCU→LM) + 1 (LM→MM1) + (N-1) (between MMs) = N + 1
 //   where N = total number of Motor Modules
 
+/**
+ * DRIVE-CLiQ cables counted from the drive line-up that was actually chosen:
+ * one cable per DRIVE-CLiQ device in the chain (Line Module, every booksize
+ * Motor Module, a Combi Power Module, NX extensions). S200 / S210 converters
+ * are PROFINET / integrated and need none; reactors, filters and hubs have no
+ * DRIVE-CLiQ port of their own.
+ */
+export function driveCliqDeviceCount(
+  drives: Array<{ articleNumber: string; componentType: string }>,
+  quantities: Record<string, number>,
+  idOf: (d: { articleNumber: string; componentType: string }) => string = (d) => (d as { id?: string }).id ?? d.articleNumber,
+): number {
+  const DCLIQ = new Set([
+    "line_module_active",
+    "line_module_smart",
+    "line_module_basic",
+    "motor_module_single",
+    "motor_module_double",
+    "power_module_3axis",
+    "power_module_4axis",
+    "control_unit",
+  ]);
+  let n = 0;
+  for (const d of drives) {
+    if (!DCLIQ.has(d.componentType) || isSingleAxisConverter(d.articleNumber)) continue;
+    n += quantities[idOf(d)] ?? 1;
+  }
+  return n;
+}
+
 export function calculateDriveCliqCables(
   feedModules: number,
   spindleModules: number,

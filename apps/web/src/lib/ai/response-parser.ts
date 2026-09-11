@@ -21,6 +21,8 @@ import {
   getMatchingMcp,
   isS200Converter,
   isSingleAxisConverter,
+  motorPlatform,
+  driveCliqDeviceCount,
   MOTOR_MODULE_SPECS,
   S210_CONVERTER_SPECS,
   S200_CONVERTER_SPECS,
@@ -62,6 +64,7 @@ let catalogData: {
     feedMotorShaftHeight?: number;
     spindleMotorShaftHeight?: number;
     cableLengthMeters?: string;
+    driveCliqCount?: number;
   }) => CableAccessory[];
 } | null = null;
 
@@ -344,7 +347,9 @@ export function parseAiResponse(
   }
 
   // ─── 5. Drive architecture from AI, then size deterministically ───
-  const driveFamilyName: DriveComponent["driveFamily"] =
+  // What the AI / family asked for; the label actually used is derived from
+  // the chosen motor after sizing (motor first, drive second).
+  const requestedDriveFamily: DriveComponent["driveFamily"] =
     family === "828d_smart" ? "S200" : family === "828d" ? "S120_booksize" : (arch?.family as DriveComponent["driveFamily"]) || "S120_booksize";
   if (is828) {
     // 828D licences are always recomputed: 3 (T/G) or 4 (M) axes in the base scope, 0AC20 per extra.
@@ -407,6 +412,15 @@ export function parseAiResponse(
   // Surface sizing assumptions as notes so the user sees them
   for (const assumption of sized.assumptions) {
     notes.push(`[Auto-assumed] ${assumption}`);
+  }
+
+  // Drive family follows the converter the catalog pairs with the chosen motor.
+  const motorForPlatform = sized.feed?.specs ?? sized.spindle?.specs;
+  const platform = motorForPlatform ? motorPlatform(motorForPlatform) : undefined;
+  const driveFamilyName: DriveComponent["driveFamily"] =
+    platform === "S200" ? "S200" : platform === "S210" ? "S210" : platform === "S120" && requestedDriveFamily !== "S210" && requestedDriveFamily !== "S200" ? requestedDriveFamily : platform === "S120" ? "S120_booksize" : requestedDriveFamily;
+  if (arch?.family && arch.family !== driveFamilyName && family === "sinumerik_one") {
+    notes.push(`Drive family ${driveFamilyName} follows the selected motor (the AI proposed ${arch.family}).`);
   }
 
   // ─── 6. Build drive components (motor modules + line module + interface) ───
@@ -596,6 +610,7 @@ export function parseAiResponse(
   // ─── 7. Motors — from sizing engine ───
   const motors: Motor[] = [];
   const motorQuantities: Record<string, number> = {};
+  let feedBrakeCount = 0;
 
   if (sized.feed && feedAxisCount > 0) {
     const fs = sized.feed.specs;
@@ -618,6 +633,7 @@ export function parseAiResponse(
       // Truncate / pad to the architecturally-determined feedAxisCount
       // so we never produce more axes than the AI sized for.
       const names = axisNames.slice(0, feedAxisCount);
+      feedBrakeCount = names.filter((a) => brakeAxes.some((b) => b.toLowerCase() === a.toLowerCase())).length;
       perAxisMlfbs = resolveFeedAxisMlfbs({
         baseArticle: sized.feed.article,
         axisNames: names,
@@ -829,27 +845,33 @@ export function parseAiResponse(
   // so we pick up the AI-extracted length from userPreferences when the
   // user typed it in the description rather than filling the form. The
   // earlier merge step mirrors prefs.cableLengthMeters into sizingSpecs.
+  // Cables follow the selected motors and drives: quantities from the motors
+  // that exist, brake cables from the axes that got a brake, DRIVE-CLiQ from
+  // the drive line-up (a Combi is one device, not one per axis).
   let cables: CableAccessory[] = [];
-  if (family === "828d_smart") {
+  const spindleAxesSized = sized.spindle ? spindleCount : 0;
+  const feedAxesSized = sized.feed ? feedAxisCount : 0;
+  if (driveFamilyName === "S200") {
     cables = selectCablesS200({
-      feedAxes: feedAxisCount,
-      spindleAxes: spindleCount,
+      feedAxes: feedAxesSized,
+      spindleAxes: spindleAxesSized,
       feedShaftHeight: sized.feed?.specs.shaftHeight,
       feedPowerKw: sized.feed ? parseFloat(sized.feed.specs.ratedPower) : undefined,
-      feedBrakeAxes: asArray<string>(prefs?.brakeAxes).length,
+      feedBrakeAxes: feedBrakeCount,
       spindleArticle: sized.spindle?.article,
       cableLengthMeters: sizingSpecs.cableLengthMeters,
     });
   } else if (catalogData?.selectCables) {
     cables = catalogData.selectCables({
-      feedAxes: feedAxisCount,
-      spindleAxes: spindleCount,
+      feedAxes: feedAxesSized,
+      spindleAxes: spindleAxesSized,
       controlUnitId,
       hmiCategory: hmiComponents[0]?.category,
       driveFamily: driveFamilyName,
       feedMotorShaftHeight: sized.feed?.specs.shaftHeight,
       spindleMotorShaftHeight: sized.spindle?.specs.shaftHeight,
       cableLengthMeters: sizingSpecs.cableLengthMeters,
+      driveCliqCount: driveCliqDeviceCount(drives, driveQuantities),
     });
   }
 

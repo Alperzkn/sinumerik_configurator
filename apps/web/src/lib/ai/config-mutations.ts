@@ -2,21 +2,34 @@ import type { GeneratedConfiguration, DriveComponent, Motor, ControlUnit, HmiCom
 import type { SwapCategory } from "@/components/configurator/component-swap-dialog";
 import {
   MOTOR_MODULE_SPECS,
+  S200_CONVERTER_SPECS,
+  S210_CONVERTER_SPECS,
   getMotorSpecs,
   getLineModuleByArticle,
-  isS210Converter,
+  isSingleAxisConverter,
+  motorPlatform,
+  driveCliqDeviceCount,
   selectLineModule,
   getMatchingMcp,
 } from "@/lib/validation/drive-system-rules";
 import { selectCables } from "@/data/cables";
+import { selectCablesS200 } from "@/data/cables-s200";
+import { resolveFeedAxisMlfbs, resolveFullMotorMlfb } from "@/lib/mlfb/per-axis";
+import { fl2FullMlfb } from "./family-rules";
+import { runCompatibilityRules } from "@/data/compatibility-rules";
 
 interface SwapOpts {
   shaftHeight?: number;
+  /** User's cable length preference (machine specs form); default 10 m. */
+  cableLengthMeters?: string;
 }
 
 /**
- * Apply a component swap. Automatically re-sizes dependent components
- * (e.g., swapping to a bigger motor → bigger Motor Module → bigger Line Module).
+ * Apply a component swap, then re-derive everything downstream of it in the
+ * engineering order motor → drive → line module → cables → rule warnings.
+ * A motor swap picks the converter the catalog pairs with the motor, a drive
+ * swap re-sizes the Line Module, and cables are always rebuilt from the
+ * resulting motor + drive set.
  */
 export function applySwap(
   config: GeneratedConfiguration,
@@ -34,19 +47,15 @@ export function applySwap(
     warnings: [...config.warnings],
   };
 
-  let regenerateCables = false;
-
   switch (category) {
     case "motor_feed":
       swapFeedMotor(updated, articleNumber, opts?.shaftHeight);
       autoSizeDrivesForMotors(updated);
-      regenerateCables = true; // shaft height may have changed → cable cross-section
       break;
 
     case "motor_spindle":
       swapSpindleMotor(updated, articleNumber, opts?.shaftHeight);
       autoSizeDrivesForMotors(updated);
-      regenerateCables = true;
       break;
 
     case "motor_module_feed":
@@ -65,14 +74,13 @@ export function applySwap(
 
     case "control_unit":
       swapControlUnit(updated, articleNumber);
-      regenerateCables = true; // S210 vs S120 routing differs
       break;
   }
 
-  if (regenerateCables) {
-    return regenerateCablesFor(updated);
-  }
-  return updated;
+  // Cables always follow the motor + drive set that resulted from the swap
+  // (cross-section, brake cables, OCC vs DRIVE-CLiQ vs S200 topology).
+  const withCables = regenerateCablesFor(updated, { cableLengthMeters: opts?.cableLengthMeters });
+  return { ...withCables, warnings: [...withCables.warnings, ...runCompatibilityRules(withCables)] };
 }
 
 /**
@@ -83,27 +91,43 @@ export function applySwap(
  * Exported so other mutations (e.g. AI modify with userSpecsOverride)
  * can request a refresh too.
  */
-export function regenerateCablesFor(config: GeneratedConfiguration): GeneratedConfiguration {
+export function regenerateCablesFor(
+  config: GeneratedConfiguration,
+  ctx: { cableLengthMeters?: string } = {},
+): GeneratedConfiguration {
   const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
   const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));
-  const feedAxes = feedMm ? config.driveQuantities[feedMm.id] || 0 : 0;
-  const spindleAxes = spindleMm ? config.driveQuantities[spindleMm.id] || 0 : 0;
-
   const feedMotor = config.motors.find((m) => m.motorType === "feed_servo_sync");
   const spindleMotor = config.motors.find(
     (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
   );
+  // Axis counts: the motors that exist (motor modules fall back for older configs).
+  const feedAxes = feedMotor
+    ? config.motorQuantities[feedMotor.id] || feedMotor.perAxisMlfbs?.length || (feedMm ? config.driveQuantities[feedMm.id] : 0) || 0
+    : 0;
+  const spindleAxes = spindleMotor
+    ? config.motorQuantities[spindleMotor.id] || (spindleMm ? config.driveQuantities[spindleMm.id] : 0) || 1
+    : 0;
+  const cableLengthMeters = ctx.cableLengthMeters || config.cables.find((c) => c.category === "power_cable" && c.length)?.length?.replace(/\s*m.*$/i, "");
 
-  // Detect drive family from existing line module / motor module article numbers.
-  // S210 line modules use a different prefix; if absent, default to S120 booksize.
-  const lineModule = config.drives.find(
-    (d) =>
-      d.componentType === "line_module_active" ||
-      d.componentType === "line_module_smart" ||
-      d.componentType === "line_module_basic"
-  );
-  const driveFamily = lineModule?.driveFamily || feedMm?.driveFamily || "S120_booksize";
+  // Drive platform from the converter actually paired with the motor.
+  const platform = feedMm ? motorPlatform({ motorModule: feedMm.articleNumber }) : spindleMm ? motorPlatform({ motorModule: spindleMm.articleNumber }) : "S120";
 
+  if (platform === "S200") {
+    const cables = selectCablesS200({
+      feedAxes,
+      spindleAxes,
+      feedShaftHeight: feedMotor?.shaftHeight,
+      feedPowerKw: feedMotor?.ratedPower ? parseFloat(feedMotor.ratedPower) : undefined,
+      feedBrakeAxes: feedMotor?.perAxisMlfbs?.filter((a) => a.brake).length ?? 0,
+      spindleArticle: spindleMotor?.articleNumber,
+      cableLengthMeters,
+    });
+    return { ...config, cables };
+  }
+
+  const lineModule = config.drives.find(isLineModule);
+  const driveFamily = platform === "S210" ? "S210" : lineModule?.driveFamily || feedMm?.driveFamily || "S120_booksize";
   const cables = selectCables({
     feedAxes,
     spindleAxes,
@@ -112,6 +136,8 @@ export function regenerateCablesFor(config: GeneratedConfiguration): GeneratedCo
     driveFamily,
     feedMotorShaftHeight: feedMotor?.shaftHeight,
     spindleMotorShaftHeight: spindleMotor?.shaftHeight,
+    cableLengthMeters,
+    driveCliqCount: driveCliqDeviceCount(config.drives, config.driveQuantities),
   });
 
   return { ...config, cables };
@@ -120,16 +146,38 @@ export function regenerateCablesFor(config: GeneratedConfiguration): GeneratedCo
 function swapFeedMotor(config: GeneratedConfiguration, article: string, shaftHeight?: number) {
   const specs = getMotorSpecs(article);
   const existing = config.motors.findIndex((m) => m.motorType === "feed_servo_sync");
+  const previous = existing >= 0 ? config.motors[existing] : undefined;
+
+  // The axis layout (names, which axes carry a brake) belongs to the machine,
+  // not to the motor — carry it over and rebuild the per-axis MLFBs.
+  const axisNames = previous?.perAxisMlfbs?.map((a) => a.axis) ?? [];
+  const brakeAxes = previous?.perAxisMlfbs?.filter((a) => a.brake).map((a) => a.axis) ?? [];
+  const resolved = resolveFullMotorMlfb(article);
+  let perAxisMlfbs: Motor["perAxisMlfbs"];
+  if (article.startsWith("1FL2")) {
+    resolved.mlfb = fl2FullMlfb(article, false);
+    resolved.completeness = "verified";
+    if (axisNames.length) {
+      perAxisMlfbs = axisNames.map((axis) => ({
+        axis,
+        mlfb: fl2FullMlfb(article, brakeAxes.includes(axis)),
+        brake: brakeAxes.includes(axis),
+        completeness: "verified" as const,
+      }));
+    }
+  } else if (axisNames.length) {
+    perAxisMlfbs = resolveFeedAxisMlfbs({ baseArticle: article, axisNames, brakeAxes });
+  }
 
   const updated: Motor = {
-    id: "feed-motor",
+    id: `feed-${article}`,
     family: article.includes("1PH") ? "SIMOTICS_M" : "SIMOTICS_S",
     series: article.substring(0, 5),
     name: `${specs?.family || "Servo motor"} SH${specs?.shaftHeight || shaftHeight || "?"}`,
-    articleNumber: article,
+    articleNumber: resolved.mlfb,
     motorType: "feed_servo_sync",
     connectionType: "standard",
-    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+    compatibility: previous?.compatibility ?? { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
     description: `${specs?.family || "Feed servo motor"} ${specs?.variant || ""}`.trim(),
     shaftHeight: specs?.shaftHeight || shaftHeight,
     ratedPower: specs?.ratedPower,
@@ -138,6 +186,8 @@ function swapFeedMotor(config: GeneratedConfiguration, article: string, shaftHei
     maxTorque: specs?.maxTorque,
     maxSpeed: specs?.maxSpeed,
     ratedCurrent: specs?.ratedCurrent,
+    perAxisMlfbs,
+    mlfbCompleteness: resolved.completeness,
   };
 
   if (existing >= 0) {
@@ -157,16 +207,18 @@ function swapSpindleMotor(config: GeneratedConfiguration, article: string, shaft
     (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
   );
 
+  const previous = existing >= 0 ? config.motors[existing] : undefined;
   const updated: Motor = {
-    id: "spindle-motor",
+    id: `spindle-${article}`,
     family: "SIMOTICS_M",
+    compatibility: previous?.compatibility ?? { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
     series: article.substring(0, 5),
     name: `${specs?.family || "Spindle motor"} SH${specs?.shaftHeight || shaftHeight || "?"}`,
     articleNumber: article,
     motorType: specs?.kind === "spindle_sync" ? "main_spindle_sync" : "main_spindle_async",
     connectionType: "standard",
-    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
     description: `${specs?.family || "Main spindle motor"} ${specs?.variant || ""}`.trim(),
+    mlfbCompleteness: resolveFullMotorMlfb(article).completeness,
     shaftHeight: specs?.shaftHeight || shaftHeight,
     ratedPower: specs?.ratedPower,
     ratedTorque: specs?.ratedTorque,
@@ -189,21 +241,34 @@ function swapSpindleMotor(config: GeneratedConfiguration, article: string, shaft
 
 function swapMotorModule(config: GeneratedConfiguration, kind: "feed" | "spindle", article: string) {
   const specs = MOTOR_MODULE_SPECS[article];
+  const s200 = S200_CONVERTER_SPECS[article];
+  const s210 = S210_CONVERTER_SPECS[article];
+  const platform = motorPlatform({ motorModule: article });
   const idPrefix = `${kind}-mm-`;
   const existing = config.drives.findIndex((d) => d.id.startsWith(idPrefix));
+  const previous = existing >= 0 ? config.drives[existing] : undefined;
 
   const updated: DriveComponent = {
     id: `${kind}-mm-${article}`,
     articleNumber: article,
-    name: `Motor Module ${article}`,
-    driveFamily: "S120_booksize",
+    name: s200
+      ? `SINAMICS S200 ${/1EE/.test(article) ? "Spindle " : "PN 400 V "}converter ${s200.frame}, ${s200.power} kW`
+      : s210
+        ? `SINAMICS S210 converter ${s210.frame} ${s210.voltage}`
+        : `Motor Module ${article}`,
+    driveFamily: platform === "S200" ? "S200" : platform === "S210" ? "S210" : "S120_booksize",
     componentType: "motor_module_single",
-    ratedCurrent: specs ? `${specs.current}A` : undefined,
-    ratedPower: specs ? `${specs.power}kW` : undefined,
-    compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
-    description: specs
-      ? `Single Motor Module booksize | ${specs.current}A rated | ${specs.power}kW | ${specs.voltage}`
-      : `${kind} Motor Module`,
+    ratedCurrent: s200 ? `${s200.current}A` : specs ? `${specs.current}A` : undefined,
+    ratedPower: s200 ? `${s200.power}kW` : s210 ? `${s210.power}kW` : specs ? `${specs.power}kW` : undefined,
+    frameType: s200?.frame ?? s210?.frame,
+    compatibility: previous?.compatibility ?? { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
+    description: s200
+      ? "SINAMICS S200 PN servo converter with STO and integrated braking resistor"
+      : s210
+        ? `Single-axis servo converter with integrated infeed | ${s210.power}kW | ${s210.voltage}`
+        : specs
+          ? `Single Motor Module booksize | ${specs.current}A rated | ${specs.power}kW | ${specs.voltage}`
+          : `${kind} Motor Module`,
   };
 
   if (existing >= 0) {
@@ -304,21 +369,18 @@ function autoSizeDrivesForMotors(config: GeneratedConfiguration) {
     (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
   );
 
-  if (feedMotor?.ratedCurrent) {
-    const amps = parseFloat(feedMotor.ratedCurrent);
-    const targetModule = findMotorModuleForCurrent(amps);
-    if (targetModule) {
-      swapMotorModule(config, "feed", targetModule);
-    }
-  }
-
-  if (spindleMotor?.ratedCurrent) {
-    const amps = parseFloat(spindleMotor.ratedCurrent);
-    const targetModule = findMotorModuleForCurrent(amps);
-    if (targetModule) {
-      swapMotorModule(config, "spindle", targetModule);
-    }
-  }
+  // The converter the catalog pairs with the motor wins (this is what makes
+  // 1FK2 → S210 and 1FL2 → S200 work); a current match is the fallback.
+  const moduleFor = (motor: Motor | undefined) => {
+    if (!motor) return undefined;
+    const paired = getMotorSpecs(motor.articleNumber ?? "")?.motorModule;
+    if (paired) return paired;
+    return motor.ratedCurrent ? findMotorModuleForCurrent(parseFloat(motor.ratedCurrent)) : undefined;
+  };
+  const feedTarget = moduleFor(feedMotor);
+  if (feedTarget) swapMotorModule(config, "feed", feedTarget);
+  const spindleTarget = moduleFor(spindleMotor);
+  if (spindleTarget) swapMotorModule(config, "spindle", spindleTarget);
 
   autoSizeLineModule(config);
 
@@ -648,10 +710,10 @@ function autoSizeLineModule(config: GeneratedConfiguration) {
   const lineModule = config.drives.find(isLineModule);
   const preferActive = lineModule?.componentType === "line_module_active";
 
-  // S210 converters carry their own infeed. If every motor module is an
-  // S210 unit there is nothing for a Line Module to feed.
-  const s120Feed = feedMm && !isS210Converter(feedMm.articleNumber);
-  const s120Spindle = spindleMm && !isS210Converter(spindleMm.articleNumber);
+  // S210 / S200 converters carry their own infeed. If every motor module is
+  // such a unit there is nothing for a Line Module to feed.
+  const s120Feed = feedMm && !isSingleAxisConverter(feedMm.articleNumber);
+  const s120Spindle = spindleMm && !isSingleAxisConverter(spindleMm.articleNumber);
   if (!s120Feed && !s120Spindle) {
     removeLineModule(config);
     return;

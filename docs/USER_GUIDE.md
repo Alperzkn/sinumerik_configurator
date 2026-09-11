@@ -64,7 +64,12 @@ Whatever the AI or a template proposes, these are enforced afterwards:
   licence (M02 on ONE, 0AS51 on 828D) per pair;
 - a stated feed-motor size ("1.5 kW motors are enough") becomes a floor for
   the motor selection instead of the machine-class default;
-- axis counts recompute the axis licences.
+- axis counts recompute the axis licences;
+- the order is always motor → drive → line module → cables. Change a
+  motor on the Configure page and the converter, the Line Module, the
+  per-axis motor codes and the cables are re-derived from it. The same
+  holds in the 808D → 828D Smart converter: cables follow the new 1FL2 /
+  1PH3 Pro motors, and the old 808D cable rows only lend their lengths.
 
 The "Gantry Router" template starts from exactly this shape: X1/X2 pair,
 Y1, braked Z1 and a high-speed spindle.

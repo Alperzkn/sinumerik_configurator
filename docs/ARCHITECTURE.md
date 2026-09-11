@@ -307,6 +307,36 @@ The validation layer in
 [`drive-system-rules.ts`](../apps/web/src/lib/validation/drive-system-rules.ts)
 applies engineering rules so the AI never short-circuits sizing.
 
+### Selection order (the rule everything follows)
+
+```text
+spec / 808D list ──► MOTORS ──► DRIVES ──► LINE MODULE ──► CABLES ──► licences, warnings
+                     (sized)   (catalog     (sum of        (from motor
+                                pairing)     modules)       + drive set)
+```
+
+Nothing downstream is copied from the AI answer, from a default, or from
+an old BOM row when the upstream item is known:
+
+- the converter for a motor is the one `MOTOR_SPECS` pairs with it
+  (1FT7 → booksize Motor Module, 1FK2 → S210, 1FL2 → S200); the drive
+  family label follows that pairing, not the AI's `driveArchitecture`;
+- the Line Module is sized from the resulting Motor Modules and dropped
+  when every converter has its own infeed;
+- cables are rebuilt from the motors that exist (quantity, shaft height →
+  cross-section, braked axes → brake cables) and from the drive line-up
+  (DRIVE-CLiQ devices, OCC vs booksize vs S200 topology);
+- the same order is re-run after every manual change in
+  [`config-mutations.ts`](../apps/web/src/lib/ai/config-mutations.ts):
+  a motor swap re-pairs the converter, re-sizes the Line Module, rebuilds
+  the per-axis MLFBs from the machine's axis layout and regenerates the
+  cables; a drive swap re-sizes the Line Module and the cables.
+
+The 808D → 828D Smart converter (§16) follows the same order in three
+phases: motors from the 1FL6 / 1PH1 rows, S200 drives from those motors,
+cables and PROFINET cords from the motors and drive count. The 808D cable
+rows only contribute lengths. `flow.test.ts` and `engine.test.ts` pin this.
+
 ### Line module sizing
 
 ```text
@@ -348,9 +378,12 @@ NX extension module.
 
 ### Cables
 
-Cable count is derived from the drive topology; cable cross-section
-from the motor's rated current; cable length from the user's *Cable
-length* spec input (default 10 m). When the user's spec is wrong
+Cable count is derived from the motors that exist and the drive
+line-up (`driveCliqDeviceCount` — a Combi Power Module is one DRIVE-CLiQ
+device, not one per axis); cable cross-section from the selected motor's
+shaft height (MOTION-CONNECT tables are keyed by motor frame); brake
+cables from the axes that carry a brake; cable length from the user's
+*Cable length* spec input (default 10 m). When the user's spec is wrong
 (e.g. they ask 7 m but the BOM shows 10 m) it usually means the
 parser passed the form value instead of the merged
 `sizingSpecs.cableLengthMeters` — the merge happens in

@@ -287,6 +287,8 @@ export function selectCables(config: {
   spindleMotorShaftHeight?: number;
   /** User-preferred length in meters for motor/encoder cables. Default 10. */
   cableLengthMeters?: string;
+  /** DRIVE-CLiQ devices counted from the chosen drives; falls back to axes + 1. */
+  driveCliqCount?: number;
 }): CableAccessory[] {
   const cables: CableAccessory[] = [];
   const totalDriveAxes = config.feedAxes + config.spindleAxes;
@@ -341,7 +343,7 @@ export function selectCables(config: {
     // S120 booksize DRIVE-CLiQ topology:
     // NCU→LineModule (1) + LineModule→MM1 (1) + MM daisy-chain (N-1) = N+1
     // (DRIVE-CLiQ cables are inside-cabinet runs — fixed 1m, not user-overridable.)
-    const dcliqCount = calculateDriveCliqCables(config.feedAxes, config.spindleAxes);
+    const dcliqCount = config.driveCliqCount ?? calculateDriveCliqCables(config.feedAxes, config.spindleAxes);
     const dcliq = cablesCatalog.find((c) => c.id === "dcliq-1m")!;
     cables.push({ ...dcliq, quantity: dcliqCount });
 

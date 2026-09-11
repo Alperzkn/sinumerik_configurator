@@ -136,7 +136,9 @@ export function ConfigurationStep() {
       from: swapState.currentArticle,
       to: articleNumber,
     });
-    const updated = applySwap(configuration, swapState.category, articleNumber);
+    const updated = applySwap(configuration, swapState.category, articleNumber, {
+      cableLengthMeters: machineSpecs.cableLengthMeters,
+    });
     setConfiguration(updated);
     pushHistory({
       kind: "swap",
