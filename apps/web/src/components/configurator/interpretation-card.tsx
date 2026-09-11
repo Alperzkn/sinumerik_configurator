@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CONTROL_SYSTEM_FAMILIES } from "@/types/catalog";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Loader2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,12 @@ export function InterpretationCard({
   ];
 
   const facts: Array<{ label: string; value: string | null }> = [
+    {
+      label: "Control system",
+      value: response.controlSystem
+        ? `${CONTROL_SYSTEM_FAMILIES[response.controlSystem.family]?.label ?? response.controlSystem.family}${response.controlSystem.reason ? ` — ${response.controlSystem.reason}` : ""}`
+        : null,
+    },
     { label: "Control unit", value: response.controlUnit?.id ?? null },
     {
       label: "CNC software",

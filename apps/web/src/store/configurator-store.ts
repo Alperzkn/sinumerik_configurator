@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type {
   AiMessage,
   CompatibilityWarning,
+  ControlSystemFamily,
   GeneratedConfiguration,
   MachineType,
   WizardStep,
@@ -41,6 +42,10 @@ export interface HistoryEntry {
 }
 
 export interface MachineSpecsState {
+  /** Number of servo feed axes ("" = let the template / AI decide). */
+  feedAxes: string;
+  /** Number of main spindles ("" = let the template / AI decide). */
+  spindles: string;
   axisTravel: string;
   movingMass: string;
   rapidTraverse: string;
@@ -59,6 +64,8 @@ export interface MachineSpecsState {
 
 /** Blank specs form — shared by the initial state, reset, and BOM import. */
 export const EMPTY_MACHINE_SPECS: MachineSpecsState = {
+  feedAxes: "",
+  spindles: "",
   axisTravel: "",
   movingMass: "",
   rapidTraverse: "",
@@ -78,6 +85,8 @@ interface ConfiguratorState {
   completedSteps: Set<WizardStep>;
 
   // Step 1: Machine description
+  /** Target product line; "auto" = let the AI recommend one. */
+  controlFamily: ControlSystemFamily | "auto";
   machineDescription: string;
   selectedTemplate: MachineType | null;
   machineSpecs: MachineSpecsState;
@@ -101,6 +110,7 @@ interface ConfiguratorState {
   // Actions
   setStep: (step: WizardStep) => void;
   completeStep: (step: WizardStep) => void;
+  setControlFamily: (family: ControlSystemFamily | "auto") => void;
   setMachineDescription: (desc: string) => void;
   selectTemplate: (type: MachineType | null) => void;
   setMachineSpecs: (specs: MachineSpecsState) => void;
@@ -154,6 +164,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set) => ({
   // Initial state
   currentStep: "description",
   completedSteps: new Set(),
+  controlFamily: "auto",
   machineDescription: "",
   selectedTemplate: null,
   machineSpecs: { ...EMPTY_MACHINE_SPECS },
@@ -172,6 +183,8 @@ export const useConfiguratorStore = create<ConfiguratorState>((set) => ({
     set((state) => ({
       completedSteps: new Set([...state.completedSteps, step]),
     })),
+
+  setControlFamily: (family) => set({ controlFamily: family }),
 
   setMachineDescription: (desc) => set({ machineDescription: desc }),
 
@@ -248,6 +261,7 @@ export const useConfiguratorStore = create<ConfiguratorState>((set) => ({
     set({
       currentStep: "description",
       completedSteps: new Set(),
+      controlFamily: "auto",
       machineDescription: "",
       selectedTemplate: null,
       machineSpecs: { ...EMPTY_MACHINE_SPECS },
@@ -268,7 +282,9 @@ export const useConfiguratorStore = create<ConfiguratorState>((set) => ({
       activeSavedId: savedId,
       machineDescription: snapshot.machineDescription,
       selectedTemplate: snapshot.selectedTemplate,
-      machineSpecs: snapshot.machineSpecs,
+      // Older saved snapshots pre-date some fields — fill them in.
+      machineSpecs: { ...EMPTY_MACHINE_SPECS, ...snapshot.machineSpecs },
+      controlFamily: snapshot.configuration.family ?? snapshot.configuration.controlUnit.family ?? "sinumerik_one",
       configuration: snapshot.configuration,
       isConfigurationReady: true,
       aiMessages: [],

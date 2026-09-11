@@ -1,11 +1,28 @@
 import { selectSpindleMotor, type SpindleSelection } from "./spindle-sizing";
 import { selectFeedMotor, type FeedSelection } from "./feed-sizing";
-import type { MachineType } from "@/types/catalog";
+import type { ControlSystemFamily, MachineType } from "@/types/catalog";
+import type { DrivePlatform } from "@/lib/validation/drive-system-rules";
+
+/** Drive platforms each control system can be configured with. */
+export function platformsForFamily(family: ControlSystemFamily | undefined): DrivePlatform[] {
+  switch (family) {
+    case "828d_smart":
+      return ["S200"];
+    case "828d":
+      return ["S120"];
+    default:
+      return ["S120", "S210"];
+  }
+}
 
 export { selectSpindleMotor, selectFeedMotor };
 export type { SpindleSelection, FeedSelection };
 
 export interface UserSpecsInput {
+  /** Explicit number of servo feed axes; overrides the template / AI count. */
+  feedAxisCount?: number;
+  /** Explicit number of main spindles; overrides the template / AI count. */
+  spindleCount?: number;
   /** User-entered spindle power in kW (optional) */
   spindlePowerKw?: number;
   /** User-entered required spindle max speed in rpm (optional) */
@@ -100,6 +117,8 @@ const DEFAULTS_BY_TEMPLATE: Partial<Record<
 };
 
 export interface SizingInput {
+  /** Control system — restricts motors to the drive platforms that system supports. */
+  controlFamily?: ControlSystemFamily;
   userSpecs: UserSpecsInput;
   template: MachineType | null;
   /** Whether AI-determined machine calls for high-speed spindle (e.g., mold making, HSC) */
@@ -144,6 +163,15 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
         `Machine size class inferred from axis travel (${userSpecs.axisTravel}) → ${inferred}.`
       );
     }
+  }
+  // SINUMERIK 828D / 828D Smart target compact standard machines: without a
+  // size class, mass or travel, size them as a small machine so the default
+  // lands on the S120 Combi (828D) or the S200 range (Smart).
+  if (!sizeKey && (input.controlFamily === "828d" || input.controlFamily === "828d_smart") && !userSpecs.movingMassKg) {
+    sizeKey = "small";
+    assumptions.push(
+      "SINUMERIK 828D targets compact standard machines — sized as a small machine class (table ≤ 500 mm, < 200 kg per axis). Pick a larger machine size or enter the moving mass for heavier axes."
+    );
   }
   const defaults =
     (sizeKey && DEFAULTS_BY_SIZE[sizeKey]) ??
@@ -217,6 +245,7 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
         requiredMaxRpm: spindleRpm,
         preferSync,
         familyHint: userSpecs.spindleMotorFamily,
+        platforms: platformsForFamily(input.controlFamily),
       });
 
   const feed = selectFeedMotor({
@@ -224,6 +253,10 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
     rapidTraverseMpm: rapidMpm,
     axisKind: userSpecs.machineSize === "very_large" ? "gantry" : "horizontal",
     familyHint: userSpecs.feedMotorFamily,
+    platforms: platformsForFamily(input.controlFamily),
+    // 828D: the S120 Combi feed power units are 9 A — prefer motors that fit
+    // when the mass / rapid inputs were only defaults.
+    maxRatedCurrentA: input.controlFamily === "828d" && derivedFromDefaults.movingMass ? 9 : undefined,
   });
 
   // When ANY mechanical input was a default, the per-motor warnings

@@ -13,7 +13,7 @@ export default function HomePage() {
             <Link
               href="/"
               className="flex items-center gap-2.5 group"
-              aria-label="SINUMERIK ONE Configurator home"
+              aria-label="SINUMERIK Configurator home"
             >
               <div
                 aria-hidden
@@ -78,14 +78,14 @@ export default function HomePage() {
           <div className="lg:pb-2">
             <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
               A configurator for{" "}
-              <span className="text-foreground">SINUMERIK ONE</span> CNC systems.
-              It reads your machine spec, picks a control unit, sizes the drive
-              train against the Siemens catalogs (NC63, D21, D31 and family),
-              and returns a bill of materials with actual MLFB article numbers
-              — not a sales quote.
+              <span className="text-foreground">SINUMERIK ONE, 828D and 828D Smart</span> CNC
+              systems. Pick the control system or let the AI recommend one; it
+              sizes the drive train against the Siemens catalogs (NC63, NC82,
+              D21, D32, D37 and family) and returns a bill of materials with
+              actual MLFB article numbers — not a sales quote.
             </p>
             <div className="mt-5 flex flex-wrap gap-2 text-[10px] font-mono uppercase tracking-[0.15em] text-muted-foreground">
-              <span className="px-2 py-1 border rounded">4 Control Units</span>
+              <span className="px-2 py-1 border rounded">3 Control Systems</span>
               <span className="px-2 py-1 border rounded">100+ Options</span>
               <span className="px-2 py-1 border rounded">130+ Motor Variants</span>
               <span className="px-2 py-1 border rounded">8 Templates</span>

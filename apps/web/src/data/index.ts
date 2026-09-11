@@ -9,6 +9,7 @@ export { motors } from "./motors";
 export { measuringSystems } from "./measuring-systems";
 export { safetyFunctions } from "./safety";
 export { softwareOptions } from "./software-options";
+export { softwareOptions828d } from "./software-options-828d";
 export { technologyPackages } from "./technology-packages";
 export { hmiComponents } from "./hmi-components";
 export { machineTemplates } from "./machine-templates";

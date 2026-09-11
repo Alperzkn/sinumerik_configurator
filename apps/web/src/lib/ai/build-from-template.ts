@@ -1,4 +1,4 @@
-import type { GeneratedConfiguration, MachineType } from "@/types/catalog";
+import type { ControlSystemFamily, GeneratedConfiguration, MachineType } from "@/types/catalog";
 import { parseAiResponse, setCatalogData } from "./response-parser";
 import { getTemplateArchitecture } from "./template-architectures";
 import type { UserSpecsInput } from "@/lib/sizing";
@@ -13,25 +13,15 @@ import type { UserSpecsInput } from "@/lib/sizing";
  */
 export async function buildConfigFromTemplate(
   template: MachineType,
-  specs: UserSpecsInput
+  specs: UserSpecsInput,
+  family: ControlSystemFamily = "sinumerik_one"
 ): Promise<GeneratedConfiguration | null> {
-  const architecture = getTemplateArchitecture(template);
+  const architecture = getTemplateArchitecture(template, family);
   if (!architecture) return null;
 
-  // Lazy-load the catalog and register it with the response-parser
-  const catalog = await import("@/data");
-  setCatalogData({
-    controlUnits: catalog.controlUnits,
-    cncSoftware: catalog.cncSoftwareOptions,
-    technologyPackages: catalog.technologyPackages,
-    softwareOptions: catalog.softwareOptions,
-    driveComponents: catalog.driveComponents,
-    motors: catalog.motors,
-    measuringSystems: catalog.measuringSystems,
-    hmiComponents: catalog.hmiComponents,
-    safetyFunctions: catalog.safetyFunctions,
-    selectCables: catalog.selectCables,
-  });
+  // Lazy-load the catalog (all families) and register it with the parser
+  const { catalogBundle } = await import("@/data/catalog-bundle");
+  setCatalogData(catalogBundle);
 
-  return parseAiResponse(architecture, specs, template);
+  return parseAiResponse(architecture, specs, template, family);
 }

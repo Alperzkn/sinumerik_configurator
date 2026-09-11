@@ -1,4 +1,4 @@
-import { MOTOR_SPECS, type MotorSpecs } from "@/lib/validation/drive-system-rules";
+import { MOTOR_SPECS, motorPlatform, type DrivePlatform, type MotorSpecs } from "@/lib/validation/drive-system-rules";
 
 export interface FeedRequirement {
   /** Moving mass of the axis in kg (carriage + workpiece) */
@@ -14,6 +14,14 @@ export interface FeedRequirement {
    * no rows that meet the torque requirement.
    */
   familyHint?: string;
+  /** Drive platforms allowed for this control system (default: all). */
+  platforms?: DrivePlatform[];
+  /**
+   * Soft cap on the motor's rated current (A). Used for 828D so the default
+   * sizing lands on a SINAMICS S120 Combi feed power unit (9 A); ignored
+   * when no motor within the cap meets the torque requirement.
+   */
+  maxRatedCurrentA?: number;
 }
 
 export interface FeedSelection {
@@ -74,7 +82,7 @@ export function selectFeedMotor(req: FeedRequirement): FeedSelection {
     !Number.isFinite(req.rapidTraverseMpm) || req.rapidTraverseMpm <= 0
   ) {
     const allFeed = Object.entries(MOTOR_SPECS).filter(
-      ([, s]) => s.kind === "feed_servo"
+      ([, s]) => s.kind === "feed_servo" && (!req.platforms || req.platforms.includes(motorPlatform(s)))
     );
     allFeed.sort(([, a], [, b]) => parseNum(a.ratedTorque) - parseNum(b.ratedTorque));
     const [article, specs] = allFeed[Math.floor(allFeed.length / 2)] ?? allFeed[0];
@@ -92,7 +100,7 @@ export function selectFeedMotor(req: FeedRequirement): FeedSelection {
   const isHeavyDuty = req.movingMassKg >= 1500;
 
   const allFeed = Object.entries(MOTOR_SPECS).filter(
-    ([, s]) => s.kind === "feed_servo"
+    ([, s]) => s.kind === "feed_servo" && (!req.platforms || req.platforms.includes(motorPlatform(s)))
   );
 
   // Apply family hint first (e.g. user asked for 1FK2). If hint yields no
@@ -120,6 +128,12 @@ export function selectFeedMotor(req: FeedRequirement): FeedSelection {
   // Fallback: allow any cooling if preferred pool is empty
   if (pool.length === 0) {
     pool = feedMotors.filter(([, s]) => parseNum(s.ratedTorque) >= minTorque);
+  }
+
+  // Soft current cap (828D Combi): keep it only when it still leaves a candidate.
+  if (req.maxRatedCurrentA !== undefined) {
+    const capped = pool.filter(([, s]) => parseNum(s.ratedCurrent) <= req.maxRatedCurrentA!);
+    if (capped.length > 0) pool = capped;
   }
 
   if (pool.length === 0) {

@@ -39,6 +39,30 @@ finished step to jump back.
 
 ## Step 1 — Describe your machine
 
+### Which control system?
+
+The first choice on the page is the product line:
+
+| Choice | Typical machine | Drives |
+|---|---|---|
+| SINUMERIK ONE | 5-axis centers, mill-turn, multi-channel, > 8 axes, HSC | S120 booksize / S210 |
+| SINUMERIK 828D | Standard mills, lathes and grinders with 3–8 axes | S120 Combi (preferred) or booksize |
+| SINUMERIK 828D Smart | Entry machines with up to 5 axes/spindles | S200 + 1FL2 / 1PH3 Pro over PROFINET |
+| Not sure | Let the AI recommend one from your description and specs | — |
+
+"Not sure" always goes through the AI step; it answers with the family
+and a one-sentence reason, and everything downstream (PPU, SD card,
+licences, drives) follows that choice. A concrete choice plus a template
+still builds instantly without AI.
+
+### Key specs
+
+The form now asks for the few inputs that actually change the result:
+feed axes, spindles, spindle power and speed, and the machine size class.
+Axis counts drive the licences (A-options on ONE, 0AC20 on 828D) and the
+drive line-up. Travel, mass, rapid, material, safety, I/O, handheld and
+cable length sit behind **More specs**.
+
 You have two ways to tell the app what you're building.
 
 ### Option A: pick a template

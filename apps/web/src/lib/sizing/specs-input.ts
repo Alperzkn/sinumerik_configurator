@@ -10,7 +10,11 @@ export function parseNumeric(s: string | undefined): number | undefined {
 
 /** Wizard specs form → sizing-engine input. One implementation for every caller. */
 export function specsToSizingInput(specs: MachineSpecsState): UserSpecsInput {
+  const feedAxisCount = parseNumeric(specs.feedAxes);
+  const spindleCount = parseNumeric(specs.spindles);
   return {
+    feedAxisCount: feedAxisCount !== undefined && feedAxisCount >= 0 ? Math.round(feedAxisCount) : undefined,
+    spindleCount: spindleCount !== undefined && spindleCount >= 0 ? Math.round(spindleCount) : undefined,
     spindlePowerKw: parseNumeric(specs.spindlePower),
     spindleMaxRpm: parseNumeric(specs.spindleSpeed),
     movingMassKg: parseNumeric(specs.movingMass),

@@ -41,11 +41,16 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       userMessage?: unknown;
       conversationHistory?: unknown;
+      controlFamily?: unknown;
     };
+    const controlFamily =
+      body.controlFamily === "sinumerik_one" || body.controlFamily === "828d" || body.controlFamily === "828d_smart"
+        ? body.controlFamily
+        : "auto";
     // The system prompt is built HERE, never taken from the client: the
     // route would otherwise be an open proxy where anyone could rewrite
     // the instructions and run arbitrary prompts on our API key.
-    const systemPrompt = buildSystemPrompt();
+    const systemPrompt = buildSystemPrompt(controlFamily);
     userMessage = boundedString(body.userMessage, MAX_MESSAGE_CHARS);
     const conversationHistory = (Array.isArray(body.conversationHistory) ? body.conversationHistory : [])
       .filter(

@@ -1,4 +1,4 @@
-import { MOTOR_SPECS, type MotorSpecs } from "@/lib/validation/drive-system-rules";
+import { MOTOR_SPECS, motorPlatform, type DrivePlatform, type MotorSpecs } from "@/lib/validation/drive-system-rules";
 
 export interface SpindleRequirement {
   /** Required rated power in kW */
@@ -14,6 +14,8 @@ export interface SpindleRequirement {
    * meet the power / speed requirements.
    */
   familyHint?: string;
+  /** Drive platforms allowed for this control system (default: all). */
+  platforms?: DrivePlatform[];
 }
 
 export interface SpindleSelection {
@@ -56,7 +58,9 @@ export function selectSpindleMotor(req: SpindleRequirement): SpindleSelection {
   const warnings: string[] = [];
 
   const allSpindles = Object.entries(MOTOR_SPECS).filter(
-    ([, s]) => s.kind === "spindle_async" || s.kind === "spindle_sync"
+    ([, s]) =>
+      (s.kind === "spindle_async" || s.kind === "spindle_sync") &&
+      (!req.platforms || req.platforms.includes(motorPlatform(s)))
   );
 
   // Defensive: missing inputs → pick a mid-range placeholder, no warnings.

@@ -1,7 +1,51 @@
-import type { MachineType } from "@/types/catalog";
+import { CONTROL_SYSTEM_FAMILIES, type ControlSystemFamily, type MachineType } from "@/types/catalog";
 
-export function buildSystemPrompt(): string {
-  return `You are a SINUMERIK ONE CNC configuration architect.
+const FAMILY_DECISION_GUIDE = `## CHOOSING THE CONTROL SYSTEM (only when the user has not decided)
+Return your choice in "controlSystem": { "family": "sinumerik_one" | "828d" | "828d_smart", "reason": "..." }.
+- **828D Smart** (PPU 26x.5, SW 24x, SINAMICS S200 + 1FL2 / 1PH3 Pro over PROFINET): entry-level, max 5 axes/spindles in total, 1 channel, milling / turning / grinding, no NX, no DRIVE-CLiQ. Successor of 808D ADVANCED machines. Pick it for simple 3-axis mills and 2-axis lathes with ≤ 5 axes, spindle ≤ 15 kW, no multi-channel, no 5-axis simultaneous.
+- **828D** (PPU 27x.5 / 290.5 / PU 272.5, SW 28x, SINAMICS S120 Combi or booksize over DRIVE-CLiQ): compact panel CNC, up to 16/18 axes in the system, 2 channels, 1FK2/1FT2/1FK7 feed + 1PH8 / 1PH3 spindle. Pick it for standard machines with 3-8 axes that need more than Smart (bigger spindles, extra axes, handling channel, OPC UA, safety functions) but not the flagship.
+- **SINUMERIK ONE** (NCU/PPU 17x0, S120 booksize / S210): up to 50 axes, 10 channels, 5-axis simultaneous with S43, HSC, full Safety Integrated, digital twin. Pick it for 5-axis machining centers, mill-turn, multi-channel, > 8 axes, robots, or when the user names ONE-only options.
+When the user fixes the control system, never override it.
+
+`;
+
+/** SINUMERIK 828D / 828D Smart knowledge for the architect prompt (Catalog NC 82, chapter 2 09/2026). */
+const PROMPT_828D = `## SINUMERIK 828D / 828D SMART (Catalog NC 82)
+Product line is fixed for this request (see the user message). Use ONLY these control units and option keys.
+
+| Unit | id | Article | Line | Orientation | Max axes/spindles (system) | Channels | Drive interface |
+|---|---|---|---|---|---|---|---|
+| PPU 261.5 | PPU_261_5 | 6FC5370-2AA50-0AA0 | 828D Smart | horizontal 12.1" | 5 | 1 | PROFINET → SINAMICS S200 |
+| PPU 260.5 | PPU_260_5 | 6FC5370-3AA50-0AA0 | 828D Smart | vertical 12.1" | 5 | 1 | PROFINET → SINAMICS S200 |
+| PPU 271.5 | PPU_271_5 | 6FC5370-5AA50-0AA0 | 828D | horizontal 12.1" | 16 (M) / 18 (T) | 2 | DRIVE-CLiQ (3 ports) → S120 Combi / booksize |
+| PPU 270.5 | PPU_270_5 | 6FC5370-6AA50-0AA0 | 828D | vertical 12.1" | 16 / 18 | 2 | DRIVE-CLiQ |
+| PPU 290.5 | PPU_290_5 | 6FC5370-8AA50-0BA0 | 828D | vertical 15.6" Full HD | 16 / 18 | 2 | DRIVE-CLiQ |
+| PU 272.5 | PU_272_5 | 6FC5370-7AA50-0AA0 | 828D | cabinet unit, external IFP panel | 16 / 18 | 2 | DRIVE-CLiQ |
+
+Rules:
+- Horizontal PPU (x1.5) for milling machines, vertical PPU (x0.5) for lathes; PPU 290.5 when a 15.6" screen is wanted.
+- Technology comes from the SD-card system software (turning / milling / G-Tech grinding), not from the PPU — do not choose a software article, the configurator picks it. "cncSoftware.variant" is always "export" on 828D.
+- Base scope: 3 axes/spindles (turning, G-Tech) or 4 (milling). Each further axis/spindle is option 0AC20; positioning axes / auxiliary spindles 0AC30. Do NOT count licences yourself — just give feedAxisCount and spindleCount; the configurator computes the licences.
+- 828D Smart hard limit: 5 axes/spindles including the spindle. If the machine needs more, say so in notes and pick 828D instead only when the control system was not fixed by the user.
+- 828D drive control handles 6 axes on the PPU; 7-9 axes need NX10.3, 10-12 need NX15.3 (added automatically).
+- Drive family: "S200" for 828D Smart (feed 1FL2 0.4-7 kW, spindle 1PH3 Pro 3.7-15 kW, PROFINET); "S120_booksize" for 828D (the configurator prefers the S120 Combi Power Module for ≤ 4 feed axes + 1 spindle and falls back to booksize).
+- Technology packages (S41/S42/S43) do NOT exist on 828D. "technologyPackages" must be [].
+- Options are ordered by their 5-character key in "additionalOptions[].orderCode" (e.g. "0AS51"). Commonly relevant keys (all -0YH0): 0AC20 axis/spindle each additional · 0AC30 positioning axis · 0AC10 machining channel (828D SW 28x only) · 0AS51 gantry pair basic · 0AS50 TRANSMIT/TRACYL · 0AM27 TRANSMIT/cylinder surface (828D) · 0AM28 inclined axis · 0AM72 CP-Basic coupling · 0AM75 CP-Static · 0AM08 contour handwheel · 0AM54 leadscrew error compensation · 0AS06 friction compensation · 0AS07 Advanced Surface (basic) · 0AS17 Top Surface (828D milling) · 0AS16 spline interpolation (828D) · 0AP17 ShopTurn/ShopMill · 0AP13 residual material · 0AP22 simultaneous recording · 0AP28 measuring cycles · 0AP18 measure kinematics · 0AP54 Lock MyCycles · 0AP64 Run MyScreens · 0AP67 Access MyMachine /OPC UA · 0AQ67 OPC UA Eco · 0AP76 CNC lock · 0AP58 advanced technology functions · 0AP16 extended operator functions · 0AQ08 basic technology functions (Smart) · 0AQ06 extended operator basic functions (Smart) · 0AM01 travel to fixed stop (828D) · 0AS20/0AS21 nodding compensation (828D) · 0AR52-0AR54 SMTE cycles.
+  Options marked (828D) are NOT available on 828D Smart. Anything not in this list: leave it out and mention it in notes.
+- hmi: { "type": "built_in_ppu" } — the PPU has the display; the matching MCP 1200U is added automatically. A separate panel is only needed for PU 272.5.
+- Safety: 828D Safety Integrated is a single option; do not use ONE codes (S60/S61/K0x) on 828D — leave "safety.options" empty and describe the need in notes.
+
+`;
+
+export function buildSystemPrompt(family: ControlSystemFamily | "auto" = "sinumerik_one"): string {
+  const one = buildSystemPromptOne();
+  if (family === "sinumerik_one") return one;
+  if (family === "auto") return one.replace("## BASE SCOPE", FAMILY_DECISION_GUIDE + PROMPT_828D + "## SINUMERIK ONE\n\n## BASE SCOPE");
+  return one.replace("## BASE SCOPE", PROMPT_828D + "## SINUMERIK ONE (for reference only — NOT the target of this request)\n\n## BASE SCOPE");
+}
+
+function buildSystemPromptOne(): string {
+  return `You are a SINUMERIK CNC configuration architect.
 
 You decide the high-level CONTROL SYSTEM ARCHITECTURE based on the user's machine description and specs.
 You do NOT pick motor article numbers, motor module article numbers, line module article numbers, or cable article numbers — those are selected deterministically by the sizing engine from the Siemens catalog, using the user-provided specs. Your job is architectural.
@@ -115,7 +159,7 @@ Default to S120_booksize unless the machine is a simple 1-axis servo application
 Simple 2-3 axis standard milling/turning → export acceptable
 
 ## OUTPUT FORMAT
-Respond with a JSON object describing the ARCHITECTURE. Do NOT include motor, motor module, line module, interface module, or cable article numbers — those are sized automatically.
+Respond with a JSON object describing the ARCHITECTURE. Always include "controlSystem": { "family": "sinumerik_one" | "828d" | "828d_smart", "reason": "..." } — the family the rest of the JSON is written for. Do NOT include motor, motor module, line module, interface module, or cable article numbers — those are sized automatically.
 
 **DO NOT echo the user's description back.** Do NOT include an \`originalRequest\`, \`request\`, \`description\`, or any field that restates the user's input verbatim. Wastes tokens and risks truncation. Use the \`userPreferences.summaryForUser\` field below for a *short* restatement only.
 
@@ -200,9 +244,15 @@ If the user provided a "MECHANICAL REQUIREMENTS" block OR a "Machine size class"
 export function buildUserMessage(
   description: string,
   template: MachineType | null,
-  clarifications?: Record<string, string>
+  clarifications?: Record<string, string>,
+  controlFamily: ControlSystemFamily | "auto" = "auto"
 ): string {
   let message = "";
+
+  message +=
+    controlFamily === "auto"
+      ? "Control system: NOT decided — recommend SINUMERIK ONE, 828D or 828D Smart in controlSystem.family with a one-sentence reason.\n\n"
+      : `Control system: ${CONTROL_SYSTEM_FAMILIES[controlFamily].label} (fixed by the user).\n\n`;
 
   if (template) {
     const templateLabels: Record<MachineType, string> = {

@@ -3,7 +3,33 @@
 // Based on Siemens NC63 Catalog, January 2026
 // ============================================================
 
-export type ControlUnitVariant = "PPU_1740" | "NCU_1740" | "NCU_1750" | "NCU_1760";
+/** Which SINUMERIK product line a configuration targets. */
+export type ControlSystemFamily = "sinumerik_one" | "828d" | "828d_smart";
+
+export const CONTROL_SYSTEM_FAMILIES: Record<ControlSystemFamily, { label: string; short: string; catalog: string }> = {
+  sinumerik_one: { label: "SINUMERIK ONE", short: "ONE", catalog: "NC 63" },
+  "828d": { label: "SINUMERIK 828D", short: "828D", catalog: "NC 82" },
+  "828d_smart": { label: "SINUMERIK 828D Smart", short: "828D Smart", catalog: "NC 82" },
+};
+
+export type ControlUnitVariant =
+  // SINUMERIK ONE (NC 63)
+  | "PPU_1740"
+  | "NCU_1740"
+  | "NCU_1750"
+  | "NCU_1760"
+  // SINUMERIK 828D / 828D Smart (NC 82) — ids match the PPU generation .5
+  | "PPU_241_5"
+  | "PPU_240_5"
+  | "PPU_261_5"
+  | "PPU_260_5"
+  | "PPU_271_5"
+  | "PPU_270_5"
+  | "PU_272_5"
+  | "PPU_290_5";
+
+/** Availability keyed by control unit; units not listed count as not available. */
+export type CompatibilityMap = Partial<Record<ControlUnitVariant, Availability>>;
 
 export type Availability = "basic" | "option" | "not_available";
 
@@ -29,23 +55,32 @@ export type DeliveryFormat =
 // --- Control Units ---
 export interface ControlUnit {
   id: ControlUnitVariant;
+  /** Product line this unit belongs to. */
+  family: ControlSystemFamily;
   name: string;
   articleNumber: string;
   formFactor: "panel_based" | "cabinet_based";
   displaySize?: string;
   maxAxesSpindles: number;
-  maxAxesSpindlesCncPlusPLC: number;
+  maxAxesSpindlesCncPlusPLC?: number;
   maxChannels: number;
-  maxModeGroups: number;
+  maxModeGroups?: number;
+  /** 0 for units without DRIVE-CLiQ (828D Smart talks PROFINET to S200). */
   driveCliqPorts: number;
-  maxNX: number;
-  maxCombi: number;
-  baseChannels: number;
-  plcMemory: { programMB: number; dataMB: number };
-  cncUserMemoryMB: number;
-  blockChangeTimeMs: number;
-  maxLinearInterpolatingAxes: number;
-  exportVersionAvailable: boolean;
+  /** Drive interface the unit exposes to the drive line-up. */
+  driveInterface?: "DRIVE-CLiQ" | "PROFINET";
+  maxNX?: number;
+  maxCombi?: number;
+  baseChannels?: number;
+  plcMemory?: { programMB: number; dataMB: number };
+  cncUserMemoryMB?: number;
+  blockChangeTimeMs?: number;
+  maxLinearInterpolatingAxes?: number;
+  exportVersionAvailable?: boolean;
+  /** Panel orientation for PPUs with an integrated display. */
+  orientation?: "horizontal" | "vertical";
+  /** Drive-control axes the unit handles itself (828D: 6, Smart: 5). */
+  onboardDriveAxes?: number;
   description: string;
 }
 
@@ -53,12 +88,16 @@ export interface ControlUnit {
 export interface CncSoftware {
   id: string;
   articleNumber: string;
+  /** Product line; absent = SINUMERIK ONE. */
+  family?: ControlSystemFamily;
+  /** 828D SD cards are technology-specific: milling / turning / grinding. */
+  technology?: "M" | "T" | "G";
   variant: SoftwareVariant;
   swVersion: string;
   spLevel?: string;
   deliveryFormat: DeliveryFormat;
   languages: string[];
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   requiresExportApproval: boolean;
   description: string;
 }
@@ -90,12 +129,14 @@ export type OptionCategory =
 
 export interface SoftwareOption {
   id: string;
+  /** Product line; absent = SINUMERIK ONE. */
+  family?: ControlSystemFamily;
   orderCode: string;
   articleNumber: string;
   name: string;
   description: string;
   category: OptionCategory;
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   exportAvailable: boolean;
   exportRestriction?: string;
   requirements?: string[];
@@ -112,7 +153,7 @@ export interface TechnologyPackage {
   name: string;
   description: string;
   includedOptions: string[];
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   exportAvailable: boolean;
   requirements?: string[];
   recommendedFor: MachineType[];
@@ -120,6 +161,7 @@ export interface TechnologyPackage {
 
 // --- Drive Components ---
 export type DriveFamily =
+  | "S200"
   | "S120_booksize"
   | "S120_chassis"
   | "S120_combi"
@@ -155,7 +197,7 @@ export interface DriveComponent {
   ratedPower?: string;
   frameType?: string;
   coolingType?: string;
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   description: string;
 }
 
@@ -211,7 +253,7 @@ export interface Motor {
   articleNumber?: string;
   motorType: MotorType;
   connectionType: "1_cable" | "2_cable" | "standard";
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   notes?: string;
   description: string;
   // Runtime specs from AI response (optional — not all catalog entries have these)
@@ -253,7 +295,7 @@ export interface MeasuringSystem {
   encoderInterface: EncoderInterface;
   sensorModule?: string;
   articleNumber?: string;
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   description: string;
 }
 
@@ -272,12 +314,14 @@ export type HmiCategory =
 
 export interface HmiComponent {
   id: string;
+  /** Product line; absent = SINUMERIK ONE. */
+  family?: ControlSystemFamily;
   articleNumber: string;
   name: string;
   category: HmiCategory;
   screenSize?: number;
   resolution?: string;
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   requirements?: string[];
   mountingPosition?: string;
   description: string;
@@ -301,7 +345,7 @@ export interface SafetyFunction {
   name: string;
   category: SafetyCategory;
   isBasicScope: boolean;
-  compatibility: Record<ControlUnitVariant, Availability>;
+  compatibility: CompatibilityMap;
   requirements?: string[];
   description: string;
 }
@@ -373,6 +417,8 @@ export interface BomItem {
 
 // --- Generated Configuration (output of AI) ---
 export interface GeneratedConfiguration {
+  /** Product line; derived from controlUnit.family when absent (older saved configs). */
+  family?: ControlSystemFamily;
   controlUnit: ControlUnit;
   cncSoftware: CncSoftware;
   softwareVariant: SoftwareVariant;

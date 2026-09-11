@@ -1,4 +1,4 @@
-import type { AiMessage, MachineType } from "@/types/catalog";
+import type { AiMessage, ControlSystemFamily, MachineType } from "@/types/catalog";
 import { buildUserMessage } from "./prompt-builder";
 import { telemetryHeaders } from "@/lib/telemetry/client";
 
@@ -31,6 +31,8 @@ export class AiServiceError extends Error {
 export interface AiRecommendationRequest {
   description: string;
   template: MachineType | null;
+  /** Target product line, or "auto" to let the AI recommend one. */
+  controlFamily?: ControlSystemFamily | "auto";
   conversationHistory: AiMessage[];
   clarifications?: Record<string, string>;
 }
@@ -46,6 +48,11 @@ export interface AiRecommendationRequest {
 export interface AiRawResponse {
   needsClarification?: boolean;
   questions?: string[];
+  /** Product line the architecture targets (recommended by the AI when the user was unsure). */
+  controlSystem?: {
+    family: ControlSystemFamily;
+    reason: string;
+  };
   controlUnit?: {
     id: string;
     reason: string;
@@ -154,7 +161,8 @@ export async function getAiRecommendation(
     userMessage = buildUserMessage(
       request.description,
       request.template,
-      request.clarifications
+      request.clarifications,
+      request.controlFamily
     );
   }
 
@@ -176,6 +184,7 @@ export async function getAiRecommendation(
       body: JSON.stringify({
         userMessage,
         conversationHistory: history,
+        controlFamily: request.controlFamily ?? "auto",
       }),
       signal: controller.signal,
     });

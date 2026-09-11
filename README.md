@@ -1,7 +1,7 @@
 # SINUMERIK ONE AI Configurator
 
-AI-powered web application for configuring Siemens SINUMERIK ONE CNC
-systems. Users describe their machine tool in plain language and the
+AI-powered web application for configuring Siemens SINUMERIK ONE,
+828D and 828D Smart CNC systems. Users describe their machine tool in plain language and the
 app produces a complete bill of materials with real Siemens article
 numbers (MLFBs) — every component traceable to a catalog page.
 

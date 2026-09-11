@@ -1,5 +1,5 @@
 import type { AiRawResponse } from "./recommendation-engine";
-import type { MachineType } from "@/types/catalog";
+import type { ControlSystemFamily, MachineType } from "@/types/catalog";
 
 /**
  * Pre-defined architectures (NO motor/drive article numbers — sized
@@ -220,7 +220,27 @@ export const TEMPLATE_ARCHITECTURES: Partial<Record<MachineType, AiRawResponse>>
   },
 };
 
-export function getTemplateArchitecture(template: MachineType | null): AiRawResponse | null {
+export function getTemplateArchitecture(
+  template: MachineType | null,
+  family: ControlSystemFamily = "sinumerik_one"
+): AiRawResponse | null {
   if (!template || template === "custom") return null;
-  return TEMPLATE_ARCHITECTURES[template] ?? null;
+  const base = TEMPLATE_ARCHITECTURES[template];
+  if (!base) return null;
+  if (family === "sinumerik_one") return base;
+  // 828D / 828D Smart: same machine shape, different product line. The
+  // family-specific control unit, software and licences are resolved by
+  // the parser from the axis counts; only the AI-level intent is kept.
+  return {
+    ...base,
+    controlSystem: { family, reason: "Chosen by the user" },
+    controlUnit: undefined,
+    cncSoftware: undefined,
+    technologyPackages: [],
+    additionalOptions: [],
+    driveArchitecture: base.driveArchitecture
+      ? { ...base.driveArchitecture, family: family === "828d_smart" ? "S200" : "S120_booksize" }
+      : undefined,
+    hmi: { type: "built_in_ppu", reason: "828D PPU has an integrated panel" },
+  };
 }

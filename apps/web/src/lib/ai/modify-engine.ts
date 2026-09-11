@@ -17,7 +17,9 @@ import {
 } from "./config-mutations";
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
 import { selectLineModule } from "@/lib/validation/drive-system-rules";
-import { softwareOptions as catalogOptions } from "@/data/software-options";
+import { softwareOptions as softwareOptionsOne } from "@/data/software-options";
+import { softwareOptions828d } from "@/data/software-options-828d";
+const catalogOptions = [...softwareOptionsOne, ...softwareOptions828d];
 import { technologyPackages as catalogPackages } from "@/data/technology-packages";
 import { safetyFunctions as catalogSafetyFunctions } from "@/data/safety";
 import { cncSoftwareOptions as catalogCncSoftware } from "@/data/cnc-software";

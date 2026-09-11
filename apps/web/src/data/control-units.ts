@@ -3,6 +3,7 @@ import type { ControlUnit } from "@/types/catalog";
 export const controlUnits: ControlUnit[] = [
   {
     id: "PPU_1740",
+    family: "sinumerik_one",
     name: "PPU 1740",
     articleNumber: "6FC5317-4AA00-1CA0 (15\") / 6FC5317-4AA00-1DA0 (19\")",
     formFactor: "panel_based",
@@ -25,6 +26,7 @@ export const controlUnits: ControlUnit[] = [
   },
   {
     id: "NCU_1740",
+    family: "sinumerik_one",
     name: "NCU 1740",
     articleNumber: "6FC5317-4AA00-0AA0",
     formFactor: "cabinet_based",
@@ -46,6 +48,7 @@ export const controlUnits: ControlUnit[] = [
   },
   {
     id: "NCU_1750",
+    family: "sinumerik_one",
     name: "NCU 1750",
     articleNumber: "6FC5317-5AA00-0AA1",
     formFactor: "cabinet_based",
@@ -67,6 +70,7 @@ export const controlUnits: ControlUnit[] = [
   },
   {
     id: "NCU_1760",
+    family: "sinumerik_one",
     name: "NCU 1760",
     articleNumber: "6FC5317-6AA00-0AA0",
     formFactor: "cabinet_based",

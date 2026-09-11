@@ -17,11 +17,13 @@ import {
   Grid3x3,
   Bot,
   Pencil,
+  Cpu,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useConfiguratorStore } from "@/store/configurator-store";
-import type { MachineType } from "@/types/catalog";
+import { CONTROL_SYSTEM_FAMILIES, type ControlSystemFamily, type MachineType } from "@/types/catalog";
 import { cn } from "@/lib/utils";
 import {
   MachineSpecsForm,
@@ -103,8 +105,39 @@ const templates: TemplateCard[] = [
   },
 ];
 
+type FamilyChoice = ControlSystemFamily | "auto";
+
+const SYSTEM_OPTIONS: { value: FamilyChoice; name: string; tagline: string; hint: string }[] = [
+  {
+    value: "sinumerik_one",
+    name: CONTROL_SYSTEM_FAMILIES.sinumerik_one.label,
+    tagline: "Premium · up to 50 axes · S120/S210",
+    hint: "Digital-native flagship: NCU/PPU 17x0, multi-channel, 5-axis, HSC, full safety and OPC UA.",
+  },
+  {
+    value: "828d",
+    name: CONTROL_SYSTEM_FAMILIES["828d"].label,
+    tagline: "Compact · up to 8 axes · S120 Combi/booksize",
+    hint: "Panel-based CNC for standard milling, turning and grinding machines; PPU 24x.5 / 27x.5 / 290.5.",
+  },
+  {
+    value: "828d_smart",
+    name: CONTROL_SYSTEM_FAMILIES["828d_smart"].label,
+    tagline: "Entry · up to 5 axes · S200 + 1FL2 / 1PH3 Pro",
+    hint: "Cost-optimised 828D with PROFINET S200 drives — the successor of 808D ADVANCED machines.",
+  },
+  {
+    value: "auto",
+    name: "Not sure — let the AI recommend",
+    tagline: "Decided from your description",
+    hint: "The AI weighs axes, channels, dynamics and options and proposes ONE, 828D or 828D Smart with a reason.",
+  },
+];
+
 export function MachineDescriptionStep() {
   const {
+    controlFamily,
+    setControlFamily,
     machineDescription,
     selectedTemplate,
     machineSpecs,
@@ -121,6 +154,7 @@ export function MachineDescriptionStep() {
   const [showShare, setShowShare] = useState(false);
 
   const hasTemplate = !!selectedTemplate && selectedTemplate !== "custom";
+  const familyChosen = controlFamily !== "auto";
   const hasNotes = machineDescription.trim().length > 0;
   const hasCustomDescription = machineDescription.trim().length > 10;
   const canProceed = hasTemplate || hasCustomDescription;
@@ -139,13 +173,17 @@ export function MachineDescriptionStep() {
       machineSpecs.safetyLevel ||
       machineSpecs.material.trim()
   );
-  const useTemplateFlow = hasTemplate && !hasSpecsFilled && !hasNotes;
+  // Axis / spindle counts do not force the AI path: the template builder
+  // applies them deterministically (licences are recomputed from the counts).
+  // "Not sure" about the control system always goes through the AI.
+  const useTemplateFlow = hasTemplate && !hasSpecsFilled && !hasNotes && familyChosen;
 
 
   const handleProceed = async () => {
     // Begin a fresh telemetry trace for this configuration journey.
     startNewTrace();
     trackAction("journey_start", {
+      controlFamily,
       template: selectedTemplate,
       hasNotes,
       hasSpecsFilled,
@@ -159,7 +197,8 @@ export function MachineDescriptionStep() {
       try {
         const config = await buildConfigFromTemplate(
           selectedTemplate,
-          specsToSizingInput(machineSpecs)
+          specsToSizingInput(machineSpecs),
+          controlFamily as ControlSystemFamily
         );
         if (config) {
           setConfiguration(config);
@@ -205,7 +244,7 @@ export function MachineDescriptionStep() {
           </div>
           <h2 className="text-xl sm:text-2xl font-medium tracking-tight">Describe your machine</h2>
           <p className="mt-1 text-sm text-muted-foreground max-w-xl">
-            Pick a template for the fast path, or write freely and let the AI infer the architecture. Mechanical specs are optional at this stage.
+            Choose the control system (or let the AI recommend one), pick a template or describe the machine, and add the few specs that matter. Everything else is optional.
           </p>
         </div>
         <div className="flex items-center gap-2 sm:shrink-0">
@@ -232,12 +271,59 @@ export function MachineDescriptionStep() {
         </div>
       </div>
 
+      {/* ── Control system ── */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/80">01a</div>
+          <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1.5">
+            <Cpu className="h-3 w-3" />
+            Which control system?
+          </h3>
+        </div>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {SYSTEM_OPTIONS.map((opt) => {
+            const isSelected = controlFamily === opt.value;
+            const isAuto = opt.value === "auto";
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setControlFamily(opt.value)}
+                aria-pressed={isSelected}
+                className={cn(
+                  "relative text-left rounded-lg border p-4 transition-all h-full flex flex-col gap-1.5",
+                  "hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  isSelected ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20" : "bg-card hover:bg-card/80",
+                  isAuto && "border-dashed",
+                )}
+              >
+                {isSelected && (
+                  <span className="absolute top-2 right-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center shadow">
+                    <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={3} />
+                  </span>
+                )}
+                <div className="flex items-center gap-1.5">
+                  {isAuto ? (
+                    <Sparkles className={cn("h-4 w-4", isSelected ? "text-primary" : "text-muted-foreground")} strokeWidth={1.5} />
+                  ) : (
+                    <Cpu className={cn("h-4 w-4", isSelected ? "text-primary" : "text-muted-foreground")} strokeWidth={1.5} />
+                  )}
+                  <h4 className="font-medium text-sm leading-tight">{opt.name}</h4>
+                </div>
+                <p className="text-[10px] font-mono uppercase tracking-[0.1em] text-primary/80">{opt.tagline}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{opt.hint}</p>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {/* ── Templates — always visible; selecting one toggles the fast path ── */}
       <section className="space-y-3">
         <div className="flex items-baseline justify-between">
           <div className="flex items-center gap-2">
             <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/80">
-              01a
+              01b
             </div>
             <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
               Quick-start templates
@@ -313,7 +399,7 @@ export function MachineDescriptionStep() {
       <section className="space-y-2 max-w-3xl">
         <div className="flex items-center gap-2">
           <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/80">
-            01b
+            01c
           </div>
           <label
             htmlFor="machine-description"
@@ -343,12 +429,12 @@ export function MachineDescriptionStep() {
       <section className="space-y-2 max-w-3xl">
         <div className="flex items-center gap-2">
           <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary/80">
-            01c
+            01d
           </div>
           <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
-            Mechanical specs
+            Key specs
             <span className="ml-1.5 text-[10px] text-muted-foreground/60 normal-case tracking-normal">
-              (optional — sizing falls back to defaults)
+              (optional — axes and spindle drive the licences and motor sizing)
             </span>
           </h3>
         </div>
@@ -366,9 +452,11 @@ export function MachineDescriptionStep() {
             ? "Building configuration…"
             : useTemplateFlow
               ? "Build configuration"
-              : hasTemplate
-                ? "Refine with AI"
-                : "Analyze with AI"}
+              : !familyChosen
+                ? "Let the AI choose the system"
+                : hasTemplate
+                  ? "Refine with AI"
+                  : "Analyze with AI"}
           <ArrowRight className="h-3.5 w-3.5" />
         </Button>
         {!canProceed && (
@@ -380,9 +468,11 @@ export function MachineDescriptionStep() {
           <span className="text-xs text-muted-foreground sm:mt-2">
             {useTemplateFlow
               ? "Template path — BOM builds deterministically, no AI round-trip."
-              : hasTemplate
-                ? "AI will refine the template architecture against your specs / notes, then size motors & drives."
-                : "AI analysis — returns architecture, sizing engine fills in motors & drives."}
+              : !familyChosen
+                ? "The AI recommends ONE, 828D or 828D Smart from your inputs, then the rule engine sizes everything."
+                : hasTemplate
+                  ? "AI will refine the template architecture against your specs / notes, then size motors & drives."
+                  : "AI analysis — returns architecture, sizing engine fills in motors & drives."}
           </span>
         )}
       </div>

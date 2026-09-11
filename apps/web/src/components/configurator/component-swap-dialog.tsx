@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { MOTOR_SPECS, MOTOR_MODULE_SPECS } from "@/lib/validation/drive-system-rules";
+import { catalogBundle } from "@/data/catalog-bundle";
+import type { ControlSystemFamily } from "@/types/catalog";
 
 export type SwapCategory = "motor_feed" | "motor_spindle" | "motor_module_feed" | "motor_module_spindle" | "line_module" | "control_unit";
 
@@ -29,6 +31,8 @@ interface ComponentSwapDialogProps {
   onClose: () => void;
   category: SwapCategory;
   currentArticle?: string;
+  /** Product line of the configuration being edited. */
+  family?: ControlSystemFamily;
   onSelect: (articleNumber: string) => void;
 }
 
@@ -44,15 +48,20 @@ const LINE_MODULES: { article: string; name: string; power: number; type: string
   { article: "6SL3130-7TE31-2AA3", name: "Active Line Module 120kW", power: 120, type: "Active" },
 ];
 
-const CONTROL_UNITS = [
-  { article: "6FC5317-4AA00-1CA0", name: "PPU 1740 (panel-based 15\")", maxAxes: 20, maxChannels: 4, ports: 4 },
-  { article: "6FC5317-4AA00-1DA0", name: "PPU 1740 (panel-based 19\")", maxAxes: 20, maxChannels: 4, ports: 4 },
-  { article: "6FC5317-4AA00-0AA0", name: "NCU 1740 (cabinet)", maxAxes: 20, maxChannels: 4, ports: 4 },
-  { article: "6FC5317-5AA00-0AA1", name: "NCU 1750 (cabinet)", maxAxes: 40, maxChannels: 10, ports: 6 },
-  { article: "6FC5317-6AA00-0AA0", name: "NCU 1760 (cabinet, HSC)", maxAxes: 50, maxChannels: 10, ports: 6 },
-];
+/** Control units for the current product line, straight from the catalog data. */
+function controlUnitsFor(family: ControlSystemFamily) {
+  return catalogBundle.controlUnits
+    .filter((cu) => cu.family === family)
+    .map((cu) => ({
+      article: cu.articleNumber,
+      name: `${cu.name}${cu.orientation ? ` (${cu.orientation})` : cu.formFactor === "cabinet_based" ? " (cabinet)" : ""}`,
+      maxAxes: cu.maxAxesSpindles,
+      maxChannels: cu.maxChannels,
+      ports: cu.driveInterface === "PROFINET" ? "PROFINET" : `${cu.driveCliqPorts} DRIVE-CLiQ`,
+    }));
+}
 
-function getOptions(category: SwapCategory): SwapOption[] {
+function getOptions(category: SwapCategory, family: ControlSystemFamily): SwapOption[] {
   switch (category) {
     case "motor_feed":
       return Object.entries(MOTOR_SPECS)
@@ -106,13 +115,13 @@ function getOptions(category: SwapCategory): SwapOption[] {
       }));
 
     case "control_unit":
-      return CONTROL_UNITS.map((cu) => ({
+      return controlUnitsFor(family).map((cu) => ({
         articleNumber: cu.article,
         name: cu.name,
         specs: [
           { label: "Max axes", value: String(cu.maxAxes) },
           { label: "Channels", value: String(cu.maxChannels) },
-          { label: "DRIVE-CLiQ", value: `${cu.ports} ports` },
+          { label: "Drive I/F", value: cu.ports },
         ],
       }));
 
@@ -135,11 +144,12 @@ export function ComponentSwapDialog({
   onClose,
   category,
   currentArticle,
+  family = "sinumerik_one",
   onSelect,
 }: ComponentSwapDialogProps) {
   const [search, setSearch] = useState("");
   // Catalog list is a pure function of the category — derive, don't sync.
-  const options = useMemo(() => (open ? getOptions(category) : []), [open, category]);
+  const options = useMemo(() => (open ? getOptions(category, family) : []), [open, category, family]);
 
   // Clear the search box each time the dialog opens (state adjusted during render).
   const [prevOpen, setPrevOpen] = useState(open);

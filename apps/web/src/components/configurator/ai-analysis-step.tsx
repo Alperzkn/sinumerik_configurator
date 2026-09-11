@@ -126,6 +126,7 @@ function buildInitialUserMessage(
 export function AiAnalysisStep() {
   const {
     machineDescription,
+    controlFamily,
     selectedTemplate,
     machineSpecs,
     aiMessages,
@@ -171,6 +172,7 @@ export function AiAnalysisStep() {
       const response = await getAiRecommendation({
         description: machineDescription,
         template: selectedTemplate,
+        controlFamily,
         conversationHistory: conversationHistory.map(m => ({
           id: "",
           role: m.role as "user" | "assistant",
@@ -202,7 +204,8 @@ export function AiAnalysisStep() {
         const config = parseAiResponse(
           response,
           specsToSizingInput(machineSpecs),
-          selectedTemplate
+          selectedTemplate,
+          controlFamily === "auto" ? undefined : controlFamily
         );
 
         if (config) {
@@ -242,7 +245,7 @@ export function AiAnalysisStep() {
     setStatusText("");
     setAiProcessing(false);
     setIsFirstCall(false);
-  }, [selectedTemplate, machineDescription, machineSpecs, addAiMessage, setAiProcessing, setConfiguration]);
+  }, [selectedTemplate, machineDescription, machineSpecs, controlFamily, addAiMessage, setAiProcessing, setConfiguration]);
 
   // Initial analysis. The user already provided everything on the
   // previous step — re-rendering the full prompt (with HARD CONSTRAINTS,
@@ -255,19 +258,8 @@ export function AiAnalysisStep() {
     hasInitiated.current = true;
 
     try {
-      const catalog = await import("@/data");
-      setCatalogData({
-        controlUnits: catalog.controlUnits,
-        cncSoftware: catalog.cncSoftwareOptions,
-        technologyPackages: catalog.technologyPackages,
-        softwareOptions: catalog.softwareOptions,
-        driveComponents: catalog.driveComponents,
-        motors: catalog.motors,
-        measuringSystems: catalog.measuringSystems,
-        hmiComponents: catalog.hmiComponents,
-        safetyFunctions: catalog.safetyFunctions,
-        selectCables: catalog.selectCables,
-      });
+      const { catalogBundle } = await import("@/data/catalog-bundle");
+      setCatalogData(catalogBundle);
     } catch { /* continue */ }
 
     const userContent = buildInitialUserMessage(

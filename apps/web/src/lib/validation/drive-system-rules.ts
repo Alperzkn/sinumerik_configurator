@@ -78,6 +78,44 @@ export function isS210Converter(article: string | undefined): boolean {
   return !!article && article.startsWith("6SL5310-");
 }
 
+/** True for SINAMICS S200 / S200 Spindle converters (828D Smart, PROFINET). */
+export function isS200Converter(article: string | undefined): boolean {
+  return !!article && article.startsWith("6SL5510-");
+}
+
+/** Single-axis converters with their own infeed: no Line Module, no DRIVE-CLiQ. */
+export function isSingleAxisConverter(article: string | undefined): boolean {
+  return isS210Converter(article) || isS200Converter(article);
+}
+
+/**
+ * SINAMICS S200 PN 400 V feed converters and S200 Spindle converters
+ * (828D Smart details PDF p.27 / p.35, D 37.1 11/2025). Keyed by the full
+ * ordering code as written in the BOM.
+ */
+export const S200_CONVERTER_SPECS: Record<string, { power: number; current: number; frame: string; spindle: boolean }> = {
+  "6SL5510-1BE10-4AF0-Z T80": { power: 0.4, current: 1.3, frame: "FSA", spindle: false },
+  "6SL5510-1BE10-8AF0-Z T80": { power: 0.75, current: 2.5, frame: "FSA", spindle: false },
+  "6SL5510-1BE11-0AF0-Z T80": { power: 1.0, current: 3.0, frame: "FSB", spindle: false },
+  "6SL5510-1BE11-5AF0-Z T80": { power: 1.75, current: 5.3, frame: "FSB", spindle: false },
+  "6SL5510-1BE12-5AF0-Z T80": { power: 2.5, current: 7.8, frame: "FSC", spindle: false },
+  "6SL5510-1BE13-5AF0-Z T80": { power: 3.5, current: 11, frame: "FSC", spindle: false },
+  "6SL5510-1BE15-0AF0-Z T80": { power: 5.0, current: 12.6, frame: "FSD", spindle: false },
+  "6SL5510-1BE17-0AF0-Z T80": { power: 7.0, current: 13.2, frame: "FSD", spindle: false },
+  "6SL5510-1EE13-7AF0": { power: 3.7, current: 13, frame: "FSE", spindle: true },
+  "6SL5510-1EE17-5AF0": { power: 7.5, current: 18, frame: "FSE", spindle: true },
+  "6SL5510-1EE21-1AF0": { power: 11, current: 30, frame: "FSF", spindle: true },
+  "6SL5510-1EE21-5AF0": { power: 15, current: 43, frame: "FSF", spindle: true },
+};
+
+/** Drive platform a motor is catalogued for, derived from its paired converter / module. */
+export type DrivePlatform = "S120" | "S210" | "S200";
+export function motorPlatform(specs: { motorModule: string }): DrivePlatform {
+  if (isS200Converter(specs.motorModule)) return "S200";
+  if (isS210Converter(specs.motorModule)) return "S210";
+  return "S120";
+}
+
 const MOTOR_MODULE_POWER: Record<string, number> = Object.fromEntries([
   ...Object.entries(MOTOR_MODULE_SPECS).map(([k, v]) => [k, v.power] as const),
   ...Object.entries(S210_CONVERTER_SPECS).map(([k, v]) => [k, v.power] as const),
@@ -347,6 +385,33 @@ export const MOTOR_SPECS: Record<string, MotorSpecs> = {
   "1FW6132-8PC05": { shaftHeight: 132, ratedPower: "0 kW", ratedTorque: "190 Nm", ratedSpeed: "150 rpm", maxSpeed: "350 rpm", ratedCurrent: "0 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE22-4AD0", kind: "torque", cooling: "natural" },
   "1FW6132-8PC10": { shaftHeight: 132, ratedPower: "0 kW", ratedTorque: "380 Nm", ratedSpeed: "150 rpm", maxSpeed: "350 rpm", ratedCurrent: "0 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE23-0AD0", kind: "torque", cooling: "natural" },
   "1FW6152-8PC05": { shaftHeight: 152, ratedPower: "0 kW", ratedTorque: "350 Nm", ratedSpeed: "120 rpm", maxSpeed: "280 rpm", ratedCurrent: "0 A", family: "SIMOTICS T-1FW6", variant: "Torque Standard", motorModule: "6SL3120-1TE23-0AD0", kind: "torque", cooling: "forced" },
+  // SIMOTICS S-1FL2 High Inertia 3AC 400 V for SINAMICS S200 (828D Smart) — D 37.1 11/2025 p.1/28-1/33; S200 pairing per 828D Smart details PDF p.27
+  "1FL2304-2AF": { shaftHeight: 45, ratedPower: "0.4 kW", ratedTorque: "1.27 Nm", ratedSpeed: "3000 rpm", maxSpeed: "4000 rpm", maxTorque: "4.445 Nm", ratedCurrent: "1.2 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE10-4AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2304-4AF": { shaftHeight: 45, ratedPower: "0.75 kW", ratedTorque: "2.39 Nm", ratedSpeed: "3000 rpm", maxSpeed: "4000 rpm", maxTorque: "8.365 Nm", ratedCurrent: "2.1 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE10-8AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2306-1AC": { shaftHeight: 65, ratedPower: "0.75 kW", ratedTorque: "3.58 Nm", ratedSpeed: "2000 rpm", maxSpeed: "3000 rpm", maxTorque: "12 Nm", ratedCurrent: "2.5 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE10-8AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2306-2AC": { shaftHeight: 65, ratedPower: "1.0 kW", ratedTorque: "4.78 Nm", ratedSpeed: "2000 rpm", maxSpeed: "3000 rpm", maxTorque: "17 Nm", ratedCurrent: "3.0 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE11-0AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2306-4AC": { shaftHeight: 65, ratedPower: "1.5 kW", ratedTorque: "7.16 Nm", ratedSpeed: "2000 rpm", maxSpeed: "3000 rpm", maxTorque: "22 Nm", ratedCurrent: "4.6 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE11-5AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2306-6AC": { shaftHeight: 65, ratedPower: "1.75 kW", ratedTorque: "8.4 Nm", ratedSpeed: "2000 rpm", maxSpeed: "3000 rpm", maxTorque: "30 Nm", ratedCurrent: "5.3 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE12-5AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2306-7AC": { shaftHeight: 65, ratedPower: "2.0 kW", ratedTorque: "9.6 Nm", ratedSpeed: "2000 rpm", maxSpeed: "3000 rpm", maxTorque: "33.4 Nm", ratedCurrent: "5.9 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE12-5AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2310-0AC": { shaftHeight: 90, ratedPower: "2.5 kW", ratedTorque: "11.9 Nm", ratedSpeed: "2000 rpm", maxSpeed: "3000 rpm", maxTorque: "37.5 Nm", ratedCurrent: "7.8 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE13-5AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2310-2AC": { shaftHeight: 90, ratedPower: "3.5 kW", ratedTorque: "16.7 Nm", ratedSpeed: "2000 rpm", maxSpeed: "3000 rpm", maxTorque: "55 Nm", ratedCurrent: "11 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE13-5AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2310-4AC": { shaftHeight: 90, ratedPower: "5.0 kW", ratedTorque: "23.9 Nm", ratedSpeed: "2000 rpm", maxSpeed: "2500 rpm", maxTorque: "70 Nm", ratedCurrent: "12.6 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE15-0AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  "1FL2310-6AC": { shaftHeight: 90, ratedPower: "7.0 kW", ratedTorque: "33.4 Nm", ratedSpeed: "2000 rpm", maxSpeed: "2000 rpm", maxTorque: "90 Nm", ratedCurrent: "13.2 A", family: "SIMOTICS S-1FL2", variant: "High Inertia 400 V", motorModule: "6SL5510-1BE17-0AF0-Z T80", kind: "feed_servo", cooling: "natural" },
+  // SIMOTICS M-1PH3 Pro for SINAMICS S200 Spindle (828D Smart) — 1PH3 Pro manual 06/2026 Table 3-2 (TTL encoder L, plain shaft 0); drive per Smart PDF p.35
+  "1PH3103-1LD12-0GA1": { shaftHeight: 100, ratedPower: "3.7 kW", ratedTorque: "35 Nm", ratedSpeed: "1000 rpm", maxSpeed: "10000 rpm", ratedCurrent: "12.9 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE13-7AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3101-1LF12-0GA1": { shaftHeight: 100, ratedPower: "3.7 kW", ratedTorque: "24 Nm", ratedSpeed: "1500 rpm", maxSpeed: "10000 rpm", ratedCurrent: "12 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE13-7AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3105-1LD12-0GA1": { shaftHeight: 100, ratedPower: "5.5 kW", ratedTorque: "53 Nm", ratedSpeed: "1000 rpm", maxSpeed: "10000 rpm", ratedCurrent: "17.8 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE17-5AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3103-1LF12-0GA1": { shaftHeight: 100, ratedPower: "5.5 kW", ratedTorque: "35 Nm", ratedSpeed: "1500 rpm", maxSpeed: "10000 rpm", ratedCurrent: "16.9 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE17-5AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3105-1LG12-0GA1": { shaftHeight: 100, ratedPower: "7.5 kW", ratedTorque: "36 Nm", ratedSpeed: "2000 rpm", maxSpeed: "10000 rpm", ratedCurrent: "16.5 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE17-5AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3107-1HF12-0KA1": { shaftHeight: 100, ratedPower: "9 kW", ratedTorque: "57 Nm", ratedSpeed: "1500 rpm", maxSpeed: "12000 rpm", ratedCurrent: "24 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE17-5AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3107-1HG12-0KA1": { shaftHeight: 100, ratedPower: "11 kW", ratedTorque: "53 Nm", ratedSpeed: "2000 rpm", maxSpeed: "12000 rpm", ratedCurrent: "29 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE17-5AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3131-1LE12-0GA1": { shaftHeight: 132, ratedPower: "7.5 kW", ratedTorque: "60 Nm", ratedSpeed: "1200 rpm", maxSpeed: "8000 rpm", ratedCurrent: "21.7 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE21-1AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3132-1LE12-0GA1": { shaftHeight: 132, ratedPower: "9 kW", ratedTorque: "72 Nm", ratedSpeed: "1200 rpm", maxSpeed: "8000 rpm", ratedCurrent: "24 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE21-1AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3131-1LF12-0KA1": { shaftHeight: 132, ratedPower: "11 kW", ratedTorque: "70 Nm", ratedSpeed: "1500 rpm", maxSpeed: "10000 rpm", ratedCurrent: "24 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE21-1AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3133-1LD12-0GA1": { shaftHeight: 132, ratedPower: "11 kW", ratedTorque: "105 Nm", ratedSpeed: "1000 rpm", maxSpeed: "8000 rpm", ratedCurrent: "29.4 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE21-1AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3135-1LD12-0GA1": { shaftHeight: 132, ratedPower: "12 kW", ratedTorque: "115 Nm", ratedSpeed: "1000 rpm", maxSpeed: "8000 rpm", ratedCurrent: "30 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE21-5AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3133-1LG12-0KA1": { shaftHeight: 132, ratedPower: "15 kW", ratedTorque: "72 Nm", ratedSpeed: "2000 rpm", maxSpeed: "10000 rpm", ratedCurrent: "30 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE21-5AF0", kind: "spindle_async", cooling: "forced" },
+  "1PH3136-1LD12-0GA1": { shaftHeight: 132, ratedPower: "15 kW", ratedTorque: "143 Nm", ratedSpeed: "1000 rpm", maxSpeed: "8000 rpm", ratedCurrent: "42.8 A", family: "SIMOTICS M-1PH3 Pro", variant: "S200 Spindle, TTL encoder", motorModule: "6SL5510-1EE21-5AF0", kind: "spindle_async", cooling: "forced" },
 };
 
 /** Motor article → paired Motor Module article. Derived from MOTOR_SPECS.motorModule. */

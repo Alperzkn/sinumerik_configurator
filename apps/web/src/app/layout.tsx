@@ -34,12 +34,12 @@ const jetBrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SINUMERIK ONE Configurator",
-    template: "%s — SINUMERIK ONE Configurator",
+    default: "SINUMERIK Configurator",
+    template: "%s — SINUMERIK Configurator",
   },
   description:
-    "A catalog-driven configurator for SINUMERIK ONE CNC control systems. Describe your machine, get a verified bill of materials with real MLFB article numbers.",
-  applicationName: "SINUMERIK ONE Configurator",
+    "A catalog-driven configurator for SINUMERIK ONE, 828D and 828D Smart CNC control systems. Describe your machine, get a verified bill of materials with real MLFB article numbers.",
+  applicationName: "SINUMERIK Configurator",
   authors: [{ name: "Alper Özkan" }],
   keywords: [
     "SINUMERIK ONE",
@@ -50,9 +50,9 @@ export const metadata: Metadata = {
     "MLFB",
   ],
   openGraph: {
-    title: "SINUMERIK ONE Configurator",
+    title: "SINUMERIK Configurator",
     description:
-      "Describe your machine, get a verified SINUMERIK ONE bill of materials.",
+      "Describe your machine, get a verified SINUMERIK ONE / 828D / 828D Smart bill of materials.",
     type: "website",
   },
 };

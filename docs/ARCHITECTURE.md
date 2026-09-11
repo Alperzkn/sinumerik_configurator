@@ -587,7 +587,31 @@ for `/api/modify`. Exceeding either returns
 
 ---
 
-## 15. 808D → 828D Smart converter
+## 15. Control-system families (ONE · 828D · 828D Smart)
+
+`ControlSystemFamily` threads through the store (`controlFamily`, may be
+`"auto"`), the AI request (`controlSystem` in the JSON, decision guide in
+the prompt when `auto`), the parser and the catalog:
+
+| Concern | SINUMERIK ONE | 828D | 828D Smart |
+|---|---|---|---|
+| Data | `control-units.ts`, `cnc-software.ts`, `software-options.ts`, `hmi-components.ts`, `drives.ts` | `*-828d.ts` (NC 82 2025 + ch.2 09/2026) | same files, units `PPU_26x_5` |
+| Control unit default | NCU 1740 / 1750 by axes | PPU 271.5 (H, milling) / 270.5 (V, turning) / 290.5 (15.6") | PPU 261.5 / 260.5 |
+| Software | export / full scope, version | SD card SW 28x by technology | SD card SW 24x by technology |
+| Axis licences | A0n for axes beyond 3 | 0AC20 × (axes − 3 or 4 for milling) | same, max 5 axes |
+| Drives | S120 booksize (+ S210) | S120 Combi (`selectCombi`) with mandatory line reactor, booksize fallback, NX10.3/15.3 > 6 axes | S200 / S200 Spindle, no line module |
+| Motors | 1FT2/1FK2/1FT7/1FK7, 1PH8 | same S120 families | 1FL2 (D 37.1) + 1PH3 Pro (Table 3-2) |
+| Cables | `selectCables` | `selectCables` | `selectCablesS200` (MC350, MC500 raw, PN cords) |
+| Safety | S60/S61/K0x | 0AC50 per axis + TM54F note | not available (warning) |
+
+Motor selection is gated by `platformsForFamily()` so S200 motors never
+appear on ONE and vice versa. `catalog-bundle.ts` merges all families for
+the parser; the option dialog and swap dialog filter by the configuration's
+family. Tests: `apps/web/src/lib/ai/family.test.ts`.
+
+---
+
+## 16. 808D → 828D Smart converter
 
 A second, AI-free tool under `/convert`. It re-selects a SINUMERIK
 808D ADVANCED bill of materials from the 828D Smart catalogue.
@@ -650,7 +674,7 @@ review. Still listing-based only: the 1PH3 Pro shaft digit (0 plain /
 
 ---
 
-## 16. Request hardening
+## 17. Request hardening
 
 - `/api/recommend` and `/api/modify` build their **system prompts on
   the server** (`prompt-builder.ts`, `buildModifyPrompt`). The client
@@ -665,7 +689,7 @@ review. Still listing-based only: the 1PH3 Pro shaft digit (0 plain /
 
 ---
 
-## 17. File reference
+## 18. File reference
 
 ### apps/web
 
@@ -723,7 +747,7 @@ review. Still listing-based only: the 1PH3 Pro shaft digit (0 plain /
 
 ---
 
-## 18. Key design decisions
+## 19. Key design decisions
 
 ### Why split AI from rules
 

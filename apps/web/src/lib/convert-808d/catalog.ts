@@ -239,8 +239,11 @@ export interface Ph3Variant {
  *
  * Code = 1PH3{frame}-1{enc}{wind}12-{shaft}{sfx}
  * Shaft digit: 0 = plain shaft (without keyway), 2 = shaft with key,
- * half-key balancing (verified in Siemens listings). The full-key
- * balancing digit was not seen in any listing and is never generated.
+ * half-key balancing — confirmed on Siemens Industry Mall product pages
+ * (1PH3103-1DD02-0GA0 "Plain shaft (without keyway)" vs
+ * 1PH3103-1DD02-2GA0 "Shaft with key (half-key balancing)", 2026-09-11).
+ * The full-key balancing digit was not seen in any listing and is never
+ * generated.
  *
  * NOTE: 1PH3 variants with DRIVE-CLiQ encoder (letter D, "…02-…A0") or
  * without encoder (letter A) belong to S120/S220 + standard 828D and are

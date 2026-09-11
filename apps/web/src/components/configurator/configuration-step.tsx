@@ -46,7 +46,8 @@ import {
   removeTechnologyPackage,
   removeSafetyFunctions,
 } from "@/lib/ai/config-mutations";
-import { softwareOptions as catalogSoftwareOptions } from "@/data/software-options";
+import { softwareOptions as catalogSoftwareOptionsOne } from "@/data/software-options";
+import { softwareOptions828d } from "@/data/software-options-828d";
 import { technologyPackages as catalogTechPackages } from "@/data/technology-packages";
 import { toast } from "@/components/ui/toast";
 import { logConfiguration as telemetryLogConfiguration, trackAction } from "@/lib/telemetry/client";
@@ -329,7 +330,10 @@ export function ConfigurationStep() {
             specs={[
               { label: "Max axes", value: String(configuration.controlUnit.maxAxesSpindles) },
               { label: "Channels", value: String(configuration.controlUnit.maxChannels) },
-              { label: "DRIVE-CLiQ", value: `${configuration.controlUnit.driveCliqPorts} ports` },
+              {
+                label: configuration.controlUnit.driveInterface === "PROFINET" ? "Drive interface" : "DRIVE-CLiQ",
+                value: configuration.controlUnit.driveInterface === "PROFINET" ? "PROFINET → S200" : `${configuration.controlUnit.driveCliqPorts} ports`,
+              },
               { label: "Form factor", value: configuration.controlUnit.formFactor === "panel_based" ? "Panel" : "Cabinet" },
             ]}
             onSwap={() => openSwap("control_unit", configuration.controlUnit.articleNumber)}
@@ -697,6 +701,7 @@ export function ConfigurationStep() {
           onClose={() => setSwapState(null)}
           category={swapState.category}
           currentArticle={swapState.currentArticle}
+          family={configuration.family ?? configuration.controlUnit.family}
           onSelect={handleSwapSelect}
         />
       )}
@@ -706,8 +711,14 @@ export function ConfigurationStep() {
         open={showAddOption}
         onClose={() => setShowAddOption(false)}
         configuration={configuration}
-        catalogOptions={catalogSoftwareOptions}
-        catalogPackages={catalogTechPackages}
+        catalogOptions={
+          (configuration.family ?? configuration.controlUnit.family) === "sinumerik_one"
+            ? catalogSoftwareOptionsOne
+            : softwareOptions828d.filter((o) => o.compatibility[configuration.controlUnit.id] !== "not_available")
+        }
+        catalogPackages={
+          (configuration.family ?? configuration.controlUnit.family) === "sinumerik_one" ? catalogTechPackages : []
+        }
         onAddOption={(opt, qty) => {
           const updated = addSoftwareOption(configuration, opt, qty);
           setConfiguration(updated);

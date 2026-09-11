@@ -19,16 +19,9 @@ import type {
   TechnologyPackage,
 } from "@/types/catalog";
 import type { InputRow } from "@/lib/convert-808d/types";
-import {
-  cablesCatalog,
-  cncSoftwareOptions,
-  controlUnits,
-  driveComponents,
-  hmiComponents,
-  safetyFunctions,
-  softwareOptions,
-  technologyPackages,
-} from "@/data";
+import { cablesCatalog, safetyFunctions, technologyPackages } from "@/data";
+import { catalogBundle } from "@/data/catalog-bundle";
+const { controlUnits, cncSoftware: cncSoftwareOptions, softwareOptions, driveComponents, hmiComponents } = catalogBundle;
 import {
   MOTOR_MODULE_SPECS,
   S210_CONVERTER_SPECS,

@@ -1,5 +1,6 @@
 import type {
   GeneratedConfiguration,
+  ControlSystemFamily,
   ControlUnit,
   CncSoftware,
   TechnologyPackage,
@@ -18,11 +19,24 @@ import type { AiRawResponse } from "./recommendation-engine";
 import {
   selectLineModule,
   getMatchingMcp,
-  isS210Converter,
+  isS200Converter,
+  isSingleAxisConverter,
   MOTOR_MODULE_SPECS,
   S210_CONVERTER_SPECS,
+  S200_CONVERTER_SPECS,
 } from "@/lib/validation/drive-system-rules";
 import { runCompatibilityRules } from "@/data/compatibility-rules";
+import {
+  applyAxisLicences828d,
+  mcpFor828d,
+  nxFor828d,
+  pickCncSoftware828d,
+  pickDefaultControlUnit,
+  safetyFor828d,
+  selectCombi,
+  fl2FullMlfb,
+} from "./family-rules";
+import { selectCablesS200 } from "@/data/cables-s200";
 
 /** The AI occasionally emits an object (or a string) where an array is expected. */
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
@@ -132,39 +146,111 @@ function deriveSafetyCodes(
  * @param specs   User-entered mechanical specs (spindle kW/rpm, mass, rapid)
  * @param template Selected machine template (for sensible sizing defaults)
  */
+/**
+ * Resolve the product line: explicit argument > AI recommendation > the
+ * family of the control unit the AI named > SINUMERIK ONE.
+ */
+function resolveFamily(
+  raw: AiRawResponse,
+  requested: ControlSystemFamily | undefined
+): ControlSystemFamily {
+  if (requested) return requested;
+  if (raw.controlSystem?.family) return raw.controlSystem.family;
+  const cu = raw.controlUnit?.id ? findControlUnit(raw.controlUnit.id) : undefined;
+  return cu?.family ?? "sinumerik_one";
+}
+
+/**
+ * SINUMERIK ONE ships 3 axes/spindles in the base scope; every further one
+ * needs an A-option. When the user typed explicit axis counts we recompute
+ * the licence instead of trusting the AI / template's arithmetic.
+ */
+function applyOneAxisLicences(
+  softwareOptions: SoftwareOption[],
+  optionQuantities: Record<string, number>,
+  totalAxes: number,
+  warnings: CompatibilityWarning[]
+) {
+  const isAxisCode = (o: SoftwareOption) => /^A\d{2}$/.test(o.orderCode);
+  for (const o of softwareOptions.filter(isAxisCode)) delete optionQuantities[o.id];
+  const kept = softwareOptions.filter((o) => !isAxisCode(o));
+  softwareOptions.length = 0;
+  softwareOptions.push(...kept);
+  const extra = totalAxes - 3;
+  if (extra <= 0) return;
+  const code = `A${String(Math.min(extra, 99)).padStart(2, "0")}`;
+  const found = findOption(code);
+  if (found) {
+    softwareOptions.push(found);
+    optionQuantities[found.id] = 1;
+  } else {
+    warnings.push({
+      severity: "warning",
+      message: `${extra} additional axes/spindles need licence ${code}, which is not in the catalog data — add it manually.`,
+      affectedComponents: [code],
+    });
+  }
+}
+
 export function parseAiResponse(
   raw: AiRawResponse,
   specs?: UserSpecsInput,
-  template?: string | null
+  template?: string | null,
+  requestedFamily?: ControlSystemFamily
 ): GeneratedConfiguration | null {
   if (!catalogData || raw.needsClarification) return null;
+  const family = resolveFamily(raw, requestedFamily);
 
   const warnings: CompatibilityWarning[] = [];
   const notes: string[] = asArray<string>(raw.notes).filter((n) => typeof n === "string");
 
+  // ─── 0. Axis / spindle counts (explicit form values win over AI / template) ───
+  const arch = raw.driveArchitecture;
+  const feedAxisCount = specs?.feedAxisCount ?? arch?.feedAxisCount ?? 3;
+  const spindleCount = specs?.spindleCount ?? arch?.spindleCount ?? 1;
+  const countsFromUser = specs?.feedAxisCount !== undefined || specs?.spindleCount !== undefined;
+  const totalAxes = feedAxisCount + spindleCount;
+
   // ─── 1. Control unit ───
-  const controlUnitId = (raw.controlUnit?.id || "NCU_1740") as ControlUnitVariant;
-  const controlUnit = findControlUnit(controlUnitId);
+  let controlUnit = raw.controlUnit?.id ? findControlUnit(raw.controlUnit.id) : undefined;
+  if (controlUnit && controlUnit.family !== family) {
+    notes.push(`AI proposed ${controlUnit.name}, which belongs to another product line — replaced by the matching ${family === "828d_smart" ? "828D Smart" : family === "828d" ? "828D" : "SINUMERIK ONE"} unit.`);
+    controlUnit = undefined;
+  }
+  if (!controlUnit) {
+    controlUnit = pickDefaultControlUnit(catalogData.controlUnits, family, {
+      template,
+      panelSizeInch: raw.hmi?.panelSizeInch,
+      totalAxes,
+    });
+  }
   if (!controlUnit) {
     warnings.push({
       severity: "error",
-      message: `Control unit ${controlUnitId} not found in catalog`,
+      message: `Control unit ${raw.controlUnit?.id ?? "(none)"} not found in catalog`,
       affectedComponents: ["controlUnit"],
     });
   }
+  const controlUnitId = (controlUnit?.id ?? "NCU_1740") as ControlUnitVariant;
+  const is828 = family !== "sinumerik_one";
 
   // ─── 2. CNC software ───
-  const softwareVariant = (raw.cncSoftware?.variant || "export") as SoftwareVariant;
-  const cncSoftware = findCncSoftware(
-    softwareVariant,
-    raw.cncSoftware?.swVersion || "6.25"
-  );
+  // ONE: export / full-scope variant + version. 828D: technology-specific SD card
+  // (newest generation the unit runs; 828D Smart is fixed to SW 24x).
+  const softwareVariant = (is828 ? "export" : raw.cncSoftware?.variant || "export") as SoftwareVariant;
+  const cncSoftware = is828
+    ? pickCncSoftware828d(catalogData.cncSoftware, family, template)
+    : findCncSoftware(softwareVariant, raw.cncSoftware?.swVersion || "6.25");
 
   // ─── 3. Technology packages ───
   const technologyPackages: TechnologyPackage[] = [];
   const includedOptionCodes = new Set<string>();
   for (const pkg of asArray<{ id?: string }>(raw.technologyPackages)) {
     if (!pkg?.id) continue;
+    if (is828) {
+      notes.push(`Technology package ${pkg.id} is a SINUMERIK ONE product and does not exist on 828D — dropped.`);
+      continue;
+    }
     const found = findTechPackage(pkg.id);
     if (found) {
       technologyPackages.push(found);
@@ -220,10 +306,14 @@ export function parseAiResponse(
   }
 
   // ─── 5. Drive architecture from AI, then size deterministically ───
-  const arch = raw.driveArchitecture;
-  const feedAxisCount = arch?.feedAxisCount ?? 3;
-  const spindleCount = arch?.spindleCount ?? 1;
-  const family = arch?.family || "S120_booksize";
+  const driveFamilyName: DriveComponent["driveFamily"] =
+    family === "828d_smart" ? "S200" : family === "828d" ? "S120_booksize" : (arch?.family as DriveComponent["driveFamily"]) || "S120_booksize";
+  if (is828) {
+    // 828D licences are always recomputed: 3 (T/G) or 4 (M) axes in the base scope, 0AC20 per extra.
+    applyAxisLicences828d(softwareOptions, optionQuantities, findOption, totalAxes, template);
+  } else if (countsFromUser) {
+    applyOneAxisLicences(softwareOptions, optionQuantities, totalAxes, warnings);
+  }
   const preferActiveLineModule = arch?.preferActiveLineModule ?? false;
 
   // Honour AI-detected user preferences (motor family, cable length).
@@ -270,6 +360,7 @@ export function parseAiResponse(
     userSpecs: sizingSpecs,
     template: (template as never) ?? null,
     preferHighSpeedSpindle: arch?.highSpeedSpindle,
+    controlFamily: family,
   });
 
   // Surface sizing assumptions as notes so the user sees them
@@ -283,11 +374,26 @@ export function parseAiResponse(
 
   // Feed Motor Module (deterministically chosen from feed motor)
   const feedMotorModuleArticle = sized.feed?.specs.motorModule;
-  const feedIsS210 = isS210Converter(feedMotorModuleArticle);
+  const feedIsS210 = isSingleAxisConverter(feedMotorModuleArticle);
   if (feedAxisCount > 0 && feedMotorModuleArticle) {
     const mmSpecs = MOTOR_MODULE_SPECS[feedMotorModuleArticle];
     const s210 = S210_CONVERTER_SPECS[feedMotorModuleArticle];
-    const feedMm: DriveComponent = feedIsS210
+    const s200 = S200_CONVERTER_SPECS[feedMotorModuleArticle];
+    const feedMm: DriveComponent = s200
+      ? {
+          // SINAMICS S200 (828D Smart): one PROFINET converter per 1FL2 motor, integrated braking resistor.
+          id: `feed-mm-${feedMotorModuleArticle}`,
+          articleNumber: feedMotorModuleArticle,
+          name: `SINAMICS S200 PN 400 V converter ${s200.frame}, ${s200.power} kW`,
+          driveFamily: "S200",
+          componentType: "motor_module_single",
+          ratedPower: `${s200.power}kW`,
+          ratedCurrent: `${s200.current}A`,
+          frameType: s200.frame,
+          compatibility: { PPU_260_5: "option", PPU_261_5: "option" },
+          description: `SINAMICS S200 PN servo converter with STO and integrated braking resistor, option T80 — paired with ${sized.feed?.article} (828D Smart PDF p.27)`,
+        }
+      : feedIsS210
       ? {
           // SINAMICS S210: one single-axis converter per 1FK2 motor, own infeed.
           id: `feed-mm-${feedMotorModuleArticle}`,
@@ -306,7 +412,7 @@ export function parseAiResponse(
           id: `feed-mm-${feedMotorModuleArticle}`,
           articleNumber: feedMotorModuleArticle,
           name: `Motor Module ${feedMotorModuleArticle}`,
-          driveFamily: family as DriveComponent["driveFamily"],
+          driveFamily: driveFamilyName as DriveComponent["driveFamily"],
           componentType: "motor_module_single",
           ratedCurrent: mmSpecs ? `${mmSpecs.current}A` : undefined,
           ratedPower: mmSpecs ? `${mmSpecs.power}kW` : undefined,
@@ -323,11 +429,25 @@ export function parseAiResponse(
   const spindleMotorModuleArticle = sized.spindle?.specs.motorModule;
   if (spindleCount > 0 && spindleMotorModuleArticle) {
     const mmSpecs = MOTOR_MODULE_SPECS[spindleMotorModuleArticle];
-    const spindleMm: DriveComponent = {
+    const s200s = S200_CONVERTER_SPECS[spindleMotorModuleArticle];
+    const spindleMm: DriveComponent = s200s
+      ? {
+          id: `spindle-mm-${spindleMotorModuleArticle}`,
+          articleNumber: spindleMotorModuleArticle,
+          name: `SINAMICS S200 Spindle converter ${s200s.frame}, ${s200s.power} kW`,
+          driveFamily: "S200",
+          componentType: "motor_module_single",
+          ratedPower: `${s200s.power}kW`,
+          ratedCurrent: `${s200s.current}A`,
+          frameType: s200s.frame,
+          compatibility: { PPU_260_5: "option", PPU_261_5: "option" },
+          description: `SINAMICS S200 Spindle converter, PROFINET — paired with ${sized.spindle?.article}; external braking resistor mandatory (828D Smart PDF p.35/p.47)`,
+        }
+      : {
       id: `spindle-mm-${spindleMotorModuleArticle}`,
       articleNumber: spindleMotorModuleArticle,
       name: `Motor Module ${spindleMotorModuleArticle}`,
-      driveFamily: family as DriveComponent["driveFamily"],
+      driveFamily: driveFamilyName as DriveComponent["driveFamily"],
       componentType: "motor_module_single",
       ratedCurrent: mmSpecs ? `${mmSpecs.current}A` : undefined,
       ratedPower: mmSpecs ? `${mmSpecs.power}kW` : undefined,
@@ -343,13 +463,17 @@ export function parseAiResponse(
   // Line Module (deterministic from motor module articles + counts).
   // S210 converters bring their own infeed, so they neither need a Line
   // Module nor count towards its sizing.
-  const spindleIsS210 = isS210Converter(spindleMotorModuleArticle);
+  const spindleIsS210 = isSingleAxisConverter(spindleMotorModuleArticle);
   const s120FeedCount = feedIsS210 ? 0 : feedAxisCount;
   const s120SpindleCount = spindleIsS210 ? 0 : spindleCount;
   const needsLineModule =
     (s120FeedCount > 0 && !!feedMotorModuleArticle) || (s120SpindleCount > 0 && !!spindleMotorModuleArticle);
   if (!needsLineModule && (feedIsS210 || spindleIsS210)) {
-    notes.push("SINAMICS S210 converters have an integrated infeed — no Line Module or Active Interface Module is required.");
+    notes.push(
+      isS200Converter(feedMotorModuleArticle) || isS200Converter(spindleMotorModuleArticle)
+        ? "SINAMICS S200 converters have an integrated infeed — no Line Module is required; the S200 Spindle converter needs an external braking resistor."
+        : "SINAMICS S210 converters have an integrated infeed — no Line Module or Active Interface Module is required."
+    );
   }
   const lm = needsLineModule
     ? selectLineModule(
@@ -365,7 +489,7 @@ export function parseAiResponse(
     id: `line-module-${lm.articleNumber}`,
     articleNumber: lm.articleNumber,
     name: lm.name,
-    driveFamily: family as DriveComponent["driveFamily"],
+    driveFamily: driveFamilyName as DriveComponent["driveFamily"],
     componentType: lm.type === "active" ? "line_module_active" : lm.type === "basic" ? "line_module_basic" : "line_module_smart",
     ratedPower: `${lm.ratedPower}kW`,
     compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
@@ -380,7 +504,7 @@ export function parseAiResponse(
       id: `interface-module-${lm.interfaceModule}`,
       articleNumber: lm.interfaceModule,
       name: `Active Interface Module`,
-      driveFamily: family as DriveComponent["driveFamily"],
+      driveFamily: driveFamilyName as DriveComponent["driveFamily"],
       componentType: "interface_module",
       compatibility: { PPU_1740: "option", NCU_1740: "option", NCU_1750: "option", NCU_1760: "option" },
       description: "Required for Active Line Module operation (Clean Power Filter)",
@@ -388,6 +512,44 @@ export function parseAiResponse(
     drives.push(ifm);
     driveQuantities[ifm.id] = 1;
   }
+  }
+
+  // ─── 6b. 828D: prefer the S120 Combi Power Module, then NX extensions ───
+  if (family === "828d") {
+    const parseA = (s?: string) => (s ? parseFloat(s) : undefined);
+    const combi = selectCombi({
+      feedAxes: feedAxisCount,
+      spindles: spindleCount,
+      spindleCurrentA: parseA(sized.spindle?.specs.ratedCurrent),
+      feedCurrentA: parseA(sized.feed?.specs.ratedCurrent),
+      feedMotorModuleArticle,
+      feedMotorModuleName: feedMotorModuleArticle ? `Motor Module ${feedMotorModuleArticle}` : undefined,
+    });
+    if (combi) {
+      // Replace booksize modules + line module with the Combi line-up.
+      for (const d of drives) delete driveQuantities[d.id];
+      drives.length = 0;
+      drives.push(...combi.components);
+      Object.assign(driveQuantities, combi.quantities);
+      notes.push(...combi.notes);
+    } else {
+      notes.push("Outside the SINAMICS S120 Combi envelope (more than 6 feed axes, several spindles or higher currents) — S120 booksize with a Line Module selected instead (NC 82 p.1/6).");
+    }
+    const nx = nxFor828d(catalogData.driveComponents, totalAxes);
+    if (nx && "component" in nx) {
+      drives.push(nx.component);
+      driveQuantities[nx.component.id] = 1;
+      notes.push(nx.note);
+    } else if (nx && "error" in nx) {
+      warnings.push({ severity: "error", message: nx.error, affectedComponents: ["controlUnit"] });
+    }
+  }
+  if (family === "828d_smart" && totalAxes > 5) {
+    warnings.push({
+      severity: "error",
+      message: `${totalAxes} axes/spindles exceed the 828D Smart limit of 5 (NC 82 ch.2 p.2/4) — choose SINUMERIK 828D instead.`,
+      affectedComponents: ["controlUnit"],
+    });
   }
 
   // ─── 7. Motors — from sizing engine ───
@@ -421,6 +583,28 @@ export function parseAiResponse(
     // and the BOM badges it "partner completes suffix" — better than
     // shipping a speculative suffix.
     const feedResolved = resolveFullMotorMlfb(sized.feed.article);
+    // 1FL2 (828D Smart): the ordering code is fully determined by the D 37.1
+    // legend, so emit a complete MLFB (plain shaft, multiturn encoder) instead
+    // of the catalog trunk, per axis when the user named brake axes.
+    const isFl2 = sized.feed.article.startsWith("1FL2");
+    if (isFl2) {
+      feedResolved.mlfb = fl2FullMlfb(sized.feed.article, false);
+      feedResolved.completeness = "verified";
+      if (axisNames.length > 0) {
+        perAxisMlfbs = axisNames.slice(0, feedAxisCount).map((axis) => ({
+          axis,
+          mlfb: fl2FullMlfb(sized.feed!.article, brakeAxes.includes(axis)),
+          brake: brakeAxes.includes(axis),
+          completeness: "verified" as const,
+          decoded: [
+            { label: "Holding brake", code: brakeAxes.includes(axis) ? "1" : "0", choiceLabel: brakeAxes.includes(axis) ? "with brake" : "without brake" },
+            { label: "Shaft", code: "0", choiceLabel: "plain shaft" },
+            { label: "Encoder", code: "M", choiceLabel: "absolute 21-bit + 12-bit multiturn" },
+            { label: "Connector", code: "B", choiceLabel: "metal circular connector" },
+          ],
+        }));
+      }
+    }
 
     const feedMotor: Motor = {
       id: `feed-${sized.feed.article}`,
@@ -494,6 +678,11 @@ export function parseAiResponse(
     if (hmi) hmiComponents.push(hmi);
   }
 
+  if (is828 && controlUnit) {
+    const mcp = mcpFor828d(catalogData.hmiComponents, controlUnit);
+    if (mcp) hmiComponents.push(mcp);
+  }
+
   if (controlUnitId.startsWith("NCU") && catalogData) {
     const mcpMatch = getMatchingMcp(panelSize);
     const mcp = catalogData.hmiComponents.find(
@@ -518,9 +707,10 @@ export function parseAiResponse(
   if (catalogData) {
     const hh = specs?.handheldUnit;
     if (hh === "ht2" || hh === "ht10") {
-      const hhId = hh === "ht10" ? "handheld_ht10" : "handheld_ht2";
-      const handheld = catalogData.hmiComponents.find((h) => h.id === hhId);
+      const hhId = is828 ? (hh === "ht10" ? "hmi828-ht10" : null) : hh === "ht10" ? "handheld_ht10" : "handheld_ht2";
+      const handheld = hhId ? catalogData.hmiComponents.find((h) => h.id === hhId) : undefined;
       if (handheld) hmiComponents.push(handheld);
+      else if (is828) notes.push(family === "828d_smart" ? "HT 10 is not available for 828D Smart (NC 82 ch.2)." : "HT 2 is not listed for 828D; use HT 10 or the mini handheld unit.");
     }
   }
 
@@ -536,7 +726,17 @@ export function parseAiResponse(
   if (basicSafety) safetyFunctions.push(...basicSafety);
 
   let safetyCodes: Set<string>;
-  if (userSafetyLevel) {
+  if (is828) {
+    // 828D has its own Safety Integrated licence; ONE codes (S60/S61/K0x) do not apply.
+    const s = safetyFor828d(family, userSafetyLevel || (asArray<string>(raw.safety?.options).length ? "extended" : ""), totalAxes, findOption);
+    if (s.option) {
+      softwareOptions.push(s.option);
+      optionQuantities[s.option.id] = s.quantity ?? 1;
+    }
+    if (s.note) notes.push(s.note);
+    if (s.warning) warnings.push({ severity: "warning", message: s.warning, affectedComponents: ["safety"] });
+    safetyCodes = new Set<string>();
+  } else if (userSafetyLevel) {
     safetyCodes = new Set(
       deriveSafetyCodes(userSafetyLevel, totalAxesForSafety)
     );
@@ -564,13 +764,23 @@ export function parseAiResponse(
   // user typed it in the description rather than filling the form. The
   // earlier merge step mirrors prefs.cableLengthMeters into sizingSpecs.
   let cables: CableAccessory[] = [];
-  if (catalogData?.selectCables) {
+  if (family === "828d_smart") {
+    cables = selectCablesS200({
+      feedAxes: feedAxisCount,
+      spindleAxes: spindleCount,
+      feedShaftHeight: sized.feed?.specs.shaftHeight,
+      feedPowerKw: sized.feed ? parseFloat(sized.feed.specs.ratedPower) : undefined,
+      feedBrakeAxes: asArray<string>(prefs?.brakeAxes).length,
+      spindleArticle: sized.spindle?.article,
+      cableLengthMeters: sizingSpecs.cableLengthMeters,
+    });
+  } else if (catalogData?.selectCables) {
     cables = catalogData.selectCables({
       feedAxes: feedAxisCount,
       spindleAxes: spindleCount,
       controlUnitId,
       hmiCategory: hmiComponents[0]?.category,
-      driveFamily: family,
+      driveFamily: driveFamilyName,
       feedMotorShaftHeight: sized.feed?.specs.shaftHeight,
       spindleMotorShaftHeight: sized.spindle?.specs.shaftHeight,
       cableLengthMeters: sizingSpecs.cableLengthMeters,
@@ -604,7 +814,8 @@ export function parseAiResponse(
     hmiComponents,
     safetyFunctions,
     cables,
-    totalAxes: raw.totalAxes || feedAxisCount + spindleCount,
+    family,
+    totalAxes: countsFromUser || is828 ? totalAxes : raw.totalAxes || totalAxes,
     totalChannels: raw.totalChannels || 1,
     warnings,
     notes,

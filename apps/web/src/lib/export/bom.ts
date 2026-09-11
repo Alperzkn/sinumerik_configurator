@@ -13,8 +13,15 @@ import type { BomBasis, BomItem, GeneratedConfiguration } from "@/types/catalog"
 export function catalogSourceFor(article: string): string {
   const a = article.toUpperCase();
   if (/^1FK7/.test(a)) return "D21.4 (2017 ed.)";
+  if (/^1PH3\d{3}-1[HL][DEFGS]12/.test(a)) return "1PH3 Pro manual";
+  if (/^6FX5008-1BB[2-6]1/.test(a)) return "1PH3 Pro manual";
+  if (/^(1FL2|6SL5510|6FX3502)/.test(a)) return "D37.1";
+  if (/^6XV1870-3Q/.test(a)) return "IK PI";
+  if (/^(6SL3111-[34]VE|6SL3100-0EE2|6SL3161-3XP00)/.test(a)) return "NC82";
   if (/^(1FK2|6SL5310|6SL3210-5HB)/.test(a)) return "D32";
   if (/^(6SL31[0-9]{2}|6SL3040|6SL3055|6SL3120|6SL3130|6SL3100|6FX|1FT7|1FT2|1PH8|1PH3|1FN3|1FW6|1FE[12])/.test(a)) return "D21.4";
+  // 828D / 828D Smart generation .5 hardware, SD-card software, -0YH0 options, MCP 1200U, NX10.3/15.3
+  if (/^(6FC5370-[2-8]AA50|6FC583[456]-[1-3]GY50|6FC5800-0A[A-Z0-9]{3}-0YH0|6FC5303-0AF3[2-4]-1AA1|6SL3040-1N[BC]00)/.test(a)) return "NC82";
   if (/^(6FC|6AV|6ES7|6AU|6GK)/.test(a)) return "NC63";
   return "Siemens catalog";
 }
