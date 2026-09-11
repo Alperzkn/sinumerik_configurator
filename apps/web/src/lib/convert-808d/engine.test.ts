@@ -75,11 +75,35 @@ t("V70 bus cables → nearest PROFINET cord at or above the length", () => {
 
 t("1FL6 cables → MOTION-CONNECT 350, unverified lengths flagged for review", () => {
   const enc = find(ex.lines, "6FX3502-2XB12-1BF0");
-  const pwr = find(ex.lines, "6FX3502-5CL02-1BF0");
   const brk = find(ex.lines, "6FX3502-5BL03-1BF0");
   assert.equal(enc?.cls, "verified");
-  assert.equal(pwr?.cls, "review");
   assert.equal(brk?.cls, "review");
+});
+
+t("power cable follows the 1FL2 shaft height, not the 808D cable: SH65 motors → 4x0.75 (5CL01)", () => {
+  // example BOM: 4 × SH65 motors with 4 × 808D 4x1.5 cables (6FX3002-5CL02)
+  const pwr = find(ex.lines, "6FX3502-5CL01-1BF0");
+  assert.equal(pwr?.qty, 4);
+  assert.equal(pwr?.cls, "verified");
+  assert.ok(!find(ex.lines, "6FX3502-5CL02-1BF0"), "must not keep the 4x1.5 cable for SH65");
+  assert.match(pwr?.note ?? "", /808D cable was 4x1.5/);
+});
+
+t("mixed SH65 + SH90 motors split the power cables per cross-section", () => {
+  const r = convert([
+    row("1FL6064-1AC61-2AA1", 2, "1.5 kW"),
+    row("1FL6094-1AC61-2AA1", 1, "5 kW"),
+    row("6FX3002-5CL02-1BA0", 3, "power 10 m"),
+  ]);
+  assert.equal(find(r.lines, "6FX3502-5CL01-1BA0")?.qty, 2);
+  assert.equal(find(r.lines, "6FX3502-5CL12-1BA0")?.qty, 1); // 5 kW > 3.5 kW → 4x2.5
+});
+
+t("power cable without any 1FL6 motor line keeps the 808D cross-section and says so", () => {
+  const r = convert([row("6FX3002-5CL02-1BA0", 1, "power 10 m")]);
+  const l = find(r.lines, "6FX3502-5CL02-1BA0");
+  assert.ok(l);
+  assert.match(l.note ?? "", /No 1FL6 motor line/);
 });
 
 t("analog spindle setpoint cable is superseded and counts as one spindle", () => {

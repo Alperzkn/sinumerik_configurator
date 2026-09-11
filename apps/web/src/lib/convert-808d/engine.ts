@@ -129,6 +129,16 @@ export function convert(rows: InputRow[]): ConversionResult {
   let pnDriveCount = 0;
   let lastPh3: Ph3Variant | null = null;
 
+  // Converted 1FL2 motors, scanned up front so the power-cable cross-section
+  // follows the new motor's shaft height regardless of row order (D 37.1
+  // motor table: SH45/65 → 4×0.75, SH90 → 4×1.5 / 4×2.5).
+  const fl2Motors = rows.flatMap((r) => {
+    const fm = r.mlfb.match(/^1FL6(\d{3})-1A[CF]6\d-[02][AL][ABGH]1$/);
+    const d = fm ? FL6[fm[1]] : undefined;
+    return d ? [{ sh: d.sh, kw: d.kw, qty: r.qty }] : [];
+  });
+  const powerFamFor = (sh: number, kw: number) => (sh <= 65 ? "5CL01" : kw > 3.5 ? "5CL12" : "5CL02");
+
   for (const r of rows) {
     const m = r.mlfb;
     const q = r.qty;
@@ -607,6 +617,47 @@ export function convert(rows: InputRow[]): ConversionResult {
       let fam: string;
       let d: string;
       if (/^5CL/.test(typ)) {
+        // Cross-section by the converted 1FL2 motor, not by the 808D cable:
+        // the SH45/65 cable (4×0.75) also has the smaller motor connector.
+        const need = new Map<string, { qty: number; sh: number[] }>();
+        for (const mo of fl2Motors) {
+          const f = powerFamFor(mo.sh, mo.kw);
+          const e = need.get(f) ?? { qty: 0, sh: [] };
+          e.qty += mo.qty;
+          if (!e.sh.includes(mo.sh)) e.sh.push(mo.sh);
+          need.set(f, e);
+        }
+        const totalMotors = [...need.values()].reduce((a, e) => a + e.qty, 0);
+        if (need.size > 0) {
+          const oldXs = typ === "5CL01" ? "4x0.75" : typ === "5CL02" ? "4x1.5" : "4x2.5";
+          for (const [f, e] of need) {
+            const xs = f === "5CL01" ? "4x0.75" : f === "5CL02" ? "4x1.5" : "4x2.5";
+            const shTxt = e.sh.map((x) => `SH${x}`).join("/");
+            const n = `6FX3502-${f}-${len}`;
+            const verifiedLens = MC350_VERIFIED[f] || [];
+            const ok = verifiedLens.includes(len);
+            const confirmed = verifiedLens.map((c) => LEN[c] || c).join(", ");
+            out.push(
+              line({
+                mlfb: n,
+                desc: `Power cable pre-assembled ${xs} mm² for motor S-1FL2 ${shTxt} with S200, MOTION-CONNECT 350, ${Lt}`,
+                qty: need.size === 1 ? q : e.qty,
+                ...o,
+                cls: ok ? "verified" : "review",
+                grp: "Feed-axis cables",
+                src: ok
+                  ? "Outside PDF – cross-section per D 37.1 motor table; exact code seen in Siemens listing"
+                  : `Outside PDF – cable family exists, but this ${Lt} variant was not found in any listing (confirmed lengths: ${confirmed})`,
+                note:
+                  (ok ? "" : "Confirm the exact article in TIA Selection Tool / SiePortal before ordering. ") +
+                  `${xs} mm² is what D 37.1 pairs with 1FL2 ${shTxt}${xs !== oldXs ? ` (the 808D cable was ${oldXs} mm²; the connector differs too)` : ""}.` +
+                  (f !== "5CL01" ? " SH90: 4x1.5 up to 3.5 kW, 4x2.5 above – confirm against motor current in TIA Selection Tool." : "") +
+                  (need.size > 1 && totalMotors !== q ? ` Split by motor: ${totalMotors} motors vs ${q} cables in the 808D BOM – check quantities.` : ""),
+              }),
+            );
+          }
+          continue;
+        }
         fam = typ === "5CL11" ? "5CL02" : typ;
         d = `Power cable pre-assembled ${fam === "5CL01" ? "4x0.75" : fam === "5CL02" ? "4x1.5" : "4x2.5"} mm² for motor S-1FL2 SH45/65/90 with S200, MOTION-CONNECT 350, ${Lt}`;
       } else if (/^(2CT|2DB)/.test(typ)) {
@@ -634,7 +685,7 @@ export function convert(rows: InputRow[]): ConversionResult {
           note:
             (ok ? "" : "Confirm the exact article in TIA Selection Tool / SiePortal before ordering. ") +
             (/^5CL/.test(typ)
-              ? "Same cross-section as the 808D cable; Siemens lists all three cross-sections for SH45/65/90 – confirm against motor current in TIA Selection Tool."
+              ? "No 1FL6 motor line in this BOM, so the 808D cross-section was kept; D 37.1 pairs 4x0.75 with SH45/65 and 4x1.5 / 4x2.5 with SH90 – confirm against the motor."
               : ""),
         }),
       );
