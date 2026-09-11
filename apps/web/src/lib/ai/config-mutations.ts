@@ -9,14 +9,16 @@ import {
   isSingleAxisConverter,
   motorPlatform,
   driveCliqDeviceCount,
+  profinetDeviceCount,
   selectLineModule,
   getMatchingMcp,
 } from "@/lib/validation/drive-system-rules";
 import { selectCables } from "@/data/cables";
 import { selectCablesS200 } from "@/data/cables-s200";
 import { resolveFeedAxisMlfbs, resolveFullMotorMlfb } from "@/lib/mlfb/per-axis";
-import { fl2FullMlfb } from "./family-rules";
+import { fl2FullMlfb, selectCombi, nxFor828d, applyAxisLicences828d, mcpFor828d } from "./family-rules";
 import { runCompatibilityRules } from "@/data/compatibility-rules";
+import { catalogBundle } from "@/data/catalog-bundle";
 
 interface SwapOpts {
   shaftHeight?: number;
@@ -77,10 +79,113 @@ export function applySwap(
       break;
   }
 
-  // Cables always follow the motor + drive set that resulted from the swap
-  // (cross-section, brake cables, OCC vs DRIVE-CLiQ vs S200 topology).
+  return finish(updated, opts);
+}
+
+/** Cables and rule warnings always follow the motor + drive set that resulted from a change. */
+function finish(updated: GeneratedConfiguration, opts?: SwapOpts): GeneratedConfiguration {
   const withCables = regenerateCablesFor(updated, { cableLengthMeters: opts?.cableLengthMeters });
   return { ...withCables, warnings: [...withCables.warnings, ...runCompatibilityRules(withCables)] };
+}
+
+/** Axis counts as the motors define them (modules as a fallback for older configs). */
+function axisCounts(config: GeneratedConfiguration): { feedAxes: number; spindleAxes: number } {
+  const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
+  const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));
+  const feedMotor = config.motors.find((m) => m.motorType === "feed_servo_sync");
+  const spindleMotor = config.motors.find((m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync");
+  const feedAxes = feedMotor
+    ? config.motorQuantities[feedMotor.id] || feedMotor.perAxisMlfbs?.length || (feedMm ? config.driveQuantities[feedMm.id] : 0) || 0
+    : 0;
+  const spindleAxes = spindleMotor
+    ? config.motorQuantities[spindleMotor.id] || (spindleMm ? config.driveQuantities[spindleMm.id] : 0) || 1
+    : 0;
+  return { feedAxes, spindleAxes };
+}
+
+const DEFAULT_AXES = ["X", "Y", "Z", "A", "C", "B", "U", "V", "W"];
+const isVerticalAxis = (axis: string) => /^(Z|W)\d*$/i.test(axis.trim());
+
+/** Per-axis MLFBs for a feed motor article from the machine's axis layout. */
+function perAxisFor(article: string, axisNames: string[], brakeAxes: string[]): Motor["perAxisMlfbs"] {
+  if (!axisNames.length) return undefined;
+  if (article.startsWith("1FL2")) {
+    return axisNames.map((axis) => ({
+      axis,
+      mlfb: fl2FullMlfb(article, brakeAxes.includes(axis)),
+      brake: brakeAxes.includes(axis),
+      completeness: "verified" as const,
+    }));
+  }
+  return resolveFeedAxisMlfbs({ baseArticle: article, axisNames, brakeAxes });
+}
+
+/**
+ * Change the number of feed axes / spindles after generation. Quantities,
+ * per-axis MLFBs (new axes get default names, vertical ones a brake), the
+ * drive line-up (Combi / booksize / Line Module), NX, axis licences, cables
+ * and warnings are all re-derived — same order as at generation time.
+ */
+export function setAxisCounts(
+  config: GeneratedConfiguration,
+  counts: { feedAxes?: number; spindleAxes?: number },
+  opts?: SwapOpts,
+): GeneratedConfiguration {
+  const updated: GeneratedConfiguration = {
+    ...config,
+    drives: [...config.drives],
+    motors: [...config.motors],
+    softwareOptions: [...config.softwareOptions],
+    optionQuantities: { ...config.optionQuantities },
+    driveQuantities: { ...config.driveQuantities },
+    motorQuantities: { ...config.motorQuantities },
+    warnings: [...config.warnings],
+  };
+  const feedIdx = updated.motors.findIndex((m) => m.motorType === "feed_servo_sync");
+  const spindleIdx = updated.motors.findIndex((m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync");
+
+  if (counts.feedAxes !== undefined && feedIdx >= 0) {
+    const n = Math.max(0, Math.round(counts.feedAxes));
+    const motor = updated.motors[feedIdx];
+    updated.motorQuantities[motor.id] = n;
+    const names = (motor.perAxisMlfbs ?? []).map((a) => a.axis);
+    while (names.length < n) names.push(DEFAULT_AXES.find((x) => !names.includes(x)) ?? `AX${names.length + 1}`);
+    const kept = names.slice(0, n);
+    const brakeAxes = [...new Set([...(motor.perAxisMlfbs ?? []).filter((a) => a.brake).map((a) => a.axis), ...kept.filter(isVerticalAxis)])];
+    updated.motors[feedIdx] = { ...motor, perAxisMlfbs: perAxisFor(motor.articleNumber ?? "", kept, brakeAxes) };
+  }
+  if (counts.spindleAxes !== undefined && spindleIdx >= 0) {
+    updated.motorQuantities[updated.motors[spindleIdx].id] = Math.max(0, Math.round(counts.spindleAxes));
+  }
+
+  autoSizeDrivesForMotors(updated);
+  const { feedAxes, spindleAxes } = axisCounts(updated);
+  updated.totalAxes = feedAxes + spindleAxes;
+  applyAxisLicences(updated);
+  return finish(updated, opts);
+}
+
+/** Axis licences from the axis count: ONE A-codes, 828D 0AC20 per extra axis. */
+function applyAxisLicences(config: GeneratedConfiguration) {
+  const family = config.family ?? "sinumerik_one";
+  const findOption = (code: string) =>
+    catalogBundle.softwareOptions.find((o) => o.orderCode === code && (o.family ?? "sinumerik_one") === (family === "828d_smart" ? "828d" : family))
+    ?? catalogBundle.softwareOptions.find((o) => o.orderCode === code);
+  if (family === "sinumerik_one") {
+    const isAxisCode = (o: SoftwareOption) => /^A\d{2}$/.test(o.orderCode);
+    for (const o of config.softwareOptions.filter(isAxisCode)) delete config.optionQuantities[o.id];
+    config.softwareOptions = config.softwareOptions.filter((o) => !isAxisCode(o));
+    const extra = config.totalAxes - 3;
+    if (extra > 0) {
+      const found = findOption(`A${String(Math.min(extra, 99)).padStart(2, "0")}`);
+      if (found) {
+        config.softwareOptions.push(found);
+        config.optionQuantities[found.id] = 1;
+      }
+    }
+    return;
+  }
+  applyAxisLicences828d(config.softwareOptions, config.optionQuantities, findOption, config.totalAxes, config.cncSoftware.technology === "T" ? "cnc_lathe" : config.cncSoftware.technology === "G" ? "grinding" : "3axis_mill");
 }
 
 /**
@@ -101,17 +206,12 @@ export function regenerateCablesFor(
   const spindleMotor = config.motors.find(
     (m) => m.motorType === "main_spindle_async" || m.motorType === "main_spindle_sync"
   );
-  // Axis counts: the motors that exist (motor modules fall back for older configs).
-  const feedAxes = feedMotor
-    ? config.motorQuantities[feedMotor.id] || feedMotor.perAxisMlfbs?.length || (feedMm ? config.driveQuantities[feedMm.id] : 0) || 0
-    : 0;
-  const spindleAxes = spindleMotor
-    ? config.motorQuantities[spindleMotor.id] || (spindleMm ? config.driveQuantities[spindleMm.id] : 0) || 1
-    : 0;
+  const { feedAxes, spindleAxes } = axisCounts(config);
   const cableLengthMeters = ctx.cableLengthMeters || config.cables.find((c) => c.category === "power_cable" && c.length)?.length?.replace(/\s*m.*$/i, "");
 
   // Drive platform from the converter actually paired with the motor.
   const platform = feedMm ? motorPlatform({ motorModule: feedMm.articleNumber }) : spindleMm ? motorPlatform({ motorModule: spindleMm.articleNumber }) : "S120";
+  const profinetDevices = profinetDeviceCount(config.hmiComponents);
 
   if (platform === "S200") {
     const cables = selectCablesS200({
@@ -138,6 +238,7 @@ export function regenerateCablesFor(
     spindleMotorShaftHeight: spindleMotor?.shaftHeight,
     cableLengthMeters,
     driveCliqCount: driveCliqDeviceCount(config.drives, config.driveQuantities),
+    profinetDevices,
   });
 
   return { ...config, cables };
@@ -153,21 +254,11 @@ function swapFeedMotor(config: GeneratedConfiguration, article: string, shaftHei
   const axisNames = previous?.perAxisMlfbs?.map((a) => a.axis) ?? [];
   const brakeAxes = previous?.perAxisMlfbs?.filter((a) => a.brake).map((a) => a.axis) ?? [];
   const resolved = resolveFullMotorMlfb(article);
-  let perAxisMlfbs: Motor["perAxisMlfbs"];
   if (article.startsWith("1FL2")) {
     resolved.mlfb = fl2FullMlfb(article, false);
     resolved.completeness = "verified";
-    if (axisNames.length) {
-      perAxisMlfbs = axisNames.map((axis) => ({
-        axis,
-        mlfb: fl2FullMlfb(article, brakeAxes.includes(axis)),
-        brake: brakeAxes.includes(axis),
-        completeness: "verified" as const,
-      }));
-    }
-  } else if (axisNames.length) {
-    perAxisMlfbs = resolveFeedAxisMlfbs({ baseArticle: article, axisNames, brakeAxes });
   }
+  const perAxisMlfbs = perAxisFor(article, axisNames, brakeAxes);
 
   const updated: Motor = {
     id: `feed-${article}`,
@@ -356,6 +447,16 @@ function swapControlUnit(config: GeneratedConfiguration, article: string) {
     "6FC5317-6AA00-0AA0": { id: "NCU_1760", name: "NCU 1760 (HSC)", maxAxesSpindles: 50, maxChannels: 10, driveCliqPorts: 6 },
   };
 
+  const fromCatalog = catalogBundle.controlUnits.find((cu) => cu.articleNumber === article);
+  if (fromCatalog) {
+    config.controlUnit = fromCatalog;
+    if (fromCatalog.family === "828d" || fromCatalog.family === "828d_smart") {
+      const mcp = mcpFor828d(catalogBundle.hmiComponents, fromCatalog);
+      config.hmiComponents = config.hmiComponents.filter((h) => h.category !== "mcp");
+      if (mcp) config.hmiComponents.push(mcp);
+    }
+    return;
+  }
   const partial = cuMap[article];
   if (partial) {
     config.controlUnit = { ...config.controlUnit, ...partial, articleNumber: article } as ControlUnit;
@@ -378,9 +479,52 @@ function autoSizeDrivesForMotors(config: GeneratedConfiguration) {
     return motor.ratedCurrent ? findMotorModuleForCurrent(parseFloat(motor.ratedCurrent)) : undefined;
   };
   const feedTarget = moduleFor(feedMotor);
-  if (feedTarget) swapMotorModule(config, "feed", feedTarget);
   const spindleTarget = moduleFor(spindleMotor);
+
+  if (config.family === "828d") {
+    // 828D: the drive line-up is the Combi (from the motor currents) or, outside
+    // its envelope, booksize with a Line Module — plus NX from the axis count.
+    const { feedAxes, spindleAxes } = axisCounts(config);
+    const amps = (m?: Motor) => (m?.ratedCurrent ? parseFloat(m.ratedCurrent) : undefined);
+    const combi = selectCombi({
+      feedAxes,
+      spindles: spindleAxes,
+      spindleCurrentA: amps(spindleMotor),
+      feedCurrentA: amps(feedMotor),
+      feedMotorModuleArticle: feedTarget,
+      feedMotorModuleName: feedTarget ? `Motor Module ${feedTarget}` : undefined,
+    });
+    for (const d of config.drives) delete config.driveQuantities[d.id];
+    config.drives = [];
+    if (combi) {
+      config.drives.push(...combi.components);
+      Object.assign(config.driveQuantities, combi.quantities);
+    } else {
+      if (feedTarget) swapMotorModule(config, "feed", feedTarget);
+      if (spindleTarget) swapMotorModule(config, "spindle", spindleTarget);
+      const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
+      const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));
+      if (feedMm) config.driveQuantities[feedMm.id] = feedAxes;
+      if (spindleMm) config.driveQuantities[spindleMm.id] = spindleAxes;
+      autoSizeLineModule(config);
+    }
+    const nx = nxFor828d(catalogBundle.driveComponents, feedAxes + spindleAxes);
+    if (nx && "component" in nx) {
+      config.drives.push(nx.component);
+      config.driveQuantities[nx.component.id] = 1;
+    }
+    return;
+  }
+
+  if (feedTarget) swapMotorModule(config, "feed", feedTarget);
   if (spindleTarget) swapMotorModule(config, "spindle", spindleTarget);
+  {
+    const { feedAxes, spindleAxes } = axisCounts(config);
+    const feedMm = config.drives.find((d) => d.id.startsWith("feed-mm-"));
+    const spindleMm = config.drives.find((d) => d.id.startsWith("spindle-mm-"));
+    if (feedMm) config.driveQuantities[feedMm.id] = feedAxes;
+    if (spindleMm) config.driveQuantities[spindleMm.id] = spindleAxes;
+  }
 
   autoSizeLineModule(config);
 

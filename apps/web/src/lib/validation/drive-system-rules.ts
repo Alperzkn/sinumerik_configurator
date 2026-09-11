@@ -543,6 +543,12 @@ export function driveCliqDeviceCount(
   return n;
 }
 
+/** PROFINET devices that each need their own cord from the NCU / switch. */
+export function profinetDeviceCount(hmi: Array<{ category: string }>): number {
+  const PN = new Set(["thin_client", "panel_pc", "mcp", "io_module", "handheld_terminal"]);
+  return hmi.filter((h) => PN.has(h.category)).length;
+}
+
 export function calculateDriveCliqCables(
   feedModules: number,
   spindleModules: number,

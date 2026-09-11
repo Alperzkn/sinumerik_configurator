@@ -14,6 +14,7 @@ import {
   setHandheldTerminal,
   setIoModule,
   regenerateCablesFor,
+  setAxisCounts,
 } from "./config-mutations";
 import { sizeConfiguration, type UserSpecsInput } from "@/lib/sizing";
 import { selectLineModule } from "@/lib/validation/drive-system-rules";
@@ -573,7 +574,7 @@ function applyModifications(
       }
     }
 
-    const sized = sizeConfiguration({ userSpecs: merged, template: null });
+    const sized = sizeConfiguration({ userSpecs: merged, template: null, controlFamily: current.family });
     if (sized.spindle) {
       updated = applySwap(updated, "motor_spindle", sized.spindle.article, {
         shaftHeight: sized.spindle.specs.shaftHeight,
@@ -588,6 +589,12 @@ function applyModifications(
       });
       updated = applySwap(updated, "motor_module_feed", sized.feed.specs.motorModule);
       appliedSummary.push(`Re-sized feed motor to ${sized.feed.article} (${sized.feed.specs.ratedTorque})`);
+    }
+    // Axis counts change quantities, drives, licences and cables — not just the motor.
+    const o = changes.userSpecsOverride;
+    if (o.feedAxisCount !== undefined || o.spindleCount !== undefined) {
+      updated = setAxisCounts(updated, { feedAxes: o.feedAxisCount, spindleAxes: o.spindleCount });
+      appliedSummary.push(`Axis count set to ${updated.totalAxes} (feed ${o.feedAxisCount ?? "unchanged"}, spindles ${o.spindleCount ?? "unchanged"})`);
     }
   }
 

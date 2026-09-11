@@ -289,6 +289,8 @@ export function selectCables(config: {
   cableLengthMeters?: string;
   /** DRIVE-CLiQ devices counted from the chosen drives; falls back to axes + 1. */
   driveCliqCount?: number;
+  /** PROFINET devices (panel, MCP, I/O, handheld) counted from the chosen HMI set. */
+  profinetDevices?: number;
 }): CableAccessory[] {
   const cables: CableAccessory[] = [];
   const totalDriveAxes = config.feedAxes + config.spindleAxes;
@@ -381,11 +383,11 @@ export function selectCables(config: {
     }
   }
 
-  // PROFINET cables — 10m default + one extra per peripheral device
-  // (HMI, MCP, I/O module, handheld each need their own PROFINET run)
+  // PROFINET cables — one run per PROFINET device (panel, MCP, I/O module,
+  // handheld), counted from the chosen HMI set; at least one.
   const profinet = cablesCatalog.find((c) => c.id === "profinet-10m")
     ?? cablesCatalog.find((c) => c.id === "profinet-5m")!;
-  cables.push({ ...profinet, quantity: 1 });
+  cables.push({ ...profinet, quantity: Math.max(1, config.profinetDevices ?? 1) });
 
   // 24V supply
   const supply = cablesCatalog.find((c) => c.id === "24v-supply")!;

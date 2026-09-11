@@ -6,7 +6,7 @@
  */
 import assert from "node:assert/strict";
 import { buildConfigFromTemplate } from "./build-from-template";
-import { applySwap } from "./config-mutations";
+import { applySwap, setAxisCounts } from "./config-mutations";
 import type { GeneratedConfiguration } from "@/types/catalog";
 
 let pass = 0;
@@ -98,6 +98,47 @@ const cable = (c: GeneratedConfiguration, re: RegExp) => c.cables.find((x) => re
     const dcliq = cable(d828, /DRIVE-CLiQ/i);
     assert.ok(dcliq);
     assert.equal(dcliq!.quantity, 1); // one Combi Power Module = one DRIVE-CLiQ device
+  });
+
+  await t("ONE: raising the feed axes to 5 propagates to quantities, per-axis codes, licence, drives and cables", () => {
+    const c = setAxisCounts(one, { feedAxes: 5 });
+    const fm = feedMotor(c)!;
+    assert.equal(c.motorQuantities[fm.id], 5);
+    assert.deepEqual(fm.perAxisMlfbs?.map((a) => a.axis), ["X", "Y", "Z", "A", "C"]);
+    assert.equal(fm.perAxisMlfbs?.find((a) => a.axis === "Z")?.brake, true);
+    assert.equal(c.driveQuantities[feedMm(c)!.id], 5);
+    assert.equal(c.totalAxes, 6);
+    assert.ok(c.softwareOptions.some((o) => o.orderCode === "A03"), "6 axes − 3 base = A03");
+    assert.equal(cable(c, /DRIVE-CLiQ/i)?.quantity, 7); // 5 feed MM + spindle MM + Line Module
+    assert.equal(c.cables.find((x) => /^6FX8002-5C/.test(x.articleNumber))?.quantity, 5);
+  });
+
+  await t("828D: dropping to 2 feed axes re-selects a 3-axis Combi from the motors", () => {
+    const c = setAxisCounts(d828, { feedAxes: 2 });
+    assert.ok(c.drives.some((d) => d.componentType === "power_module_3axis"), "3-axis Combi expected");
+    assert.ok(!c.drives.some((d) => d.componentType === "power_module_4axis"));
+    assert.equal(c.totalAxes, 3);
+    assert.ok(!c.softwareOptions.some((o) => o.orderCode === "0AC20"), "3 axes are in the M base scope");
+  });
+
+  await t("828D: swapping the feed motor keeps the Combi line-up instead of adding a booksize module", () => {
+    const c = applySwap(d828, "motor_feed", "1FK7042-2AF71");
+    assert.ok(c.drives.some((d) => d.componentType.startsWith("power_module_")));
+    assert.ok(!c.drives.some((d) => d.id.startsWith("feed-mm-")), "no stray booksize feed module next to the Combi");
+    assert.ok(!c.drives.some((d) => d.componentType.startsWith("line_module")));
+  });
+
+  await t("828D: swapping the control unit to PPU 290.5 works through the catalog and re-matches the MCP", () => {
+    const c = applySwap(d828, "control_unit", "6FC5370-8AA50-0BA0");
+    assert.equal(c.controlUnit.id, "PPU_290_5");
+    assert.ok(c.hmiComponents.some((h) => h.id === "hmi828-mcp_1500u"));
+  });
+
+  await t("ONE: PROFINET cords are counted from the PN devices (panel, MCP, I/O)", () => {
+    const pn = one.cables.find((x) => /PROFINET/i.test(x.name));
+    const devices = one.hmiComponents.filter((h) => ["thin_client", "panel_pc", "mcp", "io_module", "handheld_terminal"].includes(h.category)).length;
+    assert.ok(devices >= 2);
+    assert.equal(pn?.quantity, devices);
   });
 
   console.log(`\n${pass} passed`);

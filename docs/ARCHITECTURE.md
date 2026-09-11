@@ -328,9 +328,17 @@ an old BOM row when the upstream item is known:
   (DRIVE-CLiQ devices, OCC vs booksize vs S200 topology);
 - the same order is re-run after every manual change in
   [`config-mutations.ts`](../apps/web/src/lib/ai/config-mutations.ts):
-  a motor swap re-pairs the converter, re-sizes the Line Module, rebuilds
+  a motor swap re-pairs the converter, re-selects the 828D Combi from the
+  motor currents (or falls back to booksize + Line Module + NX), rebuilds
   the per-axis MLFBs from the machine's axis layout and regenerates the
-  cables; a drive swap re-sizes the Line Module and the cables.
+  cables; a drive swap re-sizes the Line Module and the cables; a control
+  unit swap goes through the catalog for every family and re-matches the
+  MCP; `setAxisCounts` (also used by the AI modify path) re-derives
+  quantities, per-axis codes, drives, NX, axis licences and cables from a
+  new axis count;
+- accessories follow the chosen set too: the MCP matches the operator
+  panel that was actually selected, PROFINET cords are counted from the
+  PROFINET devices in the HMI set.
 
 The 808D → 828D Smart converter (§16) follows the same order in three
 phases: motors from the 1FL6 / 1PH1 rows, S200 drives from those motors,

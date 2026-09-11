@@ -23,6 +23,7 @@ import {
   isSingleAxisConverter,
   motorPlatform,
   driveCliqDeviceCount,
+  profinetDeviceCount,
   MOTOR_MODULE_SPECS,
   S210_CONVERTER_SPECS,
   S200_CONVERTER_SPECS,
@@ -65,6 +66,7 @@ let catalogData: {
     spindleMotorShaftHeight?: number;
     cableLengthMeters?: string;
     driveCliqCount?: number;
+    profinetDevices?: number;
   }) => CableAccessory[];
 } | null = null;
 
@@ -766,7 +768,8 @@ export function parseAiResponse(
   }
 
   if (controlUnitId.startsWith("NCU") && catalogData) {
-    const mcpMatch = getMatchingMcp(panelSize);
+    // The MCP follows the operator panel that was actually chosen.
+    const mcpMatch = getMatchingMcp(hmiComponents.find((h) => h.screenSize)?.screenSize ?? panelSize);
     const mcp = catalogData.hmiComponents.find(
       (h) => h.category === "mcp" && h.articleNumber === mcpMatch.mcpArticle
     ) || catalogData.hmiComponents.find((h) => h.category === "mcp" && h.id === mcpMatch.mcpId);
@@ -872,6 +875,7 @@ export function parseAiResponse(
       spindleMotorShaftHeight: sized.spindle?.specs.shaftHeight,
       cableLengthMeters: sizingSpecs.cableLengthMeters,
       driveCliqCount: driveCliqDeviceCount(drives, driveQuantities),
+      profinetDevices: profinetDeviceCount(hmiComponents),
     });
   }
 
