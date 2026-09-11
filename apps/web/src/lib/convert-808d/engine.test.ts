@@ -166,9 +166,35 @@ t("V70 count mismatch is reported", () => {
   assert.ok(r.notes.some(([k, txt]) => k === "warn" && /3 V70 drives but 2 motors/.test(txt)));
 });
 
-t("PROFINET note appears when drives exist but no cords were listed", () => {
+t("PROFINET cords are counted from the drives when the 808D list has none", () => {
   const r = convert([row("1FL6064-1AC61-2AA1", 3)]);
-  assert.ok(r.notes.some(([, txt]) => /2 cord\(s\) S200 → S200/.test(txt)));
+  const ppu = find(r.lines, "6XV1870-3QH20");
+  const chain = find(r.lines, "6XV1870-3QE50");
+  assert.equal(ppu?.qty, 1);
+  assert.equal(chain?.qty, 2);
+  assert.equal(ppu?.cls, "review"); // length assumed
+  assert.equal(ppu?.orig, "(from drives)");
+});
+
+t("motors alone produce their power, encoder and brake cables (lengths flagged)", () => {
+  const r = convert([row("1FL6064-1AC61-2AA1", 2), row("1FL6067-1AC61-0LH1", 1)]);
+  const pwr = find(r.lines, "6FX3502-5CL01-1BA0");
+  const enc = find(r.lines, "6FX3502-2XB12-1BA0");
+  const brk = find(r.lines, "6FX3502-5BL03-1BA0");
+  assert.equal(pwr?.qty, 3);
+  assert.equal(enc?.qty, 3);
+  assert.equal(brk?.qty, 1); // only the 1FL6067 …LH1 has a brake
+  assert.equal(pwr?.cls, "review");
+  assert.match(pwr?.note ?? "", /No matching cable in the 808D list/);
+});
+
+t("cable quantities follow the motors: surplus 808D cables are reported, missing ones added", () => {
+  const r = convert([row("1FL6064-1AC61-2AA1", 2), row("6FX3002-5CL02-1BF0", 5), row("6FX3002-2CT12-1BF0", 1)]);
+  assert.equal(find(r.lines, "6FX3502-5CL01-1BF0")?.qty, 2);
+  const surplus = r.lines.find((l) => l.cls === "replaced" && /power cable/.test(l.desc));
+  assert.equal(surplus?.qty, 3);
+  assert.equal(find(r.lines, "6FX3502-2XB12-1BF0")?.qty, 1);
+  assert.equal(find(r.lines, "6FX3502-2XB12-1BA0")?.qty, 1); // the second motor's encoder cable, length assumed
 });
 
 t("known 1PH1 spindle → 1PH3 Pro TTL + S200 Spindle + braking resistor", () => {
@@ -253,10 +279,18 @@ t("S120-style 1PH3 (DRIVE-CLiQ) is rejected", () => {
   assert.equal(r.axes, 0);
 });
 
-t("1PH1 power cable picks the cross-section from the preceding spindle", () => {
+t("1PH1 power cable picks the cross-section from the selected spindle, in any row order", () => {
   const r = convert([row("1PH1103-1LD12-0GA0"), row("6FX5008-1BB21-1AF0")]);
-  const c = find(r.lines, "6FX5008-1BB21-1DA0");
-  assert.equal(c?.cls, "verified");
+  assert.equal(find(r.lines, "6FX5008-1BB21-1DA0")?.cls, "verified");
+  const reversed = convert([row("6FX5008-1BB21-1AF0"), row("1PH1103-1LD12-0GA0")]);
+  assert.equal(find(reversed.lines, "6FX5008-1BB21-1DA0")?.cls, "verified");
+  assert.ok(!find(reversed.lines, "6FX5008-1BB?1-1DA0"));
+});
+
+t("spindle motor alone produces its encoder and power cable", () => {
+  const r = convert([row("1PH1105-1LD10-0GA0")]); // 5.5 kW SH100 → 4x4
+  assert.equal(find(r.lines, "6FX5008-1BB31-1DA0")?.qty, 1);
+  assert.equal(find(r.lines, "6FX3502-2XB13-1BA0")?.cls, "review");
 });
 
 t("power cable cross-section follows Table 3-2 of the 1PH3 Pro manual", () => {

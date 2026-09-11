@@ -88,6 +88,81 @@ function brakingResistorLine(q: number, sizedNote = false): ResultLine {
   });
 }
 
+/** 1PH1 (808D) → nearest 1PH3 Pro variant. Pure lookup, so it can run before the row loop. */
+function pickPh3ForPh1(m: string, desc: string) {
+  const known = lookupPh1(m);
+  const kwM = (desc || "").match(/(\d+(?:[.,]\d+)?)\s*kW/i);
+  const nM = (desc || "").match(/(\d{3,4})\s*(?:rpm|1\/min|min-1|dev)/i);
+  const kw = known ? known.kw : kwM ? parseFloat(kwM[1].replace(",", ".")) : null;
+  const n = known ? known.n : nM ? parseInt(nM[1], 10) : null;
+  const encPref = known ? known.enc : "L"; // 1PH1 has a TTL encoder → TTL variant by default
+  let cands = kw != null ? PH3.filter((x) => x.kw === kw) : [];
+  if (cands.length && known?.sh) {
+    const same = cands.filter((x) => x.sh === known.sh);
+    if (same.length) cands = same;
+  }
+  if (cands.length && n) cands.sort((a, b) => Math.abs(a.n - n) - Math.abs(b.n - n));
+  const pick = cands.find((x) => x.enc.includes(encPref)) || cands[0] || null;
+  return { known, kw, encPref, cands, pick };
+}
+
+/** Pasted 1PH3: only the Pro / S200-Spindle variants (…12-…A1, encoder H or L) are in the table. */
+function ph3InTable(m: string): Ph3Variant | null {
+  const pro = m.match(/^1PH3(\d{3})-1([HL])([DEFGS])12-([02])([KG]A1)$/);
+  if (!pro) return null;
+  return (
+    PH3.find((x) => x.frame === pro[1] && x.wind === pro[3] && x.sfx === pro[5] && x.enc.includes(pro[2])) ??
+    null
+  );
+}
+
+/** One motor (or drive port) that needs a cable of family `fam`. */
+interface CableUnit {
+  fam: string;
+  label: string;
+}
+/** A cable row of the 808D list: only its length and quantity are reused. */
+interface CableRow {
+  row: InputRow;
+  len: string;
+  left: number;
+}
+interface CableAlloc {
+  fam: string;
+  len: string | null;
+  qty: number;
+  row: InputRow | null;
+  labels: string[];
+}
+
+/**
+ * Motors first, cables second: every selected motor gets one cable of the
+ * family the catalog pairs it with; the 808D cable rows only contribute
+ * their lengths. Rows that outnumber the motors are reported as surplus,
+ * motors that outnumber the rows get a cable with no length (flagged).
+ */
+function allocateCables(units: CableUnit[], rows: CableRow[]): { alloc: CableAlloc[]; surplus: CableRow[] } {
+  const alloc: CableAlloc[] = [];
+  const queue = [...units];
+  const add = (u: CableUnit, len: string | null, row: InputRow | null) => {
+    const hit = alloc.find((a) => a.fam === u.fam && a.len === len && a.row === row);
+    if (hit) {
+      hit.qty += 1;
+      hit.labels.push(u.label);
+    } else alloc.push({ fam: u.fam, len, qty: 1, row, labels: [u.label] });
+  };
+  for (const r of rows) {
+    while (r.left > 0 && queue.length) {
+      add(queue.shift()!, r.len, r.row);
+      r.left -= 1;
+    }
+  }
+  for (const u of queue) add(u, null, null);
+  return { alloc, surplus: rows.filter((r) => r.left > 0) };
+}
+
+const uniq = (xs: string[]) => [...new Set(xs)];
+
 /** Detect technology (milling / turning) and PPU orientation from the rows. */
 function detectTechAndOrientation(rows: InputRow[]): {
   tech: Technology | null;
@@ -126,18 +201,38 @@ export function convert(rows: InputRow[]): ConversionResult {
   let analogSpindle = false;
   let posAxisQty = 0;
   let fullAxisQty = 0;
-  let pnDriveCount = 0;
-  let lastPh3: Ph3Variant | null = null;
-
-  // Converted 1FL2 motors, scanned up front so the power-cable cross-section
-  // follows the new motor's shaft height regardless of row order (D 37.1
-  // motor table: SH45/65 → 4×0.75, SH90 → 4×1.5 / 4×2.5).
-  const fl2Motors = rows.flatMap((r) => {
-    const fm = r.mlfb.match(/^1FL6(\d{3})-1A[CF]6\d-[02][AL][ABGH]1$/);
+  // ── Phase 1: motors are selected before anything else ──
+  // Drives, cables and PROFINET cords are derived from these, never from the
+  // 808D drive/cable rows, and never from the order of the rows.
+  const fl2Units = rows.flatMap((r) => {
+    const fm = r.mlfb.match(/^1FL6(\d{3})-1A[CF]6\d-[02][AL]([ABGH])1$/);
     const d = fm ? FL6[fm[1]] : undefined;
-    return d ? [{ sh: d.sh, kw: d.kw, qty: r.qty }] : [];
+    return d ? [{ sh: d.sh, kw: d.kw, brake: /[BH]/.test(fm![2]), qty: r.qty }] : [];
   });
+  const spindleUnits = rows.flatMap((r) => {
+    if (/^1PH3/.test(r.mlfb)) {
+      const v = ph3InTable(r.mlfb);
+      return v ? [{ pick: v as Ph3Variant | null, qty: r.qty }] : [];
+    }
+    if (/^1PH1/.test(r.mlfb)) return [{ pick: pickPh3ForPh1(r.mlfb, r.desc).pick, qty: r.qty }];
+    return [];
+  });
+  const fl2Count = fl2Units.reduce((a, u) => a + u.qty, 0);
+  const s200SpindleCount = spindleUnits.reduce((a, u) => a + u.qty, 0);
+  const pnDrives = fl2Count + s200SpindleCount;
   const powerFamFor = (sh: number, kw: number) => (sh <= 65 ? "5CL01" : kw > 3.5 ? "5CL12" : "5CL02");
+  const XS_FL2: Record<string, string> = { "5CL01": "4x0.75", "5CL02": "4x1.5", "5CL12": "4x2.5" };
+  const XS_PH3: Record<string, string> = { "1BB21": "4x2.5", "1BB31": "4x4", "1BB51": "4x10", "1BB61": "4x16" };
+
+  // 808D cable rows, kept only for their lengths (Phase 3 below).
+  const cableRows = {
+    feedPower: [] as CableRow[],
+    feedEncoder: [] as CableRow[],
+    feedBrake: [] as CableRow[],
+    spindleEncoder: [] as CableRow[],
+    spindlePower: [] as CableRow[],
+    pn: [] as Array<CableRow & { meters: number }>,
+  };
 
   for (const r of rows) {
     const m = r.mlfb;
@@ -305,7 +400,6 @@ export function convert(rows: InputRow[]): ConversionResult {
       );
       feedMotorQty += q;
       feedMotorsListed.push(`${q}× ${d.kw} kW`);
-      pnDriveCount += q;
       continue;
     }
 
@@ -345,12 +439,7 @@ export function convert(rows: InputRow[]): ConversionResult {
     // --- 1PH3 pasted directly: only the Pro / S200-Spindle variants (…12-…A1, encoder H or L) are allowed ---
     if (/^1PH3/.test(m)) {
       const pro = m.match(/^1PH3(\d{3})-1([HL])([DEFGS])12-([02])([KG]A1)$/);
-      const inTable =
-        pro &&
-        PH3.find(
-          (x) =>
-            x.frame === pro[1] && x.wind === pro[3] && x.sfx === pro[5] && x.enc.includes(pro[2]),
-        );
+      const inTable = ph3InTable(m);
       if (pro && inTable) {
         out.push(
           line({
@@ -379,8 +468,6 @@ export function convert(rows: InputRow[]): ConversionResult {
         );
         out.push(brakingResistorLine(q));
         spindleQty += q;
-        pnDriveCount += q;
-        lastPh3 = inTable;
         continue;
       }
       out.push(
@@ -399,19 +486,7 @@ export function convert(rows: InputRow[]): ConversionResult {
 
     // --- Spindle motor 1PH1 (808D) → 1PH3 Pro + S200 Spindle ---
     if (/^1PH1/.test(m)) {
-      const known = lookupPh1(m);
-      const kwM = (r.desc || "").match(/(\d+(?:[.,]\d+)?)\s*kW/i);
-      const nM = (r.desc || "").match(/(\d{3,4})\s*(?:rpm|1\/min|min-1|dev)/i);
-      const kw = known ? known.kw : kwM ? parseFloat(kwM[1].replace(",", ".")) : null;
-      const n = known ? known.n : nM ? parseInt(nM[1], 10) : null;
-      const encPref = known ? known.enc : "L"; // 1PH1 has a TTL encoder → TTL variant by default
-      let cands = kw != null ? PH3.filter((x) => x.kw === kw) : [];
-      if (cands.length && known?.sh) {
-        const same = cands.filter((x) => x.sh === known.sh);
-        if (same.length) cands = same;
-      }
-      if (cands.length && n) cands.sort((a, b) => Math.abs(a.n - n) - Math.abs(b.n - n));
-      const pick = cands.find((x) => x.enc.includes(encPref)) || cands[0];
+      const { known, kw, encPref, cands, pick } = pickPh3ForPh1(m, r.desc);
       if (pick) {
         const enc = pick.enc.includes(encPref) ? encPref : pick.enc[0];
         const ph1Key = /-1[A-Z]A0$/.test(m); // 1PH1 …-1GA0 = shaft with feather key, …-0GA0 = plain shaft
@@ -483,8 +558,6 @@ export function convert(rows: InputRow[]): ConversionResult {
       }
       out.push(brakingResistorLine(q, true));
       spindleQty += q;
-      pnDriveCount += q;
-      lastPh3 = pick || null;
       continue;
     }
 
@@ -525,6 +598,10 @@ export function convert(rows: InputRow[]): ConversionResult {
     //     → 1PH3 Pro with S200 Spindle (1PH3 Pro manual 06/2026 §3.2.4) ---
     if (/^6FX3002-2(CT|DB)30-/.test(m)) {
       const len = m.split("-")[2];
+      if (s200SpindleCount > 0) {
+        cableRows.spindleEncoder.push({ row: r, len, left: q });
+        continue;
+      }
       const ok = PH3_ENC_CABLE.includes(len);
       out.push(
         line({
@@ -542,16 +619,17 @@ export function convert(rows: InputRow[]): ConversionResult {
       continue;
     }
     if (/^6FX5008-1BB[2-6]1-/.test(m)) {
-      const pick = lastPh3;
-      const XS: Record<string, string> = { "1BB21": "4x2.5", "1BB31": "4x4", "1BB51": "4x10", "1BB61": "4x16" };
-      const code = pick ? `6FX5008-${pick.cable}-1DA0` : null;
+      if (s200SpindleCount > 0) {
+        cableRows.spindlePower.push({ row: r, len: m.split("-")[2], left: q });
+        continue;
+      }
       out.push(
         line({
-          mlfb: code || "6FX5008-1BB?1-1DA0",
-          desc: `Power cable for 1PH3 Pro, MOTION-CONNECT 500, sold as 30 m raw length without connectors (terminal-box motor)${pick ? ` – ${XS[pick.cable]} mm² for 1PH3${pick.frame} ${pick.kw} kW (Table 3-2)` : " – cross-section 4x2.5 / 4x4 / 4x10 / 4x16 mm² (1BB21 / 1BB31 / 1BB51 / 1BB61) per motor current; no spindle motor line preceded this cable"}. Replaces ${m}.`,
+          mlfb: "6FX5008-1BB?1-1DA0",
+          desc: `Power cable for 1PH3 Pro, MOTION-CONNECT 500, sold as 30 m raw length without connectors (terminal-box motor) – cross-section 4x2.5 / 4x4 / 4x10 / 4x16 mm² (1BB21 / 1BB31 / 1BB51 / 1BB61) per motor; no spindle motor in this list to size it from. Replaces ${m}.`,
           qty: q,
           ...o,
-          cls: code ? "verified" : "review",
+          cls: "review",
           grp: "Spindle",
           src: "Outside PDF – cross-section: 1PH3 Pro manual 06/2026 Table 3-2; article: NC 81.1 (same MC500 raw cables as for 1PH1)",
           note: "Raw cable: order length and glands per installation; the 808D pre-assembled length no longer applies.",
@@ -588,6 +666,10 @@ export function convert(rows: InputRow[]): ConversionResult {
           : LEN[last]
             ? parseFloat(LEN[last])
             : 3;
+      if (pnDrives > 0) {
+        cableRows.pn.push({ row: r, len: last, left: q, meters: L });
+        continue;
+      }
       const cord = PN_CORDS.find((c) => c[0] >= L) || PN_CORDS[PN_CORDS.length - 1];
       const listed = cord[3];
       out.push(
@@ -616,48 +698,12 @@ export function convert(rows: InputRow[]): ConversionResult {
       const Lt = LEN[len] || len;
       let fam: string;
       let d: string;
+      if (fl2Count > 0) {
+        const bucket = /^5CL/.test(typ) ? cableRows.feedPower : /^(2CT|2DB)/.test(typ) ? cableRows.feedEncoder : cableRows.feedBrake;
+        bucket.push({ row: r, len, left: q });
+        continue;
+      }
       if (/^5CL/.test(typ)) {
-        // Cross-section by the converted 1FL2 motor, not by the 808D cable:
-        // the SH45/65 cable (4×0.75) also has the smaller motor connector.
-        const need = new Map<string, { qty: number; sh: number[] }>();
-        for (const mo of fl2Motors) {
-          const f = powerFamFor(mo.sh, mo.kw);
-          const e = need.get(f) ?? { qty: 0, sh: [] };
-          e.qty += mo.qty;
-          if (!e.sh.includes(mo.sh)) e.sh.push(mo.sh);
-          need.set(f, e);
-        }
-        const totalMotors = [...need.values()].reduce((a, e) => a + e.qty, 0);
-        if (need.size > 0) {
-          const oldXs = typ === "5CL01" ? "4x0.75" : typ === "5CL02" ? "4x1.5" : "4x2.5";
-          for (const [f, e] of need) {
-            const xs = f === "5CL01" ? "4x0.75" : f === "5CL02" ? "4x1.5" : "4x2.5";
-            const shTxt = e.sh.map((x) => `SH${x}`).join("/");
-            const n = `6FX3502-${f}-${len}`;
-            const verifiedLens = MC350_VERIFIED[f] || [];
-            const ok = verifiedLens.includes(len);
-            const confirmed = verifiedLens.map((c) => LEN[c] || c).join(", ");
-            out.push(
-              line({
-                mlfb: n,
-                desc: `Power cable pre-assembled ${xs} mm² for motor S-1FL2 ${shTxt} with S200, MOTION-CONNECT 350, ${Lt}`,
-                qty: need.size === 1 ? q : e.qty,
-                ...o,
-                cls: ok ? "verified" : "review",
-                grp: "Feed-axis cables",
-                src: ok
-                  ? "Outside PDF – cross-section per D 37.1 motor table; exact code seen in Siemens listing"
-                  : `Outside PDF – cable family exists, but this ${Lt} variant was not found in any listing (confirmed lengths: ${confirmed})`,
-                note:
-                  (ok ? "" : "Confirm the exact article in TIA Selection Tool / SiePortal before ordering. ") +
-                  `${xs} mm² is what D 37.1 pairs with 1FL2 ${shTxt}${xs !== oldXs ? ` (the 808D cable was ${oldXs} mm²; the connector differs too)` : ""}.` +
-                  (f !== "5CL01" ? " SH90: 4x1.5 up to 3.5 kW, 4x2.5 above – confirm against motor current in TIA Selection Tool." : "") +
-                  (need.size > 1 && totalMotors !== q ? ` Split by motor: ${totalMotors} motors vs ${q} cables in the 808D BOM – check quantities.` : ""),
-              }),
-            );
-          }
-          continue;
-        }
         fam = typ === "5CL11" ? "5CL02" : typ;
         d = `Power cable pre-assembled ${fam === "5CL01" ? "4x0.75" : fam === "5CL02" ? "4x1.5" : "4x2.5"} mm² for motor S-1FL2 SH45/65/90 with S200, MOTION-CONNECT 350, ${Lt}`;
       } else if (/^(2CT|2DB)/.test(typ)) {
@@ -750,6 +796,172 @@ export function convert(rows: InputRow[]): ConversionResult {
     );
   }
 
+  // ── Phase 3: cables from the selected motors and drives ──
+  const lenText = (len: string | null) => (len ? LEN[len] || len : "length not in the 808D list");
+  const emitMc350 = (
+    a: CableAlloc,
+    grp: ResultLine["grp"],
+    desc: (xs: string, lt: string) => string,
+    extraNote = "",
+  ) => {
+    const verifiedLens = MC350_VERIFIED[a.fam] || [];
+    const len = a.len ?? "1BA0";
+    const ok = a.len !== null && verifiedLens.includes(len);
+    const confirmed = verifiedLens.map((c) => LEN[c] || c).join(", ");
+    out.push(
+      line({
+        mlfb: `6FX3502-${a.fam}-${len}`,
+        desc: desc(XS_FL2[a.fam] ?? "", lenText(a.len)),
+        qty: a.qty,
+        orig: a.row?.mlfb ?? "(from motor)",
+        origDesc: a.row?.desc ?? `for ${uniq(a.labels).join(", ")}`,
+        origQty: a.row ? a.row.qty : null,
+        cls: ok ? "verified" : "review",
+        grp,
+        src: ok
+          ? "Outside PDF – family per D 37.1 / PDF p.47 motor pairing; exact code seen in Siemens listing"
+          : a.len === null
+            ? "Outside PDF – derived from the motor; no 808D cable row gave a length"
+            : `Outside PDF – cable family exists, but the ${lenText(a.len)} variant was not found in any listing (confirmed lengths: ${confirmed})`,
+        note:
+          (a.len === null
+            ? "No matching cable in the 808D list – 10 m assumed, set the length before ordering. "
+            : ok
+              ? ""
+              : "Confirm the exact article in TIA Selection Tool / SiePortal before ordering. ") + extraNote,
+      }),
+    );
+  };
+  const surplusLine = (r: CableRow, what: string, grp: ResultLine["grp"]) =>
+    out.push(
+      line({
+        mlfb: NO_ARTICLE,
+        desc: `${r.row.mlfb} × ${r.left} – ${what}: more 808D cables than motors to connect; not carried over`,
+        qty: r.left,
+        orig: r.row.mlfb,
+        origDesc: r.row.desc,
+        origQty: r.row.qty,
+        cls: "replaced",
+        grp,
+        src: "Cables are counted from the selected motors",
+      }),
+    );
+
+  if (fl2Count > 0) {
+    const label = (u: { sh: number; kw: number }) => `1FL2 SH${u.sh} ${u.kw} kW`;
+    const expand = (pred: (u: (typeof fl2Units)[number]) => boolean, fam: (u: (typeof fl2Units)[number]) => string) =>
+      fl2Units.filter(pred).flatMap((u) => Array.from({ length: u.qty }, () => ({ fam: fam(u), label: label(u) })));
+
+    const power = allocateCables(expand(() => true, (u) => powerFamFor(u.sh, u.kw)), cableRows.feedPower);
+    for (const a of power.alloc) {
+      const oldXs = a.row ? XS_FL2[a.row.mlfb.split("-")[1]?.replace("5CL11", "5CL02") ?? ""] : undefined;
+      emitMc350(
+        a,
+        "Feed-axis cables",
+        (xs, lt) => `Power cable pre-assembled ${xs} mm² for ${uniq(a.labels).join(" / ")} with S200, MOTION-CONNECT 350, ${lt}`,
+        `${XS_FL2[a.fam]} mm² is what D 37.1 pairs with this motor${oldXs && oldXs !== XS_FL2[a.fam] ? ` (the 808D cable was ${oldXs} mm²; the motor connector differs too)` : ""}.` +
+          (a.fam !== "5CL01" ? " SH90: 4x1.5 up to 3.5 kW, 4x2.5 above – confirm against motor current in TIA Selection Tool." : ""),
+      );
+    }
+    for (const r of power.surplus) surplusLine(r, "power cable", "Feed-axis cables");
+
+    const enc = allocateCables(expand(() => true, () => "2XB12"), cableRows.feedEncoder);
+    for (const a of enc.alloc) {
+      emitMc350(a, "Feed-axis cables", (_xs, lt) => `Encoder cable pre-assembled 3x2x0.25 for 1FL2 with S200 (absolute encoder), MOTION-CONNECT 350, ${lt}`,
+        "One per 1FL2 motor; the 1FL2 always has an absolute encoder, so the 808D incremental/absolute split disappears.");
+    }
+    for (const r of enc.surplus) surplusLine(r, "encoder cable", "Feed-axis cables");
+
+    const brk = allocateCables(expand((u) => u.brake, () => "5BL03"), cableRows.feedBrake);
+    for (const a of brk.alloc) {
+      emitMc350(a, "Feed-axis cables", (_xs, lt) => `Brake cable pre-assembled 2x0.75 mm² for 1FL2 with holding brake, S200, MOTION-CONNECT 350, ${lt}`,
+        "One per motor WITH holding brake (1FL6 code letter B/H).");
+    }
+    for (const r of brk.surplus) surplusLine(r, "brake cable – the selected motors have no brake for it", "Feed-axis cables");
+  }
+
+  if (s200SpindleCount > 0) {
+    const sUnits = spindleUnits.flatMap((u) => Array.from({ length: u.qty }, () => u.pick));
+    const encS = allocateCables(sUnits.map((p) => ({ fam: "2XB13", label: p ? `1PH3${p.frame} ${p.kw} kW` : "1PH3 Pro (to select)" })), cableRows.spindleEncoder);
+    for (const a of encS.alloc) {
+      const len = a.len ?? "1BA0";
+      const ok = a.len !== null && PH3_ENC_CABLE.includes(len);
+      out.push(
+        line({
+          mlfb: `6FX3502-2XB13-${len}`,
+          desc: `Encoder cable pre-assembled for 1PH3 Pro (BiSS-C or TTL) with S200 Spindle, MOTION-CONNECT 350, ${lenText(a.len)}`,
+          qty: a.qty,
+          orig: a.row?.mlfb ?? "(from spindle motor)",
+          origDesc: a.row?.desc ?? `for ${uniq(a.labels).join(", ")}`,
+          origQty: a.row ? a.row.qty : null,
+          cls: ok ? "verified" : "review",
+          grp: "Spindle",
+          src: ok
+            ? "Outside PDF – family and length listed in the Siemens 1PH3 Pro manual 06/2026"
+            : a.len === null
+              ? "Outside PDF – derived from the spindle motor; no 808D encoder cable gave a length"
+              : `Outside PDF – family in the 1PH3 Pro manual, but ${lenText(a.len)} is not among its listed lengths (${PH3_ENC_CABLE.map((c) => LEN[c]).join(", ")})`,
+          note: a.len === null ? "No matching cable in the 808D list – 10 m assumed, set the length before ordering." : "",
+        }),
+      );
+    }
+    for (const r of encS.surplus) surplusLine(r, "spindle encoder cable", "Spindle");
+
+    const pwrS = allocateCables(sUnits.map((p) => ({ fam: p ? p.cable : "1BB?1", label: p ? `1PH3${p.frame} ${p.kw} kW` : "1PH3 Pro (to select)" })), cableRows.spindlePower);
+    for (const a of pwrS.alloc) {
+      const sized = a.fam !== "1BB?1";
+      out.push(
+        line({
+          mlfb: `6FX5008-${a.fam}-1DA0`,
+          desc: `Power cable for 1PH3 Pro, MOTION-CONNECT 500, sold as 30 m raw length without connectors (terminal-box motor)${sized ? ` – ${XS_PH3[a.fam]} mm² for ${uniq(a.labels).join(" / ")} (Table 3-2)` : " – cross-section per motor once the 1PH3 Pro is selected"}`,
+          qty: a.qty,
+          orig: a.row?.mlfb ?? "(from spindle motor)",
+          origDesc: a.row?.desc ?? `for ${uniq(a.labels).join(", ")}`,
+          origQty: a.row ? a.row.qty : null,
+          cls: sized ? "verified" : "review",
+          grp: "Spindle",
+          src: "Outside PDF – cross-section: 1PH3 Pro manual 06/2026 Table 3-2; article: NC 81.1 (same MC500 raw cables as for 1PH1)",
+          note: "Raw cable: order length and glands per installation; the 808D pre-assembled length no longer applies.",
+        }),
+      );
+    }
+    for (const r of pwrS.surplus) surplusLine(r, "spindle power cable", "Spindle");
+  }
+
+  if (pnDrives > 0) {
+    // Topology from the drives: one cord PPU → first S200, one per further S200 (PDF p.47).
+    // The longest 808D bus cable is taken for the PPU run, the rest for the daisy chain.
+    const rowsByLen = [...cableRows.pn].sort((a, b) => b.meters - a.meters);
+    const units: CableUnit[] = [{ fam: "ppu", label: "PPU → first S200" }, ...Array.from({ length: pnDrives - 1 }, () => ({ fam: "chain", label: "S200 → S200 daisy chain" }))];
+    const pn = allocateCables(units, rowsByLen);
+    for (const a of pn.alloc) {
+      const rowM = a.row ? rowsByLen.find((r) => r.row === a.row)?.meters : undefined;
+      const cord = rowM !== undefined ? PN_CORDS.find((c) => c[0] >= rowM) || PN_CORDS[PN_CORDS.length - 1] : a.fam === "ppu" ? PN_CORDS[3] : PN_CORDS[1];
+      const listed = cord[3];
+      out.push(
+        line({
+          mlfb: cord[1],
+          desc: `Industrial Ethernet TP Cord RJ45/RJ45 4x2, pre-assembled, ${cord[2]} (PROFINET) – ${a.labels[0]}`,
+          qty: a.qty,
+          orig: a.row?.mlfb ?? "(from drives)",
+          origDesc: a.row?.desc ?? `${pnDrives} PROFINET drives`,
+          origQty: a.row ? a.row.qty : null,
+          cls: listed && a.row ? "verified" : "review",
+          grp: "PROFINET",
+          src: a.row
+            ? listed
+              ? "Outside PDF – PDF p.47 requires PN cables; article listed in catalog IK PI 2015"
+              : "Outside PDF – PDF p.47 requires PN cables; this length is seen only in Siemens Industry Mall / distributor listings"
+            : "Outside PDF – counted from the S200 drives (PDF p.47); article listed in catalog IK PI 2015",
+          note: a.row
+            ? `Nearest length at or above the ${rowM} m V70 cable.${listed ? "" : " Confirm the article in SiePortal before ordering."}`
+            : `Not in the 808D list – ${cord[2]} assumed for the ${a.labels[0]}; set the length per cabinet layout.`,
+        }),
+      );
+    }
+    for (const r of pn.surplus) surplusLine(r, "PROFINET cord", "PROFINET");
+  }
+
   // --- configuration-level checks ---
   // analog spindle counted once even if setpoint cable + inverter + BOP are all listed
   const spindles = spindleQty + (analogSpindle ? 1 : 0);
@@ -794,12 +1006,6 @@ export function convert(rows: InputRow[]): ConversionResult {
   }
   const assumed = rows.filter((r) => r.qtyAssumed).length;
   if (assumed) notes.push(["warn", `Quantity not found for ${assumed} line(s) – 1 assumed.`]);
-  if (pnDriveCount && !out.some((l) => /^6XV/.test(l.mlfb))) {
-    notes.push([
-      "info",
-      `PROFINET cabling not in the 808D list: you need 1 cord PPU → S200 and ${Math.max(pnDriveCount - 1, 0)} cord(s) S200 → S200 (PDF p.47), e.g. 6XV1870-3QH20 (2 m, PPU → S200) and 6XV1870-3QE50 (0.5 m, S200 → S200) – both listed in catalog IK PI.`,
-    ]);
-  }
   if (spindleQty) {
     notes.push([
       "info",
