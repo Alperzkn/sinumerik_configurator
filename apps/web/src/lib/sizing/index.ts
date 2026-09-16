@@ -273,9 +273,12 @@ export function sizeConfiguration(input: SizingInput): SizedSelection {
   if (derivedFromDefaults.movingMass) missingFields.push("moving mass (kg)");
   if (derivedFromDefaults.rapidTraverse) missingFields.push("rapid traverse (m/min)");
 
+  // Only a motor whose OWN inputs were defaulted loses its warnings: a
+  // spindle that cannot reach the user's stated rpm must still say so even
+  // when the feed mass / rapid were assumed.
+  if (feed && (derivedFromDefaults.movingMass || derivedFromDefaults.rapidTraverse)) feed.warnings = [];
+  if (spindle && (derivedFromDefaults.spindlePower || derivedFromDefaults.spindleSpeed)) spindle.warnings = [];
   if (missingFields.length > 0) {
-    if (feed) feed.warnings = [];
-    if (spindle) spindle.warnings = [];
     assumptions.push(
       `Selected mid-range default motors. Fill in ${missingFields.join(
         " · ",
