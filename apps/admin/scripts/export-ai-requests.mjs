@@ -5,11 +5,17 @@ import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 import * as XLSX from "xlsx";
 
-const envFile = process.argv[2] ?? "apps/admin/.env.local";
-const env = Object.fromEntries(
-  readFileSync(envFile, "utf8").split("\n").filter((l) => /^[A-Z_]+=/.test(l))
-    .map((l) => { const i = l.indexOf("="); return [l.slice(0, i), l.slice(i + 1).replace(/^"|"$/g, "")]; }),
-);
+// Credentials: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY from the process
+// environment, or from an env file given as the first argument.
+const envFile = process.argv[2];
+const fromFile = envFile
+  ? Object.fromEntries(
+      readFileSync(envFile, "utf8").split("\n").filter((l) => /^[A-Z_]+=/.test(l))
+        .map((l) => { const i = l.indexOf("="); return [l.slice(0, i), l.slice(i + 1).replace(/^"|"$/g, "")]; }),
+    )
+  : {};
+const env = { SUPABASE_URL: process.env.SUPABASE_URL || fromFile.SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || fromFile.SUPABASE_SERVICE_ROLE_KEY };
+if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) { console.error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing"); process.exit(1); }
 const sb = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
 const rows = [];
