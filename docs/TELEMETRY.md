@@ -83,8 +83,14 @@ httpOnly + sameSite=lax + secure-in-prod.
 
 ```bash
 # from the repo root, against your linked Supabase project:
-supabase db push        # applies supabase/migrations/0001_telemetry.sql
+supabase db push        # applies supabase/migrations/*.sql in order
 ```
+
+`0002_sessions_overview_all_sources.sql` matters for the Sessions page: the
+v1 view counted only `ai_traces`, so sessions that used a template, the
+manual swap tools or the 808D converter without calling the AI never
+appeared ("No sessions logged yet" while the tables were full). Re-run the
+view definition if the page looks empty.
 
 Or paste the file contents into the SQL editor in the Supabase dashboard.
 

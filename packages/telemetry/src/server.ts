@@ -256,6 +256,10 @@ export interface SessionsOverviewRow {
   thumbs_up: number;
   thumbs_down: number;
   errors: number;
+  /** v2 view (0002 migration): rows from configurations / user_actions; absent on the v1 view. */
+  configurations?: number;
+  actions?: number;
+  convert_calls?: number;
 }
 
 export async function listSessions(opts: {

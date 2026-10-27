@@ -104,6 +104,7 @@ export default async function SessionsPage({
                 <th className="text-left px-4 py-2.5 font-medium">Session</th>
                 <th className="text-left px-4 py-2.5 font-medium">When</th>
                 <th className="text-right px-4 py-2.5 font-medium">AI calls</th>
+                <th className="text-right px-4 py-2.5 font-medium">Activity</th>
                 <th className="text-right px-4 py-2.5 font-medium">Latency</th>
                 <th className="text-right px-4 py-2.5 font-medium">Tokens out</th>
                 <th className="text-right px-4 py-2.5 font-medium">Feedback</th>
@@ -306,6 +307,9 @@ function SessionRow({ s }: { s: SessionsOverviewRow }) {
   if (s.modify_calls > 0) tags.push({ label: "modify", tone: "modify" });
   if (s.thumbs_down > 0) tags.push({ label: "👎", tone: "down" });
   if (s.errors > 0) tags.push({ label: "error", tone: "error" });
+  if ((s.convert_calls ?? 0) > 0) tags.push({ label: "808D converter", tone: "modify" });
+  else if (aiCalls === 0 && ((s.configurations ?? 0) > 0 || (s.actions ?? 0) > 0)) tags.push({ label: "no AI", tone: "modify" });
+  const activity = (s.configurations ?? 0) + (s.actions ?? 0);
 
   return (
     <tr className="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
@@ -336,6 +340,12 @@ function SessionRow({ s }: { s: SessionsOverviewRow }) {
           <div className="text-[11.5px] text-muted-foreground">
             {s.modify_calls} mod
           </div>
+        )}
+      </td>
+      <td className="px-4 py-3 text-right tabular-nums align-top">
+        <div className="text-[13.5px]">{activity}</div>
+        {(s.configurations ?? 0) > 0 && (
+          <div className="text-[11.5px] text-muted-foreground">{s.configurations} BOM{s.configurations === 1 ? "" : "s"}</div>
         )}
       </td>
       <td className="px-4 py-3 text-right tabular-nums text-muted-foreground align-top">
@@ -433,7 +443,9 @@ function EmptyState({ filtersActive }: { filtersActive: boolean }) {
           Make sure <code className="font-mono">SUPABASE_URL</code> and
           <code className="font-mono"> SUPABASE_SERVICE_ROLE_KEY</code> are
           set on the web app, the migration has run, and the configurator
-          has been used at least once.
+          has been used at least once. If the tables have rows but this page
+          is empty, the <code className="font-mono">sessions_overview</code> view
+          is still v1 (AI calls only): apply migration 0002.
         </p>
       )}
     </div>
